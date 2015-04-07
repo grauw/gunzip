@@ -25,7 +25,11 @@ Archive: MACRO
 ; ix <- this
 Archive_Constructor:
 	push ix
+	ld e,ixl
+	ld d,ixh
+	push de
 	call Archive_GetInflate
+	pop de
 	call Inflate_Constructor
 	pop ix
 	ret
