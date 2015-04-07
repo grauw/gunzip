@@ -14,7 +14,7 @@ Inflate_Constructor:
 Inflate_Destructor:
 	ret
 
-; ix = this
+; iy = this
 Inflate_Inflate:
 	ret
 

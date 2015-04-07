@@ -30,6 +30,7 @@ COM_Main:
 	INCLUDE "Class.asm"
 	INCLUDE "Gunzip.asm"
 	INCLUDE "CLI.asm"
+	INCLUDE "Archive.asm"
 	INCLUDE "Inflate.asm"
 
 	ENDS

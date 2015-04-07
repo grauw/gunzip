@@ -4,8 +4,8 @@
 Gunzip: MACRO
 	cli:
 		dw CLI_instance
-	Inflate:
-		dw Inflate_instance
+	archive:
+		dw Archive_instance
 	size:
 	ENDM
 
@@ -58,8 +58,8 @@ Gunzip_Constructor:
 	call CLI_Constructor
 	pop ix
 	push ix
-	call Gunzip_GetInflate
-	call Inflate_Constructor
+	call Gunzip_GetArchive
+	call Archive_Constructor
 	pop ix
 	ret
 
@@ -71,8 +71,8 @@ Gunzip_Destructor:
 	call CLI_Destructor
 	pop ix
 	push ix
-	call Gunzip_GetInflate
-	call Inflate_Destructor
+	call Gunzip_GetArchive
+	call Archive_Destructor
 	pop ix
 	ret
 
@@ -87,11 +87,11 @@ Gunzip_GetCLI:
 	ret
 
 ; ix = this
-; de <- Inflate implementation
-; ix <- Inflate implementation
-Gunzip_GetInflate:
-	ld e,(ix + Gunzip.Inflate)
-	ld d,(ix + Gunzip.Inflate + 1)
+; de <- Gzip archive
+; ix <- Gzip archive
+Gunzip_GetArchive:
+	ld e,(ix + Gunzip.archive)
+	ld d,(ix + Gunzip.archive + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -132,9 +132,9 @@ Gunzip_Inflate: PROC
 	call System_Print
 	ld hl,Gunzip_dotDotDot
 	call System_Print
-	call Gunzip_GetInflate
+	call Gunzip_GetArchive
 	pop hl
-	call Inflate_Inflate
+	call Archive_Inflate
 	pop ix
 	ret
 	ENDP
