@@ -40,13 +40,13 @@ Archive_Destructor:
 	ret
 
 ; ix = this
-; de <- Archive implementation
-; iy <- Archive implementation
+; de <- Inflate implementation
+; iy <- Inflate implementation
 Archive_GetInflate:
 	ld e,(ix + Archive.inflate)
 	ld d,(ix + Archive.inflate + 1)
-	ld iyl,e
-	ld iyh,d
+	ld ixl,e
+	ld ixh,d
 	ret
 
 ; ix = this
@@ -143,8 +143,10 @@ Archive_Process:
 	and Archive_FHCRC
 	call nz,Archive_SkipHeaderCRC
 
+	push ix
 	call Archive_GetInflate
 	call Inflate_Inflate
+	pop ix
 	ret
 
 ; ix = this
