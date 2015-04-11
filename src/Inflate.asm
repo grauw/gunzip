@@ -58,6 +58,8 @@ NextByte:
 Inflate_ReadBits: PROC
 	ld a,9
 	sub b
+	call c,System_ThrowException
+	call z,System_ThrowException
 	ld c,a
 	xor a
 Loop1:
