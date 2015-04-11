@@ -5,21 +5,14 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 	; ix <- new object
 	; de <- new object
 	New:
-		push af
 		push bc
-		push de
 		push hl
-		ld ix,?heap
 		ld bc,?macro._size
-		call Heap_Allocate
-		ld ixl,e
-		ld ixh,d
 		ld hl,?template
-		ldir
+		ld ix,?heap
+		call Class__New
 		pop hl
-		pop de
 		pop bc
-		pop af
 		call ?constructor
 		ld e,ixl
 		ld d,ixh
@@ -34,3 +27,19 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 		ld ix,?heap
 		jp Heap_Free
 	ENDM
+
+; bc = size
+; ix = heap
+; hl = template
+Class__New:
+	push af
+	push de
+	push hl
+	call Heap_Allocate
+	ld ixl,e
+	ld ixh,d
+	pop hl
+	ldir
+	pop de
+	pop af
+	ret
