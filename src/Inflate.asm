@@ -150,9 +150,6 @@ Inflate_InflateBlock:
 
 ; ix = this
 Inflate_InflateUncompressed: PROC
-	ld a,"0"
-	call System_PrintChar
-	call System_PrintCrLf
 	call Inflate_Align
 	call Inflate_ReadWord
 	push de
