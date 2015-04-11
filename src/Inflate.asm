@@ -3,7 +3,7 @@
 ;
 Inflate: MACRO
 	archive:
-		db 0
+		dw 0
 	output:
 		dw OBUFFER
 	byte:
