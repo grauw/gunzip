@@ -137,7 +137,6 @@ Archive_Inflate:
 	call Gunzip_CheckDOSError
 	ret
 
-; hl = file size
 ; ix = this
 Archive_Process:
 	call Archive_Read
