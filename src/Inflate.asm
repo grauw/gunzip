@@ -51,6 +51,29 @@ Inflate_GetReader:
 	ret
 
 ; ix = this
+; a <- value
+; Modifies: hl, de
+Inflate_Read:
+	push ix
+	call Inflate_GetReader
+	call FileReader_Read
+	pop ix
+	ret
+
+; ix = this
+; de <- value
+; Modifies: hl, de, a
+Inflate_ReadWord:
+	push ix
+	call Inflate_GetReader
+	call FileReader_Read
+	ld e,a
+	call FileReader_Read
+	ld d,a
+	pop ix
+	ret
+
+; ix = this
 ; f <- c: bit
 Inflate_ReadBit: PROC
 	dec (ix + Inflate.bitCounter)
@@ -96,14 +119,14 @@ Inflate_Align:
 	ret
 
 ; a = value
-; iy = this
-Inflate_IY_Write:
-	ld l,(iy + Inflate.output)
-	ld h,(iy + Inflate.output + 1)
+; ix = this
+Inflate_Write:
+	ld l,(ix + Inflate.output)
+	ld h,(ix + Inflate.output + 1)
 	ld (hl),a
 	inc hl
-	ld (iy + Inflate.output),l
-	ld (iy + Inflate.output + 1),h
+	ld (ix + Inflate.output),l
+	ld (ix + Inflate.output + 1),h
 	bit 7,h
 	ret z
 	bit 6,h
@@ -111,7 +134,7 @@ Inflate_IY_Write:
 	push af
 	push bc
 	push de
-	call Inflate_IY_Flush
+	call Inflate_Flush
 	pop de
 	pop bc
 	pop af
@@ -119,30 +142,19 @@ Inflate_IY_Write:
 
 ; ix = this
 Inflate_Flush:
-	push ix
-	push ix
-	pop iy
-	call Inflate_IY_Flush
-	pop ix
-	ret
-
-; ix = archive
-; iy = this
-Inflate_IY_Flush:
-	ld e,(iy + Inflate.archive)
-	ld d,(iy + Inflate.archive + 1)
-	ld ixl,e
-	ld ixh,d
-	ld l,(iy + Inflate.output)
-	ld h,(iy + Inflate.output + 1)
+	ld l,(ix + Inflate.output)
+	ld h,(ix + Inflate.output + 1)
 	ld de,OBUFFER
 	and a
 	sbc hl,de
+	push ix
+	call Inflate_GetArchive
 	ld de,OBUFFER
 	call Archive_WriteToOutput
+	pop ix
 	ld hl,OBUFFER
-	ld (iy + Inflate.output),l
-	ld (iy + Inflate.output + 1),h
+	ld (ix + Inflate.output),l
+	ld (ix + Inflate.output + 1),h
 	ret
 
 ; ix = this
@@ -174,12 +186,10 @@ Inflate_InflateUncompressed: PROC
 	call System_PrintChar
 	call System_PrintCrLf
 	call Inflate_Align
-	push ix
-	call Inflate_GetReader
-	call FileReader_ReadWord
+	call Inflate_ReadWord
 	push de
 	push de
-	call FileReader_ReadWord
+	call Inflate_ReadWord
 	pop hl
 	scf
 	adc hl,de
@@ -188,20 +198,17 @@ Inflate_InflateUncompressed: PROC
 	pop de
 	ld a,d
 	or e
-	jr z,Done
-	pop iy
-	push iy
+	ret z
 	ld b,e
 	dec de
 	inc d
+	ld c,d
 Loop:
-	call FileReader_Read
-	call Inflate_IY_Write
+	call Inflate_Read
+	call Inflate_Write
 	djnz Loop
-	dec d
+	dec c
 	jp nz,Loop
-Done:
-	pop ix
 	ret
 	ENDP
 

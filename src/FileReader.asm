@@ -92,16 +92,6 @@ NextBlock:
 	ret
 	ENDP
 
-; ix = this
-; de <- value
-; Modifies: hl, a
-FileReader_ReadWord:
-	call FileReader_Read
-	ld e,a
-	call FileReader_Read
-	ld d,a
-	ret
-
 ; bc = nr of bytes to skip
 ; ix = this
 ; Modifies: hl, a
