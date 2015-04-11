@@ -10,7 +10,7 @@ Archive: MACRO
 	inflate:
 		dw Inflate_instance
 	inputFileHandle:
-		db 0
+		db 0FFH
 	position:
 		dw IBUFFER + IBUFFER_SIZE
 	flags:
