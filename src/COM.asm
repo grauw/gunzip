@@ -36,5 +36,6 @@ COM_Main:
 	INCLUDE "Archive.asm"
 	INCLUDE "Inflate.asm"
 	INCLUDE "FileReader.asm"
+	INCLUDE "FileWriter.asm"
 
 	ENDS

@@ -2,27 +2,25 @@
 ; Inflate implementation
 ;
 Inflate: MACRO
-	archive:
-		dw 0
 	reader:
 		dw 0
-	output:
-		dw OBUFFER
+	writer:
+		dw 0
 	byte:
 		db 0
 	bitCounter:
 		db 1
 	ENDM
 
-; de = Gzip archive
 ; hl = file reader
+; de = file writer
 ; ix = this
 ; ix <- this
 Inflate_Constructor:
-	ld (ix + Inflate.archive),e
-	ld (ix + Inflate.archive + 1),d
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
+	ld (ix + Inflate.writer),e
+	ld (ix + Inflate.writer + 1),d
 	ret
 
 ; ix = this
@@ -31,21 +29,21 @@ Inflate_Destructor:
 	ret
 
 ; ix = this
-; de <- Gzip archive
-; iy <- Gzip archive
-Inflate_GetArchive:
-	ld e,(ix + Inflate.archive)
-	ld d,(ix + Inflate.archive + 1)
-	ld ixl,e
-	ld ixh,d
-	ret
-
-; ix = this
 ; de <- file reader
 ; ix <- file reader
 Inflate_GetReader:
 	ld e,(ix + Inflate.reader)
 	ld d,(ix + Inflate.reader + 1)
+	ld ixl,e
+	ld ixh,d
+	ret
+
+; ix = this
+; de <- file writer
+; ix <- file writer
+Inflate_GetWriter:
+	ld e,(ix + Inflate.writer)
+	ld d,(ix + Inflate.writer + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -118,43 +116,14 @@ Inflate_Align:
 	ld (ix + Inflate.bitCounter),1
 	ret
 
-; a = value
 ; ix = this
+; a <- value
+; Modifies: hl, de
 Inflate_Write:
-	ld l,(ix + Inflate.output)
-	ld h,(ix + Inflate.output + 1)
-	ld (hl),a
-	inc hl
-	ld (ix + Inflate.output),l
-	ld (ix + Inflate.output + 1),h
-	bit 7,h
-	ret z
-	bit 6,h
-	ret z
-	push af
-	push bc
-	push de
-	call Inflate_Flush
-	pop de
-	pop bc
-	pop af
-	ret
-
-; ix = this
-Inflate_Flush:
-	ld l,(ix + Inflate.output)
-	ld h,(ix + Inflate.output + 1)
-	ld de,OBUFFER
-	and a
-	sbc hl,de
 	push ix
-	call Inflate_GetArchive
-	ld de,OBUFFER
-	call Archive_WriteToOutput
+	call Inflate_GetWriter
+	call FileWriter_Write
 	pop ix
-	ld hl,OBUFFER
-	ld (ix + Inflate.output),l
-	ld (ix + Inflate.output + 1),h
 	ret
 
 ; ix = this
@@ -166,7 +135,6 @@ Inflate_Inflate:
 	call Inflate_InflateBlock
 	pop af
 	jp nc,Inflate_Inflate
-	call Inflate_Flush
 	ret
 
 ; a = block type

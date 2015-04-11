@@ -11,8 +11,8 @@ Archive: MACRO
 		dw Inflate_instance
 	reader:
 		dw FileReader_instance
-	outputFileHandle:
-		db 0FFH
+	writer:
+		dw FileWriter_instance
 	flags:
 		db 0
 	mtime:
@@ -33,10 +33,16 @@ Archive_Constructor:
 	call FileReader_Constructor
 	pop ix
 	push ix
-	ld e,ixl
-	ld d,ixh
+	call Archive_GetWriter
+	ld hl,OBUFFER
+	ld bc,OBUFFER_SIZE
+	call FileWriter_Constructor
+	pop ix
+	push ix
 	ld l,(ix + Archive.reader)
 	ld h,(ix + Archive.reader + 1)
+	ld e,(ix + Archive.writer)
+	ld d,(ix + Archive.writer + 1)
 	push de
 	call Archive_GetInflate
 	pop de
@@ -55,6 +61,10 @@ Archive_Destructor:
 	call Archive_GetReader
 	call FileReader_Destructor
 	pop ix
+	push ix
+	call Archive_GetWriter
+	call FileWriter_Destructor
+	pop ix
 	ret
 
 ; ix = this
@@ -63,6 +73,16 @@ Archive_Destructor:
 Archive_GetReader:
 	ld e,(ix + Archive.reader)
 	ld d,(ix + Archive.reader + 1)
+	ld ixl,e
+	ld ixh,d
+	ret
+
+; ix = this
+; de <- file writer
+; ix <- file writer
+Archive_GetWriter:
+	ld e,(ix + Archive.writer)
+	ld d,(ix + Archive.writer + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -97,16 +117,6 @@ Archive_Skip:
 	pop ix
 	ret
 
-; de = source address
-; hl = nr of bytes
-; ix = this
-Archive_WriteToOutput:
-	ld b,(ix + Archive.outputFileHandle)
-	ld c,_WRITE
-	call BDOS
-	call Gunzip_CheckDOSError
-	ret
-
 ; hl = input archive path
 ; de = output file path
 ; ix = this
@@ -117,13 +127,12 @@ Archive_Inflate:
 	ex de,hl
 	call FileReader_Open
 	pop ix
-	pop de
-	ld a,00000010B  ; write only
-	ld b,0
-	ld c,_CREATE
-	call BDOS
-	call Gunzip_CheckDOSError
-	ld (ix + Archive.outputFileHandle),b
+	pop hl
+	push ix
+	call Archive_GetWriter
+	ex de,hl
+	call FileWriter_Open
+	pop ix
 
 	call Archive_Process
 
@@ -131,10 +140,10 @@ Archive_Inflate:
 	call Archive_GetReader
 	call FileReader_Close
 	pop ix
-	ld b,(ix + Archive.outputFileHandle)
-	ld c,_CLOSE
-	call BDOS
-	call Gunzip_CheckDOSError
+	push ix
+	call Archive_GetWriter
+	call FileWriter_Close
+	pop ix
 	ret
 
 ; ix = this
