@@ -177,9 +177,6 @@ Throw:
 	jp System_ThrowExceptionWithMessage
 	ENDP
 
-Heap_outOfHeapException:
-	db "Out of heap space.",0
-
 ;
 ; Allocates, then clears the allocated space.
 ;
@@ -372,9 +369,6 @@ Throw:
 	jp System_ThrowExceptionWithMessage
 	ENDP
 
-Heap_integrityCheckException:
-	db "Heap integrity check failed.",0
-
 ;
 ; Checks whether the specified address lies inside this heap.
 ;
@@ -409,3 +403,10 @@ Heap_RoundBC:
 	ld c,a
 	inc bc
 	ret
+
+;
+Heap_outOfHeapException:
+	db "Out of heap space.",0
+
+Heap_integrityCheckException:
+	db "Heap integrity check failed.",0
