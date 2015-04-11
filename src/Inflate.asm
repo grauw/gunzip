@@ -165,7 +165,7 @@ Inflate_InflateBlock:
 	cp 2
 	jp c,Inflate_InflateFixedCompressed
 	jp z,Inflate_InflateDynamicCompressed
-	ld hl,Archive_invalidBlockTypeError
+	ld hl,Inflate_invalidBlockTypeError
 	jp Gunzip_TerminateWithError
 
 ; ix = this
@@ -183,7 +183,7 @@ Inflate_InflateUncompressed: PROC
 	pop hl
 	scf
 	adc hl,de
-	ld hl,Archive_invalidLengthError
+	ld hl,Inflate_invalidLengthError
 	jp nz,Gunzip_TerminateWithError
 	pop de
 	ld a,d
@@ -230,10 +230,10 @@ Inflate_InflateDynamicCompressed:
 
 Inflate_instance: Inflate
 
-Archive_invalidBlockTypeError:
+Inflate_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
 
-Archive_invalidLengthError:
+Inflate_invalidLengthError:
 	db "Invalid length.",13,10,0
 
 	ENDS
