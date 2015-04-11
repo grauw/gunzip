@@ -52,7 +52,7 @@ NextByte:
 	ret
 	ENDP
 
-; b = nr of bits to read (0-7)
+; b = nr of bits to read (1-8)
 ; ix = this
 ; a = value
 Inflate_ReadBits: PROC
