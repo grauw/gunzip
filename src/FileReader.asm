@@ -10,7 +10,11 @@ FileReader: MACRO
 		dw 0
 	fileHandle:
 		db 0FFH
+	_size:
 	ENDM
+
+FileReader_class: Class FileReader, FileReader_template, FileReader_Constructor, FileReader_Destructor, Heap_main
+FileReader_template: FileReader
 
 ; hl = buffer start
 ; bc = buffer size
@@ -122,10 +126,3 @@ EndOfFile:
 	; TODO
 	ret
 	ENDP
-
-;
-	SECTION RAM
-
-FileReader_instance: FileReader
-
-	ENDS

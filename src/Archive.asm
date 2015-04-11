@@ -8,11 +8,11 @@ Archive_FCOMMENT: equ 1 << 4;
 
 Archive: MACRO
 	reader:
-		dw FileReader_instance
+		dw 0
 	writer:
-		dw FileWriter_instance
+		dw 0
 	inflate:
-		dw Inflate_instance
+		dw 0
 	flags:
 		db 0
 	mtime:
@@ -21,33 +21,38 @@ Archive: MACRO
 		db 0
 	os:
 		db 0
+	_size:
 	ENDM
+
+Archive_class: Class Archive, Archive_template, Archive_Constructor, Archive_Destructor, Heap_main
+Archive_template: Archive
 
 ; ix = this
 ; ix <- this
 Archive_Constructor:
 	push ix
-	call Archive_GetReader
 	ld hl,IBUFFER
 	ld bc,IBUFFER_SIZE
-	call FileReader_Constructor
+	call FileReader_class.New
 	pop ix
+	ld (ix + Archive.reader),e
+	ld (ix + Archive.reader + 1),d
 	push ix
-	call Archive_GetWriter
 	ld hl,OBUFFER
 	ld bc,OBUFFER_SIZE
-	call FileWriter_Constructor
+	call FileWriter_class.New
 	pop ix
+	ld (ix + Archive.writer),e
+	ld (ix + Archive.writer + 1),d
 	push ix
 	ld l,(ix + Archive.reader)
 	ld h,(ix + Archive.reader + 1)
 	ld e,(ix + Archive.writer)
 	ld d,(ix + Archive.writer + 1)
-	push de
-	call Archive_GetInflate
-	pop de
-	call Inflate_Constructor
+	call Inflate_class.New
 	pop ix
+	ld (ix + Archive.inflate),e
+	ld (ix + Archive.inflate + 1),d
 	ret
 
 ; ix = this
@@ -55,15 +60,15 @@ Archive_Constructor:
 Archive_Destructor:
 	push ix
 	call Archive_GetInflate
-	call Inflate_Destructor
+	call Inflate_class.Destroy
 	pop ix
 	push ix
 	call Archive_GetReader
-	call FileReader_Destructor
+	call FileReader_class.Destroy
 	pop ix
 	push ix
 	call Archive_GetWriter
-	call FileWriter_Destructor
+	call FileWriter_class.Destroy
 	pop ix
 	ret
 
@@ -228,14 +233,8 @@ Archive_SkipHeaderCRC:
 	ret
 
 ;
-	SECTION RAM
-
-Archive_instance: Archive
-
 Archive_notGzipError:
 	db "Not a GZIP file.",13,10,0
 
 Archive_notDeflateError:
 	db "Not compressed with DEFLATE.",13,10,0
-
-	ENDS

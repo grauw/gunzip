@@ -10,8 +10,11 @@ CLI: MACRO
 		db 0
 	buffer:
 		ds 255
-	size:
+	_size:
 	ENDM
+
+CLI_class: Class CLI, CLI_template, CLI_Constructor, CLI_Destructor, Heap_main
+CLI_template: CLI
 
 ; ix = this
 ; ix <- this
@@ -114,10 +117,6 @@ OutputPath:
 	ENDP
 
 ;
-	SECTION RAM
-
-CLI_instance: CLI
-
 CLI_parametersEnvName:
 	db "PARAMETERS",0
 
@@ -126,5 +125,3 @@ CLI_unknownOptionError:
 
 CLI_multiplePathsError:
 	db "Can not specify additional file paths.",13,10,0
-
-	ENDS

@@ -3,11 +3,14 @@
 ;
 Application: MACRO
 	cli:
-		dw CLI_instance
+		dw 0
 	archive:
-		dw Archive_instance
-	size:
+		dw 0
+	_size:
 	ENDM
+
+Application_class: Class Application, Application_template, Application_Constructor, Application_Destructor, Heap_main
+Application_template: Application
 
 ;
 Application_Main:
@@ -23,8 +26,8 @@ Application_Main:
 
 	call HeapTest_Test
 
-	ld ix,Application_instance
-	call Application_Constructor
+	call Application_class.New
+	ld (Application_instance),ix
 	ld de,Application_Abort
 	call Application_SetAbortHandler
 	call Application_EnterMainLoop
@@ -35,8 +38,8 @@ Application_Main:
 Application_Abort:
 	push af
 	push bc
-	ld ix,Application_instance
-	call Application_Destructor
+	ld ix,(Application_instance)
+	call Application_class.Destroy
 	pop bc
 	pop af
 	ret
@@ -52,13 +55,15 @@ Application_SetAbortHandler:
 ; ix <- this
 Application_Constructor:
 	push ix
-	call Application_GetCLI
-	call CLI_Constructor
+	call CLI_class.New
 	pop ix
+	ld (ix + Application.cli),e
+	ld (ix + Application.cli + 1),d
 	push ix
-	call Application_GetArchive
-	call Archive_Constructor
+	call Archive_class.New
 	pop ix
+	ld (ix + Application.archive),e
+	ld (ix + Application.archive + 1),d
 	ret
 
 ; ix = this
@@ -66,11 +71,11 @@ Application_Constructor:
 Application_Destructor:
 	push ix
 	call Application_GetCLI
-	call CLI_Destructor
+	call CLI_class.Destroy
 	pop ix
 	push ix
 	call Application_GetArchive
-	call Archive_Destructor
+	call Archive_class.Destroy
 	pop ix
 	ret
 
@@ -171,10 +176,6 @@ Application_TerminateWithError:
 	call BDOS
 
 ;
-	SECTION RAM
-
-Application_instance: Application
-
 Application_welcome:
 	db "Gunzip 1.0 by Grauw",13,10,10,0
 
@@ -192,6 +193,11 @@ Application_usageInstructions:
 	db 13,10
 	db "Options:",13,10
 	db "  /t  Test the checksum after inflating.",13,10,0
+
+	SECTION RAM
+
+Application_instance:
+	dw 0
 
 Application_explainBuffer:
 	ds 64,0

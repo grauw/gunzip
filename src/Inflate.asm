@@ -10,7 +10,11 @@ Inflate: MACRO
 		db 0
 	bitCounter:
 		db 1
+	_size:
 	ENDM
+
+Inflate_class: Class Inflate, Inflate_template, Inflate_Constructor, Inflate_Destructor, Heap_main
+Inflate_template: Inflate
 
 ; hl = file reader
 ; de = file writer
@@ -198,14 +202,8 @@ Inflate_InflateDynamicCompressed:
 	ret
 
 ;
-	SECTION RAM
-
-Inflate_instance: Inflate
-
 Inflate_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
 
 Inflate_invalidLengthError:
 	db "Invalid length.",13,10,0
-
-	ENDS

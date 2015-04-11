@@ -1,38 +1,36 @@
-; iy = class template
-; ix <- new object
-; Modifies: af, bc, de, hl, ix
-Class_New:
-	ld ix,Heap_main
-	ld c,(iy - 2)
-	ld b,(iy - 1)
-	call Heap_Allocate
-	ld ixl,e
-	ld ixh,d
-	push iy
-	pop hl
-	ldir
-	ret
+;
+; Object to define and instantiate classes
+;
+Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
+	; ix <- new object
+	; de <- new object
+	New:
+		push af
+		push bc
+		push de
+		push hl
+		ld ix,?heap
+		ld bc,?macro._size
+		call Heap_Allocate
+		ld ixl,e
+		ld ixh,d
+		ld hl,?template
+		ldir
+		pop hl
+		pop de
+		pop bc
+		pop af
+		call ?constructor
+		ld e,ixl
+		ld d,ixh
+		ret
 
-; iy = class template
-; ix = this
-Class_Destroy:
-	ld c,(iy - 2)
-	ld b,(iy - 1)
-	ld e,ixl
-	ld d,ixh
-	ld ix,Heap_main
-	jp Heap_Free
-
-; iy = class template
-; de = destination address
-; ix <- new object
-; Modifies: bc, de, hl, ix
-Class_Copy:
-	ld c,(iy - 2)
-	ld b,(iy - 1)
-	ld ixl,e
-	ld ixh,d
-	push iy
-	pop hl
-	ldir
-	ret
+	; ix = object
+	Destroy:
+		call ?destructor
+		ld bc,?macro._size
+		ld e,ixl
+		ld d,ixh
+		ld ix,?heap
+		jp Heap_Free
+	ENDM

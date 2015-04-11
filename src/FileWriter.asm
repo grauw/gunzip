@@ -10,7 +10,11 @@ FileWriter: MACRO
 		dw 0
 	fileHandle:
 		db 0FFH
+	_size:
 	ENDM
+
+FileWriter_class: Class FileWriter, FileWriter_template, FileWriter_Constructor, FileWriter_Destructor, Heap_main
+FileWriter_template: FileWriter
 
 ; hl = buffer start
 ; bc = buffer size
@@ -106,10 +110,3 @@ FileWriter_WriteToFile:
 	call BDOS
 	call Application_CheckDOSError
 	ret
-
-;
-	SECTION RAM
-
-FileWriter_instance: FileWriter
-
-	ENDS
