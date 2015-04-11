@@ -2,7 +2,9 @@
 ; Command-line interface parser
 ;
 CLI: MACRO
-	path:
+	archivePath:
+		dw 0
+	outputPath:
 		dw 0
 	checksum:
 		db 0
@@ -85,13 +87,13 @@ Next:
 
 ; de = buffer position
 ; ix = this
-CLI_ParsePath:
-	ld a,(ix + CLI.path)
-	or (ix + CLI.path + 1)
-	ld hl,CLI_multiplePathsError
-	call nz,Gunzip_TerminateWithError
-	ld (ix + CLI.path),e
-	ld (ix + CLI.path + 1),d
+CLI_ParsePath: PROC
+	ld a,(ix + CLI.archivePath)
+	or (ix + CLI.archivePath + 1)
+	jp nz,OutputPath
+	ld (ix + CLI.archivePath),e
+	ld (ix + CLI.archivePath + 1),d
+Continue:
 	ld c,_PARSE
 	call BDOS
 	ld a,(de)
@@ -101,6 +103,15 @@ CLI_ParsePath:
 	ld (de),a
 	inc de
 	ret
+OutputPath:
+	ld a,(ix + CLI.outputPath)
+	or (ix + CLI.outputPath + 1)
+	ld hl,CLI_multiplePathsError
+	call nz,Gunzip_TerminateWithError
+	ld (ix + CLI.outputPath),e
+	ld (ix + CLI.outputPath + 1),d
+	jp Continue
+	ENDP
 
 ;
 	SECTION RAM
@@ -114,6 +125,6 @@ CLI_unknownOptionError:
 	db "Unknown command line option.",13,10,0
 
 CLI_multiplePathsError:
-	db "Can not specify more than one file path.",13,10,0
+	db "Can not specify additional file paths.",13,10,0
 
 	ENDS

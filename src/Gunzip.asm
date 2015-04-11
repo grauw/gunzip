@@ -107,8 +107,14 @@ Gunzip_ParseCLI:
 	push ix
 	call Gunzip_GetCLI
 	call CLI_Parse
-	ld l,(ix + CLI.path)
-	ld h,(ix + CLI.path + 1)
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	ld a,l
+	or h
+	ld hl,Gunzip_usageInstructions
+	call z,Gunzip_TerminateWithError
+	ld l,(ix + CLI.outputPath)
+	ld h,(ix + CLI.outputPath + 1)
 	ld a,l
 	or h
 	ld hl,Gunzip_usageInstructions
@@ -120,10 +126,13 @@ Gunzip_ParseCLI:
 Gunzip_Inflate: PROC
 	push ix
 	call Gunzip_GetCLI
-	ld l,(ix + CLI.path)
-	ld h,(ix + CLI.path + 1)
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	ld e,(ix + CLI.outputPath)
+	ld d,(ix + CLI.outputPath + 1)
 	pop ix
 	push ix
+	push de
 	push hl
 	ld hl,Gunzip_inflatingFile
 	call System_Print
@@ -134,6 +143,7 @@ Gunzip_Inflate: PROC
 	call System_Print
 	call Gunzip_GetArchive
 	pop hl
+	pop de
 	call Archive_Inflate
 	pop ix
 	ret
@@ -180,7 +190,7 @@ Gunzip_dos2RequiredError:
 	db "MSX-DOS 2 is required.",13,10,0
 
 Gunzip_usageInstructions:
-	db "Usage: gunzip [options] <file.gz>",13,10
+	db "Usage: gunzip [options] <file.gz> <outputfile>",13,10
 	db 13,10
 	db "Options:",13,10
 	db "  /t  Test the checksum after inflating.",13,10,0

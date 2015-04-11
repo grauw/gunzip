@@ -81,12 +81,51 @@ Inflate_Align:
 	ret
 
 ; a = value
-; ix = this
+; iy = this
 Inflate_IY_Write:
 	ld l,(iy + Inflate.output)
 	ld h,(iy + Inflate.output + 1)
 	ld (hl),a
 	inc hl
+	ld (iy + Inflate.output),l
+	ld (iy + Inflate.output + 1),h
+	bit 7,h
+	ret z
+	bit 6,h
+	ret z
+	push af
+	push bc
+	push de
+	call Inflate_IY_Flush
+	pop de
+	pop bc
+	pop af
+	ret
+
+; ix = this
+Inflate_Flush:
+	push ix
+	push ix
+	pop iy
+	call Inflate_IY_Flush
+	pop ix
+	ret
+
+; ix = archive
+; iy = this
+Inflate_IY_Flush:
+	ld e,(iy + Inflate.archive)
+	ld d,(iy + Inflate.archive + 1)
+	ld ixl,e
+	ld ixh,d
+	ld l,(iy + Inflate.output)
+	ld h,(iy + Inflate.output + 1)
+	ld de,OBUFFER
+	and a
+	sbc hl,de
+	ld de,OBUFFER
+	call Archive_WriteToOutput
+	ld hl,OBUFFER
 	ld (iy + Inflate.output),l
 	ld (iy + Inflate.output + 1),h
 	ret
@@ -100,6 +139,7 @@ Inflate_Inflate:
 	call Inflate_InflateBlock
 	pop af
 	jp nc,Inflate_Inflate
+	call Inflate_Flush
 	ret
 
 ; a = block type

@@ -11,6 +11,8 @@ Archive: MACRO
 		dw Inflate_instance
 	inputFileHandle:
 		db 0FFH
+	outputFileHandle:
+		db 0FFH
 	position:
 		dw IBUFFER + IBUFFER_SIZE
 	flags:
@@ -104,19 +106,42 @@ Archive_Skip:
 	ld (ix + Archive.position + 1),h
 	ret
 
-; hl = archive path
+; de = source address
+; hl = nr of bytes
+; ix = this
+Archive_WriteToOutput:
+	ld b,(ix + Archive.outputFileHandle)
+	ld c,_WRITE
+	call BDOS
+	call Gunzip_CheckDOSError
+	ret
+
+; hl = input archive path
+; de = output file path
 ; ix = this
 Archive_Inflate:
+	push de
 	ex de,hl
-	ld a,00000001B  ; read-only
+	ld a,00000001B  ; read only
 	ld c,_OPEN
 	call BDOS
 	call Gunzip_CheckDOSError
 	ld (ix + Archive.inputFileHandle),b
+	pop de
+	ld a,00000010B  ; write only
+	ld b,0
+	ld c,_CREATE
+	call BDOS
+	call Gunzip_CheckDOSError
+	ld (ix + Archive.outputFileHandle),b
 
 	call Archive_Process
 
 	ld b,(ix + Archive.inputFileHandle)
+	ld c,_CLOSE
+	call BDOS
+	call Gunzip_CheckDOSError
+	ld b,(ix + Archive.outputFileHandle)
 	ld c,_CLOSE
 	call BDOS
 	call Gunzip_CheckDOSError
