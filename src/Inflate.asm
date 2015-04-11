@@ -83,7 +83,7 @@ Inflate_Inflate:
 	call Inflate_ReadBits
 	call Inflate_InflateBlock
 	pop af
-;	jp nc,Inflate_Inflate
+	jp nc,Inflate_Inflate
 	ret
 
 ; a = block type
@@ -102,6 +102,9 @@ Inflate_InflateUncompressed:
 	ld a,"0"
 	call System_PrintChar
 	call System_PrintCrLf
+	ld b,1
+	ld c,_TERM
+	call BDOS
 	ret
 
 ; ix = this
@@ -109,6 +112,9 @@ Inflate_InflateFixedCompressed:
 	ld a,"1"
 	call System_PrintChar
 	call System_PrintCrLf
+	ld b,1
+	ld c,_TERM
+	call BDOS
 	ret
 
 ; ix = this
@@ -116,6 +122,9 @@ Inflate_InflateDynamicCompressed:
 	ld a,"2"
 	call System_PrintChar
 	call System_PrintCrLf
+	ld b,1
+	ld c,_TERM
+	call BDOS
 	ret
 
 ;
