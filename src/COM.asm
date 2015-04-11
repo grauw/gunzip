@@ -12,11 +12,13 @@ DEBUG: equ 1
 
 IBUFFER_SIZE: equ 1000H
 OBUFFER_SIZE: equ 8000H
+HEAP_SIZE: EQU 1000H
 
 TPA: ds 1F00H
 RAM: ds 1000H
 IBUFFER: ds VIRTUAL IBUFFER_SIZE
 OBUFFER: ds VIRTUAL OBUFFER_SIZE
+HEAP: ds VIRTUAL HEAP_SIZE
 
 	SECTION TPA
 
@@ -30,6 +32,7 @@ COM_Main:
 	INCLUDE "BIOS.asm"
 	INCLUDE "System.asm"
 	INCLUDE "Heap.asm"
+	INCLUDE "HeapTest.asm"
 	INCLUDE "Class.asm"
 	INCLUDE "Gunzip.asm"
 	INCLUDE "CLI.asm"
@@ -37,5 +40,12 @@ COM_Main:
 	INCLUDE "Inflate.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
+
+	ENDS
+
+	SECTION RAM
+
+Heap_main:
+	Heap HEAP, HEAP_SIZE
 
 	ENDS

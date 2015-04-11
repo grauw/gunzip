@@ -18,12 +18,10 @@ Gunzip_Main:
 	ld hl,Gunzip_welcome
 	call System_Print
 
-	ld ix,Heap_heap
-	call Heap_Constructor
-	ld ix,Heap_heapUpper
+	ld ix,Heap_main
 	call Heap_Constructor
 
-	call Heap_UnitTest
+	call HeapTest_Test
 
 	ld ix,Gunzip_instance
 	call Gunzip_Constructor
