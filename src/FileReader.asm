@@ -48,6 +48,10 @@ FileReader_Open:
 	call BDOS
 	call Gunzip_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
+	ld l,(ix + FileReader.bufferStart)
+	ld h,(ix + FileReader.bufferStart + 1)
+	ld (ix + FileReader.bufferPosition),l
+	ld (ix + FileReader.bufferPosition + 1),h
 	call FileReader_ReadFromFile
 	ret
 
