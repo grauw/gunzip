@@ -1,7 +1,7 @@
 ;
-; Top-level Gunzip program class
+; Top-level application program class
 ;
-Gunzip: MACRO
+Application: MACRO
 	cli:
 		dw CLI_instance
 	archive:
@@ -10,12 +10,12 @@ Gunzip: MACRO
 	ENDM
 
 ;
-Gunzip_Main:
+Application_Main:
 	call DOS_IsDOS2
-	ld hl,Gunzip_dos2RequiredError
-	call c,Gunzip_TerminateWithError
+	ld hl,Application_dos2RequiredError
+	call c,Application_TerminateWithError
 
-	ld hl,Gunzip_welcome
+	ld hl,Application_welcome
 	call System_Print
 
 	ld ix,Heap_main
@@ -23,53 +23,53 @@ Gunzip_Main:
 
 	call HeapTest_Test
 
-	ld ix,Gunzip_instance
-	call Gunzip_Constructor
-	ld de,Gunzip_Abort
-	call Gunzip_SetAbortHandler
-	call Gunzip_EnterMainLoop
-	call Gunzip_Abort
+	ld ix,Application_instance
+	call Application_Constructor
+	ld de,Application_Abort
+	call Application_SetAbortHandler
+	call Application_EnterMainLoop
+	call Application_Abort
 	ret
 
 ; DOS error or abort handler
-Gunzip_Abort:
+Application_Abort:
 	push af
 	push bc
-	ld ix,Gunzip_instance
-	call Gunzip_Destructor
+	ld ix,Application_instance
+	call Application_Destructor
 	pop bc
 	pop af
 	ret
 
 ; de = abort handler
 ; ix = this
-Gunzip_SetAbortHandler:
+Application_SetAbortHandler:
 	ld c,_DEFAB
 	call BDOS
 	ret
 
 ; ix = this
 ; ix <- this
-Gunzip_Constructor:
+Application_Constructor:
 	push ix
-	call Gunzip_GetCLI
+	call Application_GetCLI
 	call CLI_Constructor
 	pop ix
 	push ix
-	call Gunzip_GetArchive
+	call Application_GetArchive
 	call Archive_Constructor
 	pop ix
 	ret
 
 ; ix = this
 ; ix <- this
-Gunzip_Destructor:
+Application_Destructor:
 	push ix
-	call Gunzip_GetCLI
+	call Application_GetCLI
 	call CLI_Destructor
 	pop ix
 	push ix
-	call Gunzip_GetArchive
+	call Application_GetArchive
 	call Archive_Destructor
 	pop ix
 	ret
@@ -77,9 +77,9 @@ Gunzip_Destructor:
 ; ix = this
 ; de <- Command-line interface
 ; ix <- Command-line interface
-Gunzip_GetCLI:
-	ld e,(ix + Gunzip.cli)
-	ld d,(ix + Gunzip.cli + 1)
+Application_GetCLI:
+	ld e,(ix + Application.cli)
+	ld d,(ix + Application.cli + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -87,43 +87,43 @@ Gunzip_GetCLI:
 ; ix = this
 ; de <- Gzip archive
 ; ix <- Gzip archive
-Gunzip_GetArchive:
-	ld e,(ix + Gunzip.archive)
-	ld d,(ix + Gunzip.archive + 1)
+Application_GetArchive:
+	ld e,(ix + Application.archive)
+	ld d,(ix + Application.archive + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
 
 ; ix = this
-Gunzip_EnterMainLoop:
-	call Gunzip_ParseCLI
-	call Gunzip_Inflate
+Application_EnterMainLoop:
+	call Application_ParseCLI
+	call Application_Inflate
 	ret
 
 ; ix = this
-Gunzip_ParseCLI:
+Application_ParseCLI:
 	push ix
-	call Gunzip_GetCLI
+	call Application_GetCLI
 	call CLI_Parse
 	ld l,(ix + CLI.archivePath)
 	ld h,(ix + CLI.archivePath + 1)
 	ld a,l
 	or h
-	ld hl,Gunzip_usageInstructions
-	call z,Gunzip_TerminateWithError
+	ld hl,Application_usageInstructions
+	call z,Application_TerminateWithError
 	ld l,(ix + CLI.outputPath)
 	ld h,(ix + CLI.outputPath + 1)
 	ld a,l
 	or h
-	ld hl,Gunzip_usageInstructions
-	call z,Gunzip_TerminateWithError
+	ld hl,Application_usageInstructions
+	call z,Application_TerminateWithError
 	pop ix
 	ret
 
 ; ix = this
-Gunzip_Inflate: PROC
+Application_Inflate: PROC
 	push ix
-	call Gunzip_GetCLI
+	call Application_GetCLI
 	ld l,(ix + CLI.archivePath)
 	ld h,(ix + CLI.archivePath + 1)
 	ld e,(ix + CLI.outputPath)
@@ -132,14 +132,14 @@ Gunzip_Inflate: PROC
 	push ix
 	push de
 	push hl
-	ld hl,Gunzip_inflatingFile
+	ld hl,Application_inflatingFile
 	call System_Print
 	pop hl
 	push hl
 	call System_Print
-	ld hl,Gunzip_dotDotDot
+	ld hl,Application_dotDotDot
 	call System_Print
-	call Gunzip_GetArchive
+	call Application_GetArchive
 	pop hl
 	pop de
 	call Archive_Inflate
@@ -148,15 +148,15 @@ Gunzip_Inflate: PROC
 	ENDP
 
 ; a <- DOS error code
-Gunzip_CheckDOSError:
+Application_CheckDOSError:
 	and a
 	ret z
-Gunzip_TerminateWithDOSError:
+Application_TerminateWithDOSError:
 	ld b,a
 	ld c,_EXPLAIN
-	ld de,Gunzip_explainBuffer
+	ld de,Application_explainBuffer
 	call BDOS
-	ld hl,Gunzip_explainBuffer
+	ld hl,Application_explainBuffer
 	call System_Print
 	call System_PrintCrLf
 	ld b,1
@@ -164,7 +164,7 @@ Gunzip_TerminateWithDOSError:
 	call BDOS
 
 ; hl <- message
-Gunzip_TerminateWithError:
+Application_TerminateWithError:
 	call System_Print
 	ld b,1
 	ld c,_TERM
@@ -173,27 +173,27 @@ Gunzip_TerminateWithError:
 ;
 	SECTION RAM
 
-Gunzip_instance: Gunzip
+Application_instance: Application
 
-Gunzip_welcome:
+Application_welcome:
 	db "Gunzip 1.0 by Grauw",13,10,10,0
 
-Gunzip_inflatingFile:
+Application_inflatingFile:
 	db "Inflating ",0
 
-Gunzip_dotDotDot:
+Application_dotDotDot:
 	db "...",13,10,0
 
-Gunzip_dos2RequiredError:
+Application_dos2RequiredError:
 	db "MSX-DOS 2 is required.",13,10,0
 
-Gunzip_usageInstructions:
+Application_usageInstructions:
 	db "Usage: gunzip [options] <file.gz> <outputfile>",13,10
 	db 13,10
 	db "Options:",13,10
 	db "  /t  Test the checksum after inflating.",13,10,0
 
-Gunzip_explainBuffer:
+Application_explainBuffer:
 	ds 64,0
 
 	ENDS

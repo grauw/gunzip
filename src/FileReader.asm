@@ -46,7 +46,7 @@ FileReader_Open:
 	ld a,00000001B  ; read only
 	ld c,_OPEN
 	call BDOS
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
 	ld l,(ix + FileReader.bufferStart)
 	ld h,(ix + FileReader.bufferStart + 1)
@@ -60,7 +60,7 @@ FileReader_Close:
 	ld b,(ix + FileReader.fileHandle)
 	ld c,_CLOSE
 	call BDOS
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),0FFH
 	ret
 
@@ -116,7 +116,7 @@ FileReader_ReadFromFile: PROC
 	call BDOS
 	cp .EOF
 	jp z,EndOfFile
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ret
 EndOfFile:
 	; TODO

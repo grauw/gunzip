@@ -47,7 +47,7 @@ FileWriter_Open:
 	ld b,0
 	ld c,_CREATE
 	call BDOS
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ld (ix + FileWriter.fileHandle),b
 	ld l,(ix + FileWriter.bufferStart)
 	ld h,(ix + FileWriter.bufferStart + 1)
@@ -61,7 +61,7 @@ FileWriter_Close:
 	ld b,(ix + FileWriter.fileHandle)
 	ld c,_CLOSE
 	call BDOS
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ld (ix + FileWriter.fileHandle),0FFH
 	ret
 
@@ -104,7 +104,7 @@ FileWriter_WriteToFile:
 	sbc hl,de
 	ld c,_WRITE
 	call BDOS
-	call Gunzip_CheckDOSError
+	call Application_CheckDOSError
 	ret
 
 ;

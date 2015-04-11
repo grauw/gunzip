@@ -70,7 +70,7 @@ CLI_ParseOption: PROC
 	cp "C"
 	jr z,OptionChecksum
 	ld hl,CLI_unknownOptionError
-	jp Gunzip_TerminateWithError
+	jp Application_TerminateWithError
 OptionChecksum:
 	ld (ix + CLI.checksum),-1
 	inc de
@@ -82,7 +82,7 @@ Next:
 	cp " "
 	ret z
 	ld hl,CLI_unknownOptionError
-	jp Gunzip_TerminateWithError
+	jp Application_TerminateWithError
 	ENDP
 
 ; de = buffer position
@@ -107,7 +107,7 @@ OutputPath:
 	ld a,(ix + CLI.outputPath)
 	or (ix + CLI.outputPath + 1)
 	ld hl,CLI_multiplePathsError
-	call nz,Gunzip_TerminateWithError
+	call nz,Application_TerminateWithError
 	ld (ix + CLI.outputPath),e
 	ld (ix + CLI.outputPath + 1),d
 	jp Continue

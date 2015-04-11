@@ -1,5 +1,5 @@
 ;
-; Gunzip
+; Application
 ;
 ; gzip file decompressor
 ;
@@ -26,7 +26,7 @@ HEAP: ds VIRTUAL HEAP_SIZE
 ; Program entry point
 ;
 COM_Main:
-	jp Gunzip_Main
+	jp Application_Main
 
 	INCLUDE "DOS.asm"
 	INCLUDE "BIOS.asm"
@@ -34,7 +34,7 @@ COM_Main:
 	INCLUDE "Heap.asm"
 	INCLUDE "HeapTest.asm"
 	INCLUDE "Class.asm"
-	INCLUDE "Gunzip.asm"
+	INCLUDE "Application.asm"
 	INCLUDE "CLI.asm"
 	INCLUDE "Archive.asm"
 	INCLUDE "Inflate.asm"

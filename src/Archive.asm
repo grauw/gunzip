@@ -151,15 +151,15 @@ Archive_Process:
 	call Archive_Read
 	cp 31  ; gzip signature (1)
 	ld hl,Archive_notGzipError
-	jp nz,Gunzip_TerminateWithError
+	jp nz,Application_TerminateWithError
 	call Archive_Read
 	cp 139  ; gzip signature (1)
 	ld hl,Archive_notGzipError
-	jp nz,Gunzip_TerminateWithError
+	jp nz,Application_TerminateWithError
 	call Archive_Read
 	cp 8  ; deflate compression ID (1)
 	ld hl,Archive_notDeflateError
-	jp nz,Gunzip_TerminateWithError
+	jp nz,Application_TerminateWithError
 
 	call Archive_Read
 	ld (ix + Archive.flags),a

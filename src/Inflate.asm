@@ -146,7 +146,7 @@ Inflate_InflateBlock:
 	jp c,Inflate_InflateFixedCompressed
 	jp z,Inflate_InflateDynamicCompressed
 	ld hl,Inflate_invalidBlockTypeError
-	jp Gunzip_TerminateWithError
+	jp Application_TerminateWithError
 
 ; ix = this
 Inflate_InflateUncompressed: PROC
@@ -159,7 +159,7 @@ Inflate_InflateUncompressed: PROC
 	scf
 	adc hl,de
 	ld hl,Inflate_invalidLengthError
-	jp nz,Gunzip_TerminateWithError
+	jp nz,Application_TerminateWithError
 	pop de
 	ld a,d
 	or e
