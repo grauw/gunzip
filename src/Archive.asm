@@ -9,12 +9,10 @@ Archive_FCOMMENT: equ 1 << 4;
 Archive: MACRO
 	inflate:
 		dw Inflate_instance
-	inputFileHandle:
-		db 0FFH
+	reader:
+		dw FileReader_instance
 	outputFileHandle:
 		db 0FFH
-	position:
-		dw IBUFFER + IBUFFER_SIZE
 	flags:
 		db 0
 	mtime:
@@ -29,8 +27,16 @@ Archive: MACRO
 ; ix <- this
 Archive_Constructor:
 	push ix
+	call Archive_GetReader
+	ld hl,IBUFFER
+	ld bc,IBUFFER_SIZE
+	call FileReader_Constructor
+	pop ix
+	push ix
 	ld e,ixl
 	ld d,ixh
+	ld l,(ix + Archive.reader)
+	ld h,(ix + Archive.reader + 1)
 	push de
 	call Archive_GetInflate
 	pop de
@@ -45,6 +51,20 @@ Archive_Destructor:
 	call Archive_GetInflate
 	call Inflate_Destructor
 	pop ix
+	push ix
+	call Archive_GetReader
+	call FileReader_Destructor
+	pop ix
+	ret
+
+; ix = this
+; de <- file reader
+; ix <- file reader
+Archive_GetReader:
+	ld e,(ix + Archive.reader)
+	ld d,(ix + Archive.reader + 1)
+	ld ixl,e
+	ld ixh,d
 	ret
 
 ; ix = this
@@ -60,50 +80,21 @@ Archive_GetInflate:
 ; ix = this
 ; a <- value
 ; Modifies: hl
-Archive_Read: PROC
-	ld l,(ix + Archive.position)
-	ld h,(ix + Archive.position + 1)
-	bit 6,h
-	call nz,NextBlock
-	ld a,(hl)
-	inc hl
-	ld (ix + Archive.position),l
-	ld (ix + Archive.position + 1),h
-	ret
-NextBlock:
-	push bc
-	push de
-	ld b,(ix + Archive.inputFileHandle)
-	ld hl,IBUFFER_SIZE
-	ld de,IBUFFER
-	ld c,_READ
-	call BDOS
-	call Gunzip_CheckDOSError
-	pop de
-	pop bc
-	ld hl,IBUFFER
-	ret
-	ENDP
-
-; ix = this
-; de <- value
-; Modifies: hl, a
-Archive_ReadWord:
-	call Archive_Read
-	ld e,a
-	call Archive_Read
-	ld d,a
+Archive_Read:
+	push ix
+	call Archive_GetReader
+	call FileReader_Read
+	pop ix
 	ret
 
 ; bx = bytes to skip
 ; ix = this
 ; Modifies: hl
 Archive_Skip:
-	ld l,(ix + Archive.position)
-	ld h,(ix + Archive.position + 1)
-	add hl,bc
-	ld (ix + Archive.position),l
-	ld (ix + Archive.position + 1),h
+	push ix
+	call Archive_GetReader
+	call FileReader_Skip
+	pop ix
 	ret
 
 ; de = source address
@@ -121,12 +112,11 @@ Archive_WriteToOutput:
 ; ix = this
 Archive_Inflate:
 	push de
+	push ix
+	call Archive_GetReader
 	ex de,hl
-	ld a,00000001B  ; read only
-	ld c,_OPEN
-	call BDOS
-	call Gunzip_CheckDOSError
-	ld (ix + Archive.inputFileHandle),b
+	call FileReader_Open
+	pop ix
 	pop de
 	ld a,00000010B  ; write only
 	ld b,0
@@ -137,10 +127,10 @@ Archive_Inflate:
 
 	call Archive_Process
 
-	ld b,(ix + Archive.inputFileHandle)
-	ld c,_CLOSE
-	call BDOS
-	call Gunzip_CheckDOSError
+	push ix
+	call Archive_GetReader
+	call FileReader_Close
+	pop ix
 	ld b,(ix + Archive.outputFileHandle)
 	ld c,_CLOSE
 	call BDOS

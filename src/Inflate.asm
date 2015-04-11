@@ -4,6 +4,8 @@
 Inflate: MACRO
 	archive:
 		dw 0
+	reader:
+		dw 0
 	output:
 		dw OBUFFER
 	byte:
@@ -13,11 +15,14 @@ Inflate: MACRO
 	ENDM
 
 ; de = Gzip archive
+; hl = file reader
 ; ix = this
 ; ix <- this
 Inflate_Constructor:
 	ld (ix + Inflate.archive),e
 	ld (ix + Inflate.archive + 1),d
+	ld (ix + Inflate.reader),l
+	ld (ix + Inflate.reader + 1),h
 	ret
 
 ; ix = this
@@ -36,6 +41,16 @@ Inflate_GetArchive:
 	ret
 
 ; ix = this
+; de <- file reader
+; ix <- file reader
+Inflate_GetReader:
+	ld e,(ix + Inflate.reader)
+	ld d,(ix + Inflate.reader + 1)
+	ld ixl,e
+	ld ixh,d
+	ret
+
+; ix = this
 ; f <- c: bit
 Inflate_Read: PROC
 	dec (ix + Inflate.bitCounter)
@@ -44,8 +59,8 @@ Inflate_Read: PROC
 	ret
 NextByte:
 	push ix
-	call Inflate_GetArchive
-	call Archive_Read
+	call Inflate_GetReader
+	call FileReader_Read
 	pop ix
 	ld (ix + Inflate.byte),a
 	ld (ix + Inflate.bitCounter),8
@@ -160,11 +175,11 @@ Inflate_InflateUncompressed: PROC
 	call System_PrintCrLf
 	call Inflate_Align
 	push ix
-	call Inflate_GetArchive
-	call Archive_ReadWord
+	call Inflate_GetReader
+	call FileReader_ReadWord
 	push de
 	push de
-	call Archive_ReadWord
+	call FileReader_ReadWord
 	pop hl
 	scf
 	adc hl,de
@@ -180,7 +195,7 @@ Inflate_InflateUncompressed: PROC
 	dec de
 	inc d
 Loop:
-	call Archive_Read
+	call FileReader_Read
 	call Inflate_IY_Write
 	djnz Loop
 	dec d
