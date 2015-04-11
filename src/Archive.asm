@@ -7,12 +7,12 @@ Archive_FNAME: equ 1 << 3;
 Archive_FCOMMENT: equ 1 << 4;
 
 Archive: MACRO
-	inflate:
-		dw Inflate_instance
 	reader:
 		dw FileReader_instance
 	writer:
 		dw FileWriter_instance
+	inflate:
+		dw Inflate_instance
 	flags:
 		db 0
 	mtime:
