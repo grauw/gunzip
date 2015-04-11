@@ -76,6 +76,22 @@ Loop2:
 	ENDP
 
 ; ix = this
+Inflate_Align:
+	ld (ix + Inflate.bitCounter),1
+	ret
+
+; a = value
+; ix = this
+Inflate_IY_Write:
+	ld l,(iy + Inflate.output)
+	ld h,(iy + Inflate.output + 1)
+	ld (hl),a
+	inc hl
+	ld (iy + Inflate.output),l
+	ld (iy + Inflate.output + 1),h
+	ret
+
+; ix = this
 Inflate_Inflate:
 	call Inflate_Read
 	push af
@@ -98,14 +114,41 @@ Inflate_InflateBlock:
 	jp Gunzip_TerminateWithError
 
 ; ix = this
-Inflate_InflateUncompressed:
+Inflate_InflateUncompressed: PROC
 	ld a,"0"
 	call System_PrintChar
 	call System_PrintCrLf
-	ld b,1
-	ld c,_TERM
-	call BDOS
+	call Inflate_Align
+	push ix
+	call Inflate_GetArchive
+	call Archive_ReadWord
+	push de
+	push de
+	call Archive_ReadWord
+	pop hl
+	scf
+	adc hl,de
+	ld hl,Archive_invalidLengthError
+	jp nz,Gunzip_TerminateWithError
+	pop de
+	ld a,d
+	or e
+	jr z,Done
+	pop iy
+	push iy
+	ld b,e
+	dec de
+	inc d
+Loop:
+	call Archive_Read
+	call Inflate_IY_Write
+	djnz Loop
+	dec d
+	jp nz,Loop
+Done:
+	pop ix
 	ret
+	ENDP
 
 ; ix = this
 Inflate_InflateFixedCompressed:
@@ -134,5 +177,8 @@ Inflate_instance: Inflate
 
 Archive_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
+
+Archive_invalidLengthError:
+	db "Invalid length.",13,10,0
 
 	ENDS

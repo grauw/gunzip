@@ -83,6 +83,16 @@ NextBlock:
 	ret
 	ENDP
 
+; ix = this
+; de <- value
+; Modifies: hl, a
+Archive_ReadWord:
+	call Archive_Read
+	ld e,a
+	call Archive_Read
+	ld d,a
+	ret
+
 ; bx = bytes to skip
 ; ix = this
 ; Modifies: hl
