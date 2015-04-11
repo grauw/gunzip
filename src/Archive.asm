@@ -12,7 +12,7 @@ Archive: MACRO
 	inputFileHandle:
 		db 0
 	position:
-		dw IBUFFER
+		dw IBUFFER + IBUFFER_SIZE
 	flags:
 		db 0
 	mtime:
@@ -58,14 +58,30 @@ Archive_GetInflate:
 ; ix = this
 ; a <- value
 ; Modifies: hl
-Archive_Read:
+Archive_Read: PROC
 	ld l,(ix + Archive.position)
 	ld h,(ix + Archive.position + 1)
+	bit 6,h
+	call nz,NextBlock
 	ld a,(hl)
 	inc hl
 	ld (ix + Archive.position),l
 	ld (ix + Archive.position + 1),h
 	ret
+NextBlock:
+	push bc
+	push de
+	ld b,(ix + Archive.inputFileHandle)
+	ld hl,IBUFFER_SIZE
+	ld de,IBUFFER
+	ld c,_READ
+	call BDOS
+	call Gunzip_CheckDOSError
+	pop de
+	pop bc
+	ld hl,IBUFFER
+	ret
+	ENDP
 
 ; bx = bytes to skip
 ; ix = this
@@ -87,12 +103,6 @@ Archive_Inflate:
 	call BDOS
 	call Gunzip_CheckDOSError
 	ld (ix + Archive.inputFileHandle),b
-
-	ld hl,1000H
-	ld de,IBUFFER
-	ld c,_READ
-	call BDOS
-	call Gunzip_CheckDOSError
 
 	call Archive_Process
 
