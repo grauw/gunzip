@@ -49,7 +49,7 @@ Archive_Destructor:
 
 ; ix = this
 ; de <- Inflate implementation
-; iy <- Inflate implementation
+; ix <- Inflate implementation
 Archive_GetInflate:
 	ld e,(ix + Archive.inflate)
 	ld d,(ix + Archive.inflate + 1)
