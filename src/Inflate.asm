@@ -52,7 +52,7 @@ Inflate_GetReader:
 
 ; ix = this
 ; f <- c: bit
-Inflate_Read: PROC
+Inflate_ReadBit: PROC
 	dec (ix + Inflate.bitCounter)
 	call z,NextByte
 	srl (ix + Inflate.byte)
@@ -78,7 +78,7 @@ Inflate_ReadBits: PROC
 	ld c,a
 	xor a
 Loop1:
-	call Inflate_Read
+	call Inflate_ReadBit
 	rra
 	djnz Loop1
 	dec c
@@ -147,7 +147,7 @@ Inflate_IY_Flush:
 
 ; ix = this
 Inflate_Inflate:
-	call Inflate_Read
+	call Inflate_ReadBit
 	push af
 	ld b,2
 	call Inflate_ReadBits
