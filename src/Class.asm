@@ -8,12 +8,16 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 		push bc
 		push hl
 		ld bc,?macro._size
+	size: equ $ - 2
 		ld hl,?template
+	template: equ $ - 2
 		ld ix,?heap
+	heap: equ $ - 2
 		call Class__New
 		pop hl
 		pop bc
 		call ?constructor
+	constructor: equ $ - 2
 		ld e,ixl
 		ld d,ixh
 		ret
@@ -21,6 +25,7 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 	; ix = object
 	Destroy:
 		call ?destructor
+	destructor: equ $ - 2
 		ld bc,?macro._size
 		ld e,ixl
 		ld d,ixh
