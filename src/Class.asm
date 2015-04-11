@@ -6,11 +6,11 @@ Class_New:
 	ld c,(iy - 2)
 	ld b,(iy - 1)
 	call Heap_Allocate
-	push de
+	ld ixl,e
+	ld ixh,d
 	push iy
 	pop hl
 	ldir
-	pop ix
 	ret
 
 ; iy = class template
@@ -30,9 +30,9 @@ Class_Destroy:
 Class_Copy:
 	ld c,(iy - 2)
 	ld b,(iy - 1)
-	push de
+	ld ixl,e
+	ld ixh,d
 	push iy
 	pop hl
 	ldir
-	pop ix
 	ret
