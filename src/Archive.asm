@@ -9,6 +9,8 @@ Archive_FCOMMENT: equ 1 << 4;
 Archive: MACRO
 	inflate:
 		dw Inflate_instance
+	inputFileHandle:
+		db 0
 	position:
 		dw IBUFFER
 	flags:
@@ -84,7 +86,7 @@ Archive_Inflate:
 	ld c,_OPEN
 	call BDOS
 	call Gunzip_CheckDOSError
-	push bc
+	ld (ix + Archive.inputFileHandle),b
 
 	ld hl,1000H
 	ld de,IBUFFER
@@ -94,7 +96,7 @@ Archive_Inflate:
 
 	call Archive_Process
 
-	pop bc
+	ld b,(ix + Archive.inputFileHandle)
 	ld c,_CLOSE
 	call BDOS
 	call Gunzip_CheckDOSError
