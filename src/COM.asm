@@ -41,6 +41,7 @@ COM_Main:
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 
+	ALIGN 100H
 CRC32Table:
 	INCLUDE "crctable.asm"
 

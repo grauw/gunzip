@@ -154,23 +154,19 @@ Inflate_UpdateCRC32:
 	push af
 	xor (ix + Inflate.crc32)
 	ld l,a
-	ld h,0
-	add hl,hl
-	add hl,hl
-	ld de,CRC32Table
-	add hl,de
+	ld h,CRC32Table >> 8
 	ld a,(hl)
 	xor (ix + Inflate.crc32 + 1)
 	ld (ix + Inflate.crc32),a
-	inc l
+	inc h
 	ld a,(hl)
 	xor (ix + Inflate.crc32 + 2)
 	ld (ix + Inflate.crc32 + 1),a
-	inc l
+	inc h
 	ld a,(hl)
 	xor (ix + Inflate.crc32 + 3)
 	ld (ix + Inflate.crc32 + 2),a
-	inc l
+	inc h
 	ld a,(hl)
 	ld (ix + Inflate.crc32 + 3),a
 	pop af
