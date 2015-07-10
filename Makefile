@@ -1,4 +1,5 @@
 all:
+	mkdir -p bin
 	java -jar tools/glass.jar -I gen src/COM.asm bin/gunzip.com bin/gunzip.sym
 
 dist: all
