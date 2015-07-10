@@ -23,6 +23,8 @@ Archive: MACRO
 		db 0
 	isize:
 		dd 0
+	crc32:
+		dd 0
 	_size:
 	ENDM
 
@@ -205,9 +207,13 @@ Archive_Process:
 	pop ix
 
 	call Archive_Read
+	ld (ix + Archive.crc32),a
 	call Archive_Read
+	ld (ix + Archive.crc32 + 1),a
 	call Archive_Read
+	ld (ix + Archive.crc32 + 2),a
 	call Archive_Read
+	ld (ix + Archive.crc32 + 3),a
 	call Archive_Read
 	ld (ix + Archive.isize),a
 	call Archive_Read
@@ -219,6 +225,10 @@ Archive_Process:
 
 	call Archive_VerifyISIZE
 	ld hl,Archive_isizeMismatchError
+	call nz,System_ThrowExceptionWithMessage
+
+	call Archive_VerifyCRC32
+	ld hl,Archive_crc32MismatchError
 	call nz,System_ThrowExceptionWithMessage
 	ret
 
@@ -272,6 +282,31 @@ Archive_VerifyISIZE:
 	cp (iy + Inflate.isize + 3)
 	ret
 
+; ix = this
+; f <- nz: mismatch
+Archive_VerifyCRC32:
+	push ix
+	call Archive_GetInflate
+	pop ix
+	ld iyl,e
+	ld iyh,d
+	ld a,(ix + Archive.crc32)
+	cpl
+	cp (iy + Inflate.crc32)
+	ret nz
+	ld a,(ix + Archive.crc32 + 1)
+	cpl
+	cp (iy + Inflate.crc32 + 1)
+	ret nz
+	ld a,(ix + Archive.crc32 + 2)
+	cpl
+	cp (iy + Inflate.crc32 + 2)
+	ret nz
+	ld a,(ix + Archive.crc32 + 3)
+	cpl
+	cp (iy + Inflate.crc32 + 3)
+	ret
+
 ;
 Archive_notGzipError:
 	db "Not a GZIP file.",13,10,0
@@ -281,3 +316,6 @@ Archive_notDeflateError:
 
 Archive_isizeMismatchError:
 	db "Output file size mismatch.",13,10,0
+
+Archive_crc32MismatchError:
+	db "Output file CRC32 mismatch.",13,10,0

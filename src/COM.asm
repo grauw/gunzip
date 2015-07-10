@@ -41,6 +41,9 @@ COM_Main:
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 
+CRC32Table:
+	INCLUDE "crctable.asm"
+
 	ENDS
 
 	SECTION RAM
