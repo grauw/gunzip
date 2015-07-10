@@ -120,8 +120,8 @@ Inflate_Align:
 	ld (ix + Inflate.bitCounter),1
 	ret
 
+; a = value
 ; ix = this
-; a <- value
 ; Modifies: hl, de
 Inflate_Write:
 	push ix
