@@ -10,6 +10,8 @@ Inflate: MACRO
 		db 0
 	bitCounter:
 		db 1
+	isize:
+		dd 0
 	_size:
 	ENDM
 
@@ -124,10 +126,22 @@ Inflate_Align:
 ; ix = this
 ; Modifies: hl, de
 Inflate_Write:
+	call Inflate_IncreaseISIZE
 	push ix
 	call Inflate_GetWriter
 	call FileWriter_Write
 	pop ix
+	ret
+
+; ix = this
+Inflate_IncreaseISIZE:
+	inc (ix + Inflate.isize)
+	ret nz
+	inc (ix + Inflate.isize + 1)
+	ret nz
+	inc (ix + Inflate.isize + 2)
+	ret nz
+	inc (ix + Inflate.isize + 3)
 	ret
 
 ; ix = this

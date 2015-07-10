@@ -21,6 +21,8 @@ Archive: MACRO
 		db 0
 	os:
 		db 0
+	isize:
+		dd 0
 	_size:
 	ENDM
 
@@ -201,6 +203,23 @@ Archive_Process:
 	call Archive_GetInflate
 	call Inflate_Inflate
 	pop ix
+
+	call Archive_Read
+	call Archive_Read
+	call Archive_Read
+	call Archive_Read
+	call Archive_Read
+	ld (ix + Archive.isize),a
+	call Archive_Read
+	ld (ix + Archive.isize + 1),a
+	call Archive_Read
+	ld (ix + Archive.isize + 2),a
+	call Archive_Read
+	ld (ix + Archive.isize + 3),a
+
+	call Archive_VerifyISIZE
+	ld hl,Archive_isizeMismatchError
+	call nz,System_ThrowExceptionWithMessage
 	ret
 
 ; ix = this
@@ -232,9 +251,33 @@ Archive_SkipHeaderCRC:
 	call Archive_Read
 	ret
 
+; ix = this
+; f <- nz: mismatch
+Archive_VerifyISIZE:
+	push ix
+	call Archive_GetInflate
+	pop ix
+	ld iyl,e
+	ld iyh,d
+	ld a,(ix + Archive.isize)
+	cp (iy + Inflate.isize)
+	ret nz
+	ld a,(ix + Archive.isize + 1)
+	cp (iy + Inflate.isize + 1)
+	ret nz
+	ld a,(ix + Archive.isize + 2)
+	cp (iy + Inflate.isize + 2)
+	ret nz
+	ld a,(ix + Archive.isize + 3)
+	cp (iy + Inflate.isize + 3)
+	ret
+
 ;
 Archive_notGzipError:
 	db "Not a GZIP file.",13,10,0
 
 Archive_notDeflateError:
 	db "Not compressed with DEFLATE.",13,10,0
+
+Archive_isizeMismatchError:
+	db "Output file size mismatch.",13,10,0
