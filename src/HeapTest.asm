@@ -3,7 +3,7 @@
 ;
 HeapTest_Test:
 	ld ix,HeapTest_heap
-	call Heap_Constructor
+	call Heap_Construct
 	call HeapTest_TestCanAllocate
 	call HeapTest_TestAllocationSimple
 	call HeapTest_TestAllocationRounding

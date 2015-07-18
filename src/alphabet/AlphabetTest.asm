@@ -3,10 +3,10 @@
 ;
 AlphabetTest_Test:
 	call Alphabet_class.New
-	call Alphabet_Constructor
+	call Alphabet_Construct
 	call AlphabetTest_TestCountBitLenghts
 	call AlphabetTest_TestCalculateNextCodes
-	call Alphabet_Destructor
+	call Alphabet_Destruct
 	call Alphabet_class.Delete
 	ret
 

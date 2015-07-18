@@ -21,7 +21,7 @@ FileReader_template: FileReader
 ; ix = this
 ; ix <- this
 ; de <- this
-FileReader_Constructor:
+FileReader_Construct:
 	ld a,l  ; check if buffer is 256-byte aligned
 	or c
 	call nz,System_ThrowException
@@ -38,7 +38,7 @@ FileReader_Constructor:
 
 ; ix = this
 ; ix <- this
-FileReader_Destructor:
+FileReader_Destruct:
 	ld a,(ix + FileReader.fileHandle)  ; check if file was closed
 	cp 0FFH
 	call nz,System_ThrowException

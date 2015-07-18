@@ -20,14 +20,14 @@ Alphabet_template: Alphabet
 ; ix = this
 ; ix <- this
 ; de <- this
-Alphabet_Constructor:
+Alphabet_Construct:
 	ld e,ixl
 	ld d,ixh
 	ret
 
 ; ix = this
 ; ix <- this
-Alphabet_Destructor:
+Alphabet_Destruct:
 	ret
 
 ; hl = bit length table (MAX_CODESET entries long)

@@ -25,7 +25,7 @@ Inflate_template: Inflate
 ; ix = this
 ; ix <- this
 ; de <- this
-Inflate_Constructor:
+Inflate_Construct:
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
@@ -36,7 +36,7 @@ Inflate_Constructor:
 
 ; ix = this
 ; ix <- this
-Inflate_Destructor:
+Inflate_Destruct:
 	ret
 
 ; ix = this

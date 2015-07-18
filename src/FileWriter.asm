@@ -21,7 +21,7 @@ FileWriter_template: FileWriter
 ; ix = this
 ; ix <- this
 ; de <- this
-FileWriter_Constructor:
+FileWriter_Construct:
 	ld a,l  ; check if buffer is 256-byte aligned
 	or c
 	call nz,System_ThrowException
@@ -38,7 +38,7 @@ FileWriter_Constructor:
 
 ; ix = this
 ; ix <- this
-FileWriter_Destructor:
+FileWriter_Destruct:
 	ld a,(ix + FileWriter.fileHandle)  ; check if file was closed
 	cp 0FFH
 	call nz,System_ThrowException
