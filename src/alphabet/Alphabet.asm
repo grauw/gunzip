@@ -68,7 +68,7 @@ Alphabet_CalculateNextCodes: PROC
 	push ix
 	pop iy
 	ld hl,0  ; code
-	ld b,Alphabet_MAX_BITLENGTH
+	ld b,Alphabet_MAX_BITLENGTH - 1
 Loop:
 	ld (iy + Alphabet.nextCodes),l
 	ld (iy + Alphabet.nextCodes + 1),h
@@ -80,6 +80,8 @@ Loop:
 	add hl,de
 	add hl,hl
 	djnz Loop
+	ld (iy + Alphabet.nextCodes),l
+	ld (iy + Alphabet.nextCodes + 1),h
 	pop ix
 	ret
 	ENDP
