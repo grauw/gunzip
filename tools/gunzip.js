@@ -148,6 +148,11 @@ Inflate.prototype.processDynamicCompressedBlock = function() {
 	}
 	var headerCodeAlphabet = new Alphabet(headerCodeLengths);
 	
+	// FIXME This is not handled:
+	//  13. The literal/length and distance code bit lengths are read as a
+	//      single stream of lengths.  It is possible (and advantageous) for
+	//      a repeat code (16, 17, or 18) to go across the boundary between
+	//      the two sets of lengths.
 	var literalsAlphabet = this.readHeaderAlphabet(hlit, headerCodeAlphabet);
 	var distanceAlphabet = this.readHeaderAlphabet(hdist, headerCodeAlphabet);
 	
