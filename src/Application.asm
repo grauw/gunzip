@@ -25,6 +25,7 @@ Application_Main:
 	call Heap_Constructor
 
 	call HeapTest_Test
+	call AlphabetTest_Test
 
 	call Application_class.New
 	ld (Application_instance),ix

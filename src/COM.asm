@@ -38,6 +38,8 @@ COM_Main:
 	INCLUDE "CLI.asm"
 	INCLUDE "Archive.asm"
 	INCLUDE "Inflate.asm"
+	INCLUDE "alphabet/Alphabet.asm"
+	INCLUDE "alphabet/AlphabetTest.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 
