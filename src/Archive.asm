@@ -64,15 +64,15 @@ Archive_Constructor:
 Archive_Destructor:
 	push ix
 	call Archive_GetInflate
-	call Inflate_class.Destroy
+	call Inflate_class.Delete
 	pop ix
 	push ix
 	call Archive_GetReader
-	call FileReader_class.Destroy
+	call FileReader_class.Delete
 	pop ix
 	push ix
 	call Archive_GetWriter
-	call FileWriter_class.Destroy
+	call FileWriter_class.Delete
 	pop ix
 	ret
 

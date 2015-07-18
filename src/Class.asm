@@ -23,7 +23,7 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 		ret
 
 	; ix = object
-	Destroy:
+	Delete:
 		call ?destructor
 	destructor: equ $ - 2
 		ld bc,?macro._size

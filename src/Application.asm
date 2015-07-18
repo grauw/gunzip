@@ -40,7 +40,7 @@ Application_Abort:
 	push af
 	push bc
 	ld ix,(Application_instance)
-	call Application_class.Destroy
+	call Application_class.Delete
 	pop bc
 	pop af
 	ret
@@ -72,11 +72,11 @@ Application_Constructor:
 Application_Destructor:
 	push ix
 	call Application_GetCLI
-	call CLI_class.Destroy
+	call CLI_class.Delete
 	pop ix
 	push ix
 	call Application_GetArchive
-	call Archive_class.Destroy
+	call Archive_class.Delete
 	pop ix
 	ret
 

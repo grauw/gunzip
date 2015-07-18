@@ -5,7 +5,7 @@ AlphabetTest_Test:
 	call Alphabet_class.New
 	call AlphabetTest_TestCountBitLenghts
 	call AlphabetTest_TestCalculateNextCodes
-	call Alphabet_class.Destroy
+	call Alphabet_class.Delete
 	ret
 
 ; ix = alphabet
