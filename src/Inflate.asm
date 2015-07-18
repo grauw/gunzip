@@ -17,18 +17,21 @@ Inflate: MACRO
 	_size:
 	ENDM
 
-Inflate_class: Class Inflate, Inflate_template, Inflate_Constructor, Inflate_Destructor, Heap_main
+Inflate_class: Class Inflate, Inflate_template, Heap_main
 Inflate_template: Inflate
 
 ; hl = file reader
 ; de = file writer
 ; ix = this
 ; ix <- this
+; de <- this
 Inflate_Constructor:
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
 	ld (ix + Inflate.writer + 1),d
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this

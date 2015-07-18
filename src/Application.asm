@@ -9,7 +9,7 @@ Application: MACRO
 	_size:
 	ENDM
 
-Application_class: Class Application, Application_template, Application_Constructor, Application_Destructor, Heap_main
+Application_class: Class Application, Application_template, Heap_main
 Application_template: Application
 
 ;
@@ -28,6 +28,7 @@ Application_Main:
 	call AlphabetTest_Test
 
 	call Application_class.New
+	call Application_Constructor
 	ld (Application_instance),ix
 	ld de,Application_Abort
 	call Application_SetAbortHandler
@@ -40,6 +41,7 @@ Application_Abort:
 	push af
 	push bc
 	ld ix,(Application_instance)
+	call Application_Destructor
 	call Application_class.Delete
 	pop bc
 	pop af
@@ -54,17 +56,22 @@ Application_SetAbortHandler:
 
 ; ix = this
 ; ix <- this
+; de <- this
 Application_Constructor:
 	push ix
 	call CLI_class.New
+	call CLI_Constructor
 	pop ix
 	ld (ix + Application.cli),e
 	ld (ix + Application.cli + 1),d
 	push ix
 	call Archive_class.New
+	call Archive_Constructor
 	pop ix
 	ld (ix + Application.archive),e
 	ld (ix + Application.archive + 1),d
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this
@@ -72,10 +79,12 @@ Application_Constructor:
 Application_Destructor:
 	push ix
 	call Application_GetCLI
+	call CLI_Destructor
 	call CLI_class.Delete
 	pop ix
 	push ix
 	call Application_GetArchive
+	call Archive_Destructor
 	call Archive_class.Delete
 	pop ix
 	ret

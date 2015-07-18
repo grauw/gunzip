@@ -1,9 +1,8 @@
 ;
 ; Object to define and instantiate classes
 ;
-Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
+Class: MACRO ?macro, ?template, ?heap
 	; ix <- new object
-	; de <- new object
 	New:
 		push bc
 		push hl
@@ -16,16 +15,10 @@ Class: MACRO ?macro, ?template, ?constructor, ?destructor, ?heap
 		call Class__New
 		pop hl
 		pop bc
-		call ?constructor
-	constructor: equ $ - 2
-		ld e,ixl
-		ld d,ixh
 		ret
 
 	; ix = object
 	Delete:
-		call ?destructor
-	destructor: equ $ - 2
 		ld bc,?macro._size
 		ld e,ixl
 		ld d,ixh

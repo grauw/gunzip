@@ -13,17 +13,20 @@ CLI: MACRO
 	_size:
 	ENDM
 
-CLI_class: Class CLI, CLI_template, CLI_Constructor, CLI_Destructor, Heap_main
+CLI_class: Class CLI, CLI_template, Heap_main
 CLI_template: CLI
 
 ; ix = this
 ; ix <- this
+; de <- this
 CLI_Constructor:
 	call CLI_GetBuffer
 	ld hl,CLI_parametersEnvName
 	ld b,255
 	ld c,_GENV
 	call BDOS
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this

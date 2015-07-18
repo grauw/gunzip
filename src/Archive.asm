@@ -28,16 +28,18 @@ Archive: MACRO
 	_size:
 	ENDM
 
-Archive_class: Class Archive, Archive_template, Archive_Constructor, Archive_Destructor, Heap_main
+Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
 ; ix = this
 ; ix <- this
+; de <- this
 Archive_Constructor:
 	push ix
 	ld hl,IBUFFER
 	ld bc,IBUFFER_SIZE
 	call FileReader_class.New
+	call FileReader_Constructor
 	pop ix
 	ld (ix + Archive.reader),e
 	ld (ix + Archive.reader + 1),d
@@ -45,6 +47,7 @@ Archive_Constructor:
 	ld hl,OBUFFER
 	ld bc,OBUFFER_SIZE
 	call FileWriter_class.New
+	call FileWriter_Constructor
 	pop ix
 	ld (ix + Archive.writer),e
 	ld (ix + Archive.writer + 1),d
@@ -54,9 +57,12 @@ Archive_Constructor:
 	ld e,(ix + Archive.writer)
 	ld d,(ix + Archive.writer + 1)
 	call Inflate_class.New
+	call Inflate_Constructor
 	pop ix
 	ld (ix + Archive.inflate),e
 	ld (ix + Archive.inflate + 1),d
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this
@@ -64,14 +70,17 @@ Archive_Constructor:
 Archive_Destructor:
 	push ix
 	call Archive_GetInflate
+	call Inflate_Destructor
 	call Inflate_class.Delete
 	pop ix
 	push ix
 	call Archive_GetReader
+	call FileReader_Destructor
 	call FileReader_class.Delete
 	pop ix
 	push ix
 	call Archive_GetWriter
+	call FileWriter_Destructor
 	call FileWriter_class.Delete
 	pop ix
 	ret

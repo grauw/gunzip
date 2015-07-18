@@ -13,13 +13,14 @@ FileReader: MACRO
 	_size:
 	ENDM
 
-FileReader_class: Class FileReader, FileReader_template, FileReader_Constructor, FileReader_Destructor, Heap_main
+FileReader_class: Class FileReader, FileReader_template, Heap_main
 FileReader_template: FileReader
 
 ; hl = buffer start
 ; bc = buffer size
 ; ix = this
 ; ix <- this
+; de <- this
 FileReader_Constructor:
 	ld a,l  ; check if buffer is 256-byte aligned
 	or c
@@ -31,6 +32,8 @@ FileReader_Constructor:
 	add hl,bc
 	ld (ix + FileReader.bufferEnd),l
 	ld (ix + FileReader.bufferEnd + 1),h
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this

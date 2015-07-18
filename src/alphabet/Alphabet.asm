@@ -14,12 +14,15 @@ Alphabet: MACRO
 	_size:
 	ENDM
 
-Alphabet_class: Class Alphabet, Alphabet_template, Alphabet_Constructor, Alphabet_Destructor, Heap_main
+Alphabet_class: Class Alphabet, Alphabet_template, Heap_main
 Alphabet_template: Alphabet
 
 ; ix = this
 ; ix <- this
+; de <- this
 Alphabet_Constructor:
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this

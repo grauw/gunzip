@@ -13,13 +13,14 @@ FileWriter: MACRO
 	_size:
 	ENDM
 
-FileWriter_class: Class FileWriter, FileWriter_template, FileWriter_Constructor, FileWriter_Destructor, Heap_main
+FileWriter_class: Class FileWriter, FileWriter_template, Heap_main
 FileWriter_template: FileWriter
 
 ; hl = buffer start
 ; bc = buffer size
 ; ix = this
 ; ix <- this
+; de <- this
 FileWriter_Constructor:
 	ld a,l  ; check if buffer is 256-byte aligned
 	or c
@@ -31,6 +32,8 @@ FileWriter_Constructor:
 	add hl,bc
 	ld (ix + FileWriter.bufferEnd),l
 	ld (ix + FileWriter.bufferEnd + 1),h
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this

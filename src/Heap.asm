@@ -29,6 +29,8 @@ HeapBlock: MACRO
 	ENDM
 
 ; ix = this
+; ix <- this
+; de <- this
 Heap_Constructor:
 	ld l,(ix + Heap.start)
 	ld h,(ix + Heap.start + 1)
@@ -56,6 +58,8 @@ Heap_Constructor:
 	ld (hl),0
 	inc hl
 	ld (hl),0
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ;
