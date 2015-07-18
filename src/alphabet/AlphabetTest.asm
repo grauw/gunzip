@@ -4,7 +4,6 @@
 AlphabetTest_Test:
 	call Alphabet_class.New
 	call AlphabetTest_TestCountBitLenghts
-	call AlphabetTest_TestGetMaximumBits
 	call AlphabetTest_TestCalculateNextCodes
 	call Alphabet_class.Destroy
 	ret
@@ -27,14 +26,6 @@ AlphabetTest_expectedBitCounts:
 	db 0, 0, 0, 0, 0, 0, 0, 24, 152, 112, 0, 0, 0, 0, 0, 0, 0
 
 ; ix = alphabet
-AlphabetTest_TestGetMaximumBits:
-	call Alphabet_GetMaximumBits
-	ld a,9
-	cp b
-	call nz,System_ThrowException
-	ret
-
-; ix = alphabet
 AlphabetTest_TestCalculateNextCodes:
 	call Alphabet_CalculateNextCodes
 	ld e,ixl
@@ -48,7 +39,7 @@ AlphabetTest_TestCalculateNextCodes:
 	ret
 
 AlphabetTest_expectedNextCodes:
-	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 0, 0, 0, 0, 0, 0, 0
+	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0
 
 ; hl = array A
 ; de = array B

@@ -62,31 +62,13 @@ Alphabet_CountBitLength:
 	pop ix
 	ret
 
-; b <- maximum nr of bits
-; ix = this
-Alphabet_GetMaximumBits: PROC
-	push ix
-	ld bc,Alphabet_MAX_BITLENGTH
-	add ix,bc
-	ld b,Alphabet_MAX_BITLENGTH
-	xor a
-Loop:
-	cp (ix + Alphabet.bitCounts)
-	dec ix
-	jr nz,Done
-	djnz Loop
-Done:
-	pop ix
-	ret
-	ENDP
-
 ; ix = this
 Alphabet_CalculateNextCodes: PROC
-	call Alphabet_GetMaximumBits
 	push ix
 	push ix
 	pop iy
 	ld hl,0  ; code
+	ld b,Alphabet_MAX_BITLENGTH
 Loop:
 	ld (iy + Alphabet.nextCodes),l
 	ld (iy + Alphabet.nextCodes + 1),h
