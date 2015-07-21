@@ -9,8 +9,6 @@ Alphabet: MACRO
 		ds Alphabet_MAX_BITLENGTH + 1, 0  ; allocate on stack?
 	nextCodes:
 		ds Alphabet_MAX_BITLENGTH * 2, 0
-	codeLengths:
-		ds Alphabet_MAX_CODESET, 0
 	_size:
 	ENDM
 
