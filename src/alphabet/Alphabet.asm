@@ -1,14 +1,14 @@
 ;
 ; Huffman alphabet
 ;
-Alphabet_MAX_BITLENGTH: equ 16
+Alphabet_MAX_CODELENGTH: equ 16
 Alphabet_MAX_CODESET: equ 288
 
 Alphabet: MACRO
-	bitCounts:
-		ds Alphabet_MAX_BITLENGTH + 1, 0  ; allocate on stack?
+	codeLengthCounts:
+		ds Alphabet_MAX_CODELENGTH + 1, 0  ; allocate on stack?
 	nextCodes:
-		ds Alphabet_MAX_BITLENGTH * 2, 0
+		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
 	ENDM
 
@@ -28,34 +28,34 @@ Alphabet_Construct:
 Alphabet_Destruct:
 	ret
 
-; hl = bit length table (MAX_CODESET entries long)
+; hl = code length table (MAX_CODESET entries long)
 ; ix = this
 Alphabet_SetCodeLengths:
-	call Alphabet_CountBitLengths
+	call Alphabet_CountCodeLengths
 	call Alphabet_CalculateNextCodes
 	ret
 
-; hl = bit length table (MAX_CODESET entries long)
+; hl = code length table (MAX_CODESET entries long)
 ; ix = this
-Alphabet_CountBitLengths:
+Alphabet_CountCodeLengths:
 	ld bc,2002H  ; 288x
 Loop:
 	ld a,(hl)
 	inc hl
-	call Alphabet_CountBitLength
+	call Alphabet_CountCodeLength
 	djnz Loop
 	dec c
 	jr nz,Loop
 	ret
 
-; a = bit length
+; a = code length
 ; ix = this
 ; Modifies: af, de
-Alphabet_CountBitLength:
-	cp Alphabet_MAX_BITLENGTH + 1
+Alphabet_CountCodeLength:
+	cp Alphabet_MAX_CODELENGTH + 1
 	call nc,System_ThrowException
 	push ix
-	add a,Alphabet.bitCounts
+	add a,Alphabet.codeLengthCounts
 	ld e,a
 	ld d,0
 	add ix,de
@@ -69,13 +69,13 @@ Alphabet_CalculateNextCodes: PROC
 	push ix
 	pop iy
 	ld hl,0  ; code
-	ld b,Alphabet_MAX_BITLENGTH - 1
+	ld b,Alphabet_MAX_CODELENGTH - 1
 Loop:
 	ld (iy + Alphabet.nextCodes),l
 	ld (iy + Alphabet.nextCodes + 1),h
 	inc iy
 	inc iy
-	ld e,(ix + Alphabet.bitCounts + 1)
+	ld e,(ix + Alphabet.codeLengthCounts + 1)
 	ld d,0
 	inc ix
 	add hl,de

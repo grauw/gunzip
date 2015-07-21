@@ -4,27 +4,27 @@
 AlphabetTest_Test:
 	call Alphabet_class.New
 	call Alphabet_Construct
-	call AlphabetTest_TestCountBitLenghts
+	call AlphabetTest_TestCountCodeLenghts
 	call AlphabetTest_TestCalculateNextCodes
 	call Alphabet_Destruct
 	call Alphabet_class.Delete
 	ret
 
 ; ix = alphabet
-AlphabetTest_TestCountBitLenghts:
+AlphabetTest_TestCountCodeLenghts:
 	ld hl,Alphabet_fixedCodeLengths
-	call Alphabet_CountBitLengths
+	call Alphabet_CountCodeLengths
 	ld e,ixl
 	ld d,ixh
-	ld hl,Alphabet.bitCounts
+	ld hl,Alphabet.codeLengthCounts
 	add hl,de
 	ex de,hl
-	ld hl,AlphabetTest_expectedBitCounts
-	ld bc,Alphabet_MAX_BITLENGTH + 1
+	ld hl,AlphabetTest_expectedCodeLengthCounts
+	ld bc,Alphabet_MAX_CODELENGTH + 1
 	call AlphabetTest_AssertArrayEquals
 	ret
 
-AlphabetTest_expectedBitCounts:
+AlphabetTest_expectedCodeLengthCounts:
 	db 0, 0, 0, 0, 0, 0, 0, 24, 152, 112, 0, 0, 0, 0, 0, 0, 0
 
 ; ix = alphabet
@@ -36,7 +36,7 @@ AlphabetTest_TestCalculateNextCodes:
 	add hl,de
 	ex de,hl
 	ld hl,AlphabetTest_expectedNextCodes
-	ld bc,Alphabet_MAX_BITLENGTH * 2
+	ld bc,Alphabet_MAX_CODELENGTH * 2
 	call AlphabetTest_AssertArrayEquals
 	ret
 
