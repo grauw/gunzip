@@ -55,11 +55,10 @@ Alphabet_CountCodeLength:
 	cp Alphabet_MAX_CODELENGTH + 1
 	call nc,System_ThrowException
 	push ix
-	add a,Alphabet.codeLengthCounts
 	ld e,a
 	ld d,0
 	add ix,de
-	inc (ix)
+	inc (ix + Alphabet.codeLengthCounts)
 	call z,System_ThrowException
 	pop ix
 	ret
