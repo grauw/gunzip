@@ -60,6 +60,7 @@ Alphabet_CountCodeLength:
 	ld d,0
 	add ix,de
 	inc (ix)
+	call z,System_ThrowException
 	pop ix
 	ret
 
