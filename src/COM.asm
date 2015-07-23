@@ -14,8 +14,8 @@ IBUFFER_SIZE: equ 1000H
 OBUFFER_SIZE: equ 8000H
 HEAP_SIZE: EQU 1000H
 
-TPA: ds 1F00H
-RAM: ds 1000H
+TPA: ds 2E00H
+RAM: ds 0100H
 IBUFFER: ds VIRTUAL IBUFFER_SIZE
 OBUFFER: ds VIRTUAL OBUFFER_SIZE
 HEAP: ds VIRTUAL HEAP_SIZE
@@ -40,6 +40,7 @@ COM_Main:
 	INCLUDE "Inflate.asm"
 	INCLUDE "alphabet/Alphabet.asm"
 	INCLUDE "alphabet/AlphabetTest.asm"
+	INCLUDE "alphabet/Branch.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 

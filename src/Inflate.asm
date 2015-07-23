@@ -246,6 +246,12 @@ Inflate_InflateDynamicCompressed:
 	call BDOS
 	ret
 
+; ix = this
+Inflate_WriteLiteral: REPT 256, ?value
+	ld a,?value
+	jp Inflate_Write
+	ENDM
+
 ;
 Inflate_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
