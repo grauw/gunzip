@@ -2,12 +2,7 @@
 ; Buffered sequential-access file writer
 ;
 FileWriter: MACRO
-	bufferStart:
-		dw 0
-	bufferEnd:
-		dw 0
-	bufferPosition:
-		dw 0
+	super: Writer FileWriter_WriteToFile
 	fileHandle:
 		db 0FFH
 	_size:
@@ -22,18 +17,7 @@ FileWriter_template: FileWriter
 ; ix <- this
 ; de <- this
 FileWriter_Construct:
-	ld a,l  ; check if buffer is 256-byte aligned
-	or c
-	call nz,System_ThrowException
-	ld (ix + FileWriter.bufferStart),l
-	ld (ix + FileWriter.bufferStart + 1),h
-	ld (ix + FileWriter.bufferPosition),l
-	ld (ix + FileWriter.bufferPosition + 1),h
-	add hl,bc
-	ld (ix + FileWriter.bufferEnd),l
-	ld (ix + FileWriter.bufferEnd + 1),h
-	ld e,ixl
-	ld d,ixh
+	call Writer_Construct
 	ret
 
 ; ix = this
@@ -42,6 +26,7 @@ FileWriter_Destruct:
 	ld a,(ix + FileWriter.fileHandle)  ; check if file was closed
 	cp 0FFH
 	call nz,System_ThrowException
+	call Writer_Destruct
 	ret
 
 ; de = file path
@@ -56,10 +41,10 @@ FileWriter_Open:
 	call BDOS
 	call Application_CheckDOSError
 	ld (ix + FileWriter.fileHandle),b
-	ld l,(ix + FileWriter.bufferStart)
-	ld h,(ix + FileWriter.bufferStart + 1)
-	ld (ix + FileWriter.bufferPosition),l
-	ld (ix + FileWriter.bufferPosition + 1),h
+	ld l,(ix + FileWriter.super.bufferStart)
+	ld h,(ix + FileWriter.super.bufferStart + 1)
+	ld (ix + FileWriter.super.bufferPosition),l
+	ld (ix + FileWriter.super.bufferPosition + 1),h
 	ret
 
 ; ix = this
@@ -72,44 +57,21 @@ FileWriter_Close:
 	ld (ix + FileWriter.fileHandle),0FFH
 	ret
 
-; a = value
 ; ix = this
 ; Modifies: hl
-FileWriter_Write: PROC
-	ld l,(ix + FileWriter.bufferPosition)
-	ld h,(ix + FileWriter.bufferPosition + 1)
-	ld (hl),a
-	inc l
-	ld (ix + FileWriter.bufferPosition),l
-	ret nz
-	inc h
-	push af
-	ld a,(ix + FileWriter.bufferEnd + 1)
-	cp h
-	call z,NextBlock
-	pop af
-	ld (ix + FileWriter.bufferPosition + 1),h
-	ret
-NextBlock:
+FileWriter_WriteToFile:
 	push bc
 	push de
-	call FileWriter_WriteToFile
-	pop de
-	pop bc
-	ld h,(ix + FileWriter.bufferStart + 1)
-	ret
-	ENDP
-
-; ix = this
-FileWriter_WriteToFile:
 	ld b,(ix + FileWriter.fileHandle)
-	ld e,(ix + FileWriter.bufferStart)
-	ld d,(ix + FileWriter.bufferStart + 1)
-	ld l,(ix + FileWriter.bufferPosition)
-	ld h,(ix + FileWriter.bufferPosition + 1)
+	ld e,(ix + FileWriter.super.bufferStart)
+	ld d,(ix + FileWriter.super.bufferStart + 1)
+	ld l,(ix + FileWriter.super.bufferPosition)
+	ld h,(ix + FileWriter.super.bufferPosition + 1)
 	and a
 	sbc hl,de
 	ld c,_WRITE
 	call BDOS
+	pop de
+	pop bc
 	call Application_CheckDOSError
 	ret

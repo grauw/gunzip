@@ -41,6 +41,8 @@ COM_Main:
 	INCLUDE "alphabet/Alphabet.asm"
 	INCLUDE "alphabet/AlphabetTest.asm"
 	INCLUDE "alphabet/Branch.asm"
+	INCLUDE "Reader.asm"
+	INCLUDE "Writer.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 

@@ -2,12 +2,7 @@
 ; Buffered sequential-access file reader
 ;
 FileReader: MACRO
-	bufferStart:
-		dw 0
-	bufferEnd:
-		dw 0
-	bufferPosition:
-		dw 0
+	super: Reader FileReader_ReadFromFile
 	fileHandle:
 		db 0FFH
 	_size:
@@ -22,18 +17,7 @@ FileReader_template: FileReader
 ; ix <- this
 ; de <- this
 FileReader_Construct:
-	ld a,l  ; check if buffer is 256-byte aligned
-	or c
-	call nz,System_ThrowException
-	ld (ix + FileReader.bufferStart),l
-	ld (ix + FileReader.bufferStart + 1),h
-	ld (ix + FileReader.bufferPosition),l
-	ld (ix + FileReader.bufferPosition + 1),h
-	add hl,bc
-	ld (ix + FileReader.bufferEnd),l
-	ld (ix + FileReader.bufferEnd + 1),h
-	ld e,ixl
-	ld d,ixh
+	call Reader_Construct
 	ret
 
 ; ix = this
@@ -42,6 +26,7 @@ FileReader_Destruct:
 	ld a,(ix + FileReader.fileHandle)  ; check if file was closed
 	cp 0FFH
 	call nz,System_ThrowException
+	call Reader_Destruct
 	ret
 
 ; de = file path
@@ -55,10 +40,10 @@ FileReader_Open:
 	call BDOS
 	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
-	ld l,(ix + FileReader.bufferStart)
-	ld h,(ix + FileReader.bufferStart + 1)
-	ld (ix + FileReader.bufferPosition),l
-	ld (ix + FileReader.bufferPosition + 1),h
+	ld l,(ix + FileReader.super.bufferStart)
+	ld h,(ix + FileReader.super.bufferStart + 1)
+	ld (ix + FileReader.super.bufferPosition),l
+	ld (ix + FileReader.super.bufferPosition + 1),h
 	call FileReader_ReadFromFile
 	ret
 
@@ -72,55 +57,21 @@ FileReader_Close:
 	ret
 
 ; ix = this
-; a <- value
 ; Modifies: hl
-FileReader_Read: PROC
-	ld l,(ix + FileReader.bufferPosition)
-	ld h,(ix + FileReader.bufferPosition + 1)
-	ld a,(hl)
-	inc l
-	ld (ix + FileReader.bufferPosition),l
-	ret nz
-	inc h
-	push af
-	ld a,(ix + FileReader.bufferEnd + 1)
-	cp h
-	call z,NextBlock
-	pop af
-	ld (ix + FileReader.bufferPosition + 1),h
-	ret
-NextBlock:
+FileReader_ReadFromFile: PROC
 	push bc
 	push de
-	call FileReader_ReadFromFile
-	pop de
-	pop bc
-	ld h,(ix + FileReader.bufferStart + 1)
-	ret
-	ENDP
-
-; bc = nr of bytes to skip
-; ix = this
-; Modifies: hl, a
-FileReader_Skip:
-	call FileReader_Read
-	dec bc
-	ld a,b
-	or c
-	jr nz,FileReader_Skip
-	ret
-
-; ix = this
-FileReader_ReadFromFile: PROC
 	ld b,(ix + FileReader.fileHandle)
-	ld e,(ix + FileReader.bufferStart)
-	ld d,(ix + FileReader.bufferStart + 1)
-	ld l,(ix + FileReader.bufferEnd)
-	ld h,(ix + FileReader.bufferEnd + 1)
+	ld e,(ix + FileReader.super.bufferStart)
+	ld d,(ix + FileReader.super.bufferStart + 1)
+	ld l,(ix + FileReader.super.bufferEnd)
+	ld h,(ix + FileReader.super.bufferEnd + 1)
 	and a
 	sbc hl,de
 	ld c,_READ
 	call BDOS
+	pop de
+	pop bc
 	cp .EOF
 	jp z,EndOfFile
 	call Application_CheckDOSError

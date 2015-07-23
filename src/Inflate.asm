@@ -65,7 +65,7 @@ Inflate_GetWriter:
 Inflate_Read:
 	push ix
 	call Inflate_GetReader
-	call FileReader_Read
+	call Reader_Read
 	pop ix
 	ret
 
@@ -75,9 +75,9 @@ Inflate_Read:
 Inflate_ReadWord:
 	push ix
 	call Inflate_GetReader
-	call FileReader_Read
+	call Reader_Read
 	ld e,a
-	call FileReader_Read
+	call Reader_Read
 	ld d,a
 	pop ix
 	ret
@@ -92,7 +92,7 @@ Inflate_ReadBit: PROC
 NextByte:
 	push ix
 	call Inflate_GetReader
-	call FileReader_Read
+	call Reader_Read
 	pop ix
 	ld (ix + Inflate.byte),a
 	ld (ix + Inflate.bitCounter),8
@@ -135,7 +135,7 @@ Inflate_Write:
 	call Inflate_UpdateCRC32
 	push ix
 	call Inflate_GetWriter
-	call FileWriter_Write
+	call Writer_Write
 	pop ix
 	ret
 

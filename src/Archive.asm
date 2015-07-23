@@ -121,7 +121,7 @@ Archive_GetInflate:
 Archive_Read:
 	push ix
 	call Archive_GetReader
-	call FileReader_Read
+	call Reader_Read
 	pop ix
 	ret
 
@@ -131,7 +131,7 @@ Archive_Read:
 Archive_Skip:
 	push ix
 	call Archive_GetReader
-	call FileReader_Skip
+	call Reader_Skip
 	pop ix
 	ret
 
