@@ -246,10 +246,28 @@ Inflate_InflateDynamicCompressed:
 	call BDOS
 	ret
 
+; Literal/length symbols 0-255
 ; ix = this
 Inflate_WriteLiteral: REPT 256, ?value
 	ld a,?value
 	jp Inflate_Write
+	ENDM
+
+; Literal/length symbol 256
+; ix = this
+Inflate_EndBlock:
+	ret
+
+; Literal/length symbols 257-285
+; ix = this
+Inflate_CopyLength: REPT 29, ?value
+	jp System_ThrowException
+	ENDM
+
+; Distance symbols 0-29
+; ix = this
+Inflate_CopyDistance: REPT 30, ?value
+	jp System_ThrowException
 	ENDM
 
 ;
@@ -334,14 +352,30 @@ Inflate_literalLengthSymbols:
 	dw Inflate_WriteLiteral.244, Inflate_WriteLiteral.245, Inflate_WriteLiteral.246, Inflate_WriteLiteral.247
 	dw Inflate_WriteLiteral.248, Inflate_WriteLiteral.249, Inflate_WriteLiteral.250, Inflate_WriteLiteral.251
 	dw Inflate_WriteLiteral.252, Inflate_WriteLiteral.253, Inflate_WriteLiteral.254, Inflate_WriteLiteral.255
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, System_ThrowException, System_ThrowException
+	dw Inflate_EndBlock, Inflate_CopyLength.0, Inflate_CopyLength.1, Inflate_CopyLength.2
+	dw Inflate_CopyLength.3, Inflate_CopyLength.4, Inflate_CopyLength.5, Inflate_CopyLength.6
+	dw Inflate_CopyLength.7, Inflate_CopyLength.8, Inflate_CopyLength.9, Inflate_CopyLength.10
+	dw Inflate_CopyLength.11, Inflate_CopyLength.12, Inflate_CopyLength.13, Inflate_CopyLength.14
+	dw Inflate_CopyLength.15, Inflate_CopyLength.16, Inflate_CopyLength.17, Inflate_CopyLength.18
+	dw Inflate_CopyLength.19, Inflate_CopyLength.20, Inflate_CopyLength.21, Inflate_CopyLength.22
+	dw Inflate_CopyLength.23, Inflate_CopyLength.24, Inflate_CopyLength.25, Inflate_CopyLength.26
+	dw Inflate_CopyLength.27, Inflate_CopyLength.28, System_ThrowException, System_ThrowException
+
+Inflate_fixedDistanceCodeLengths:
+	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
+
+Inflate_fixedDistanceCodeLengthsCount: equ $ - Inflate_fixedDistanceCodeLengths
+
+Inflate_distanceSymbols:
+	dw Inflate_WriteLiteral.0, Inflate_CopyDistance.1, Inflate_CopyDistance.2, Inflate_CopyDistance.3
+	dw Inflate_CopyDistance.4, Inflate_CopyDistance.5, Inflate_CopyDistance.6, Inflate_CopyDistance.7
+	dw Inflate_CopyDistance.8, Inflate_CopyDistance.9, Inflate_CopyDistance.10, Inflate_CopyDistance.11
+	dw Inflate_CopyDistance.12, Inflate_CopyDistance.13, Inflate_CopyDistance.14, Inflate_CopyDistance.15
+	dw Inflate_CopyDistance.16, Inflate_CopyDistance.17, Inflate_CopyDistance.18, Inflate_CopyDistance.19
+	dw Inflate_CopyDistance.20, Inflate_CopyDistance.21, Inflate_CopyDistance.22, Inflate_CopyDistance.23
+	dw Inflate_CopyDistance.24, Inflate_CopyDistance.25, Inflate_CopyDistance.26, Inflate_CopyDistance.27
+	dw Inflate_CopyDistance.28, Inflate_CopyDistance.29, System_ThrowException, System_ThrowException
 
 Inflate_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
