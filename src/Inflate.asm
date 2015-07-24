@@ -341,7 +341,7 @@ Inflate_literalLengthSymbols:
 	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
 	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
 	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
-	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, Inflate_WriteLiteral.0
+	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.0, System_ThrowException, System_ThrowException
 
 Inflate_invalidBlockTypeError:
 	db "Invalid block type.",13,10,0
