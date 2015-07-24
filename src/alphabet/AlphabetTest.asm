@@ -44,7 +44,7 @@ AlphabetTest_expectedNextCodes:
 	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0
 
 ; ix = alphabet
-AlphabetTest_TestTreeBuilding:
+AlphabetTest_TestTreeBuilding: PROC
 	call Alphabet_class.New
 	call Alphabet_Construct
 
@@ -52,59 +52,28 @@ AlphabetTest_TestTreeBuilding:
 	ld de,AlphabetTest_testCodeLengths
 	ld hl,AlphabetTest_testSymbols
 	call Alphabet_Initialize
-	ld de,0B
+
+	ld b,7
+	ld hl,AlphabetTest_codeSymbolLengthTriplets
+Loop:
+	ld e,(hl)
+	inc hl
+	push bc
 	call Alphabet_Process
-	cp 3
+	cp (hl)
 	call nz,System_ThrowException
+	inc hl
 	ld a,b
-	cp 1
+	cp (hl)
 	call nz,System_ThrowException
-	ld de,001B
-	call Alphabet_Process
-	cp 1
-	call nz,System_ThrowException
-	ld a,b
-	cp 3
-	call nz,System_ThrowException
-	ld de,101B
-	call Alphabet_Process
-	cp 4
-	call nz,System_ThrowException
-	ld a,b
-	cp 3
-	call nz,System_ThrowException
-	ld de,0011B
-	call Alphabet_Process
-	cp 0
-	call nz,System_ThrowException
-	ld a,b
-	cp 4
-	call nz,System_ThrowException
-	ld de,1011B
-	call Alphabet_Process
-	cp 2
-	call nz,System_ThrowException
-	ld a,b
-	cp 4
-	call nz,System_ThrowException
-	ld de,0111B
-	call Alphabet_Process
-	cp 5
-	call nz,System_ThrowException
-	ld a,b
-	cp 4
-	call nz,System_ThrowException
-	ld de,1111B
-	call Alphabet_Process
-	cp 6
-	call nz,System_ThrowException
-	ld a,b
-	cp 4
-	call nz,System_ThrowException
+	inc hl
+	pop bc
+	djnz Loop
 
 	call Alphabet_Destruct
 	call Alphabet_class.Delete
 	ret
+	ENDP
 
 AlphabetTest_testCodeLengths:
 	db 4, 3, 4, 1, 3, 4, 4
@@ -124,6 +93,9 @@ AlphabetTest_ReturnLiteral: REPT 7, ?value
 	ld a,?value
 	ret
 	ENDM
+
+AlphabetTest_codeSymbolLengthTriplets:
+	db 0B, 3, 1, 001B, 1, 3, 101B, 4, 3, 0011B, 0, 4, 1011B, 2, 4, 0111B, 5, 4, 1111B, 6, 4
 
 ; hl = array A
 ; de = array B
