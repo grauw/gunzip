@@ -2,7 +2,6 @@
 ; Huffman alphabet
 ;
 Alphabet_MAX_CODELENGTH: equ 16
-Alphabet_MAX_CODESET: equ 288
 
 Alphabet: MACRO
 	; de = next 16 bits
@@ -65,21 +64,29 @@ Alphabet_Process:
 	ld b,0
 	jp ix
 
-; hl = code length table (MAX_CODESET entries long)
+; bc = code length table length
+; hl = code length table
 ; ix = this
 Alphabet_SetCodeLengths:
+	push bc
 	push hl
 	call Alphabet_CountCodeLengths
 	call Alphabet_CalculateNextCodes
 	pop de
+	pop bc
 	ld hl,Alphabet_literalLengthSymbols
 	call Alphabet_BuildTree
 	ret
 
-; hl = code length table (MAX_CODESET entries long)
+; bc = code length table length
+; hl = code length table
 ; ix = this
 Alphabet_CountCodeLengths:
-	ld bc,2002H  ; 288x
+	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
+	dec bc
+	inc b
+	ld c,b
+	ld b,a
 Loop:
 	ld a,(hl)
 	inc hl
@@ -128,11 +135,16 @@ Loop:
 	ret
 	ENDP
 
-; de = code length table (MAX_CODESET entries long)
+; bc = code length table length
+; de = code length table
 ; hl = symbol handler table
 ; ix = this
 Alphabet_BuildTree: PROC
-	ld bc,2002H  ; 288x
+	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
+	dec bc
+	inc b
+	ld c,b
+	ld b,a
 Loop:
 	push bc
 	ld a,(de)
@@ -201,6 +213,8 @@ Alphabet_fixedCodeLengths:
 	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
 	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 7, 7, 7, 7, 7, 7, 7, 7  ; 256-280: 7
 	db 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8  ; 280-288: 8
+
+Alphabet_fixedCodeLengthsCount: equ $ - Alphabet_fixedCodeLengths
 
 ;
 Alphabet_literalLengthSymbols:

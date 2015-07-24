@@ -13,6 +13,7 @@ AlphabetTest_Test:
 
 ; ix = alphabet
 AlphabetTest_TestCountCodeLenghts:
+	ld bc,Alphabet_fixedCodeLengthsCount
 	ld hl,Alphabet_fixedCodeLengths
 	call Alphabet_CountCodeLengths
 	ld e,ixl
@@ -46,6 +47,7 @@ AlphabetTest_expectedNextCodes:
 
 ; ix = alphabet
 AlphabetTest_TestBuildTree:
+	ld bc,Alphabet_fixedCodeLengthsCount
 	ld de,Alphabet_fixedCodeLengths
 	ld hl,AlphabetTest_literalLengthSymbols
 	call Alphabet_BuildTree
