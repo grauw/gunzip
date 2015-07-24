@@ -112,6 +112,7 @@ Application_GetArchive:
 ; ix = this
 Application_EnterMainLoop:
 	call Application_ParseCLI
+	call Application_PrintFilename
 	call Application_Inflate
 	ret
 
@@ -136,7 +137,23 @@ Application_ParseCLI:
 	ret
 
 ; ix = this
-Application_Inflate: PROC
+Application_PrintFilename:
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	pop ix
+	push hl
+	ld hl,Application_inflatingFile
+	call System_Print
+	pop hl
+	call System_Print
+	ld hl,Application_dotDotDot
+	call System_Print
+	ret
+
+; ix = this
+Application_Inflate:
 	push ix
 	call Application_GetCLI
 	ld l,(ix + CLI.archivePath)
@@ -146,21 +163,11 @@ Application_Inflate: PROC
 	pop ix
 	push ix
 	push de
-	push hl
-	ld hl,Application_inflatingFile
-	call System_Print
-	pop hl
-	push hl
-	call System_Print
-	ld hl,Application_dotDotDot
-	call System_Print
 	call Application_GetArchive
-	pop hl
 	pop de
 	call Archive_Inflate
 	pop ix
 	ret
-	ENDP
 
 ; a <- DOS error code
 Application_CheckDOSError:
