@@ -106,18 +106,6 @@ AlphabetTest_TestTreeBuilding:
 	call Alphabet_class.Delete
 	ret
 
-; hl = array A
-; de = array B
-; bc = nr of bytes to compare
-AlphabetTest_AssertArrayEquals:
-	ld a,(de)
-	inc de
-	cpi
-	call nz,System_ThrowException
-	jp pe,AlphabetTest_AssertArrayEquals
-	ret
-
-;
 AlphabetTest_testCodeLengths:
 	db 4, 3, 4, 1, 3, 4, 4
 
@@ -132,8 +120,18 @@ AlphabetTest_testSymbols:
 	dw AlphabetTest_ReturnLiteral.5
 	dw AlphabetTest_ReturnLiteral.6
 
-; ix = this
 AlphabetTest_ReturnLiteral: REPT 7, ?value
 	ld a,?value
 	ret
 	ENDM
+
+; hl = array A
+; de = array B
+; bc = nr of bytes to compare
+AlphabetTest_AssertArrayEquals:
+	ld a,(de)
+	inc de
+	cpi
+	call nz,System_ThrowException
+	jp pe,AlphabetTest_AssertArrayEquals
+	ret
