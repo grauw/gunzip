@@ -2,18 +2,15 @@
 ; Alphabet unit tests
 ;
 AlphabetTest_Test:
-	call Alphabet_class.New
-	call Alphabet_Construct
-	call AlphabetTest_TestCountCodeLenghts
-	call AlphabetTest_TestCalculateNextCodes
-	call Alphabet_Destruct
-	call Alphabet_class.Delete
-
-	call AlphabetTest_TestBuildTree
+	call AlphabetTest_TestCodeBuilding
+	call AlphabetTest_TestTreeBuilding
 	ret
 
 ; ix = alphabet
-AlphabetTest_TestCountCodeLenghts:
+AlphabetTest_TestCodeBuilding:
+	call Alphabet_class.New
+	call Alphabet_Construct
+
 	ld bc,Alphabet_fixedCodeLengthsCount
 	ld hl,Alphabet_fixedCodeLengths
 	call Alphabet_CountCodeLengths
@@ -25,13 +22,7 @@ AlphabetTest_TestCountCodeLenghts:
 	ld hl,AlphabetTest_expectedCodeLengthCounts
 	ld bc,Alphabet_MAX_CODELENGTH + 1
 	call AlphabetTest_AssertArrayEquals
-	ret
 
-AlphabetTest_expectedCodeLengthCounts:
-	db 0, 0, 0, 0, 0, 0, 0, 24, 152, 112, 0, 0, 0, 0, 0, 0, 0
-
-; ix = alphabet
-AlphabetTest_TestCalculateNextCodes:
 	call Alphabet_CalculateNextCodes
 	ld e,ixl
 	ld d,ixh
@@ -41,13 +32,19 @@ AlphabetTest_TestCalculateNextCodes:
 	ld hl,AlphabetTest_expectedNextCodes
 	ld bc,Alphabet_MAX_CODELENGTH * 2
 	call AlphabetTest_AssertArrayEquals
+
+	call Alphabet_Destruct
+	call Alphabet_class.Delete
 	ret
+
+AlphabetTest_expectedCodeLengthCounts:
+	db 0, 0, 0, 0, 0, 0, 0, 24, 152, 112, 0, 0, 0, 0, 0, 0, 0
 
 AlphabetTest_expectedNextCodes:
 	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0
 
 ; ix = alphabet
-AlphabetTest_TestBuildTree:
+AlphabetTest_TestTreeBuilding:
 	call Alphabet_class.New
 	call Alphabet_Construct
 

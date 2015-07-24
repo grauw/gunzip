@@ -1,5 +1,8 @@
 ;
-; Huffman alphabet
+; Huffman alphabet builder
+;
+; Allocate the whole damn thing on stack...?
+; So we can destroy it easily without fragmenting the heap.
 ;
 Alphabet_MAX_CODELENGTH: equ 16
 
