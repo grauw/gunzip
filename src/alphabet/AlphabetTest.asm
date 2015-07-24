@@ -53,49 +53,49 @@ AlphabetTest_TestTreeBuilding:
 	ld hl,AlphabetTest_testSymbols
 	call Alphabet_Initialize
 	ld de,0B
-	jp ix
+	call Alphabet_Process
 	cp 3
 	call nz,System_ThrowException
 	ld a,b
 	cp 1
 	call nz,System_ThrowException
 	ld de,001B
-	jp ix
+	call Alphabet_Process
 	cp 1
 	call nz,System_ThrowException
 	ld a,b
 	cp 3
 	call nz,System_ThrowException
 	ld de,101B
-	jp ix
-	cp 1
+	call Alphabet_Process
+	cp 4
 	call nz,System_ThrowException
 	ld a,b
 	cp 3
 	call nz,System_ThrowException
 	ld de,0011B
-	jp ix
+	call Alphabet_Process
 	cp 0
 	call nz,System_ThrowException
 	ld a,b
 	cp 4
 	call nz,System_ThrowException
 	ld de,1011B
-	jp ix
+	call Alphabet_Process
 	cp 2
 	call nz,System_ThrowException
 	ld a,b
 	cp 4
 	call nz,System_ThrowException
 	ld de,0111B
-	jp ix
+	call Alphabet_Process
 	cp 5
 	call nz,System_ThrowException
 	ld a,b
 	cp 4
 	call nz,System_ThrowException
 	ld de,1111B
-	jp ix
+	call Alphabet_Process
 	cp 6
 	call nz,System_ThrowException
 	ld a,b
