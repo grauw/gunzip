@@ -65,16 +65,19 @@ Alphabet_Process:
 	jp ix
 
 ; bc = code length table length
-; hl = code length table
+; de = code length table
+; hl = symbol handler table
 ; ix = this
-Alphabet_SetCodeLengths:
+Alphabet_Initialize:
 	push bc
+	push de
 	push hl
+	ex de,hl
 	call Alphabet_CountCodeLengths
 	call Alphabet_CalculateNextCodes
+	pop hl
 	pop de
 	pop bc
-	ld hl,Alphabet_literalLengthSymbols
 	call Alphabet_BuildTree
 	ret
 
