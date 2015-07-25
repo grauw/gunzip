@@ -226,21 +226,20 @@ Archive_SkipHeaderCRC:
 ; f <- nz: mismatch
 Archive_VerifyISIZE:
 	push ix
-	call Archive_GetInflate
+	call Archive_GetWriter
+	call Writer_GetCount
 	pop ix
-	ld iyl,e
-	ld iyh,d
 	ld a,(ix + Archive.isize)
-	cp (iy + Inflate.isize)
+	cp l
 	ret nz
 	ld a,(ix + Archive.isize + 1)
-	cp (iy + Inflate.isize + 1)
+	cp h
 	ret nz
 	ld a,(ix + Archive.isize + 2)
-	cp (iy + Inflate.isize + 2)
+	cp e
 	ret nz
 	ld a,(ix + Archive.isize + 3)
-	cp (iy + Inflate.isize + 3)
+	cp d
 	ret
 
 ; ix = this

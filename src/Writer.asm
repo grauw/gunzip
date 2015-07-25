@@ -13,6 +13,8 @@ Writer: MACRO ?flusher
 		dw 0
 	bufferPosition:
 		dw 0
+	count:
+		dd 0
 	_size:
 	ENDM
 
@@ -67,6 +69,7 @@ Writer_Write: PROC
 NextBlock:
 	push bc
 	push de
+	call Writer_IncreaseCount
 	call Writer_FlushBuffer
 	pop de
 	pop bc
@@ -78,3 +81,38 @@ NextBlock:
 ; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
 	jp ix
+
+; ix = this
+; Modifies: hl, bc
+Writer_IncreaseCount:
+	ld l,(ix + Writer.count)
+	ld h,(ix + Writer.count + 1)
+	ld c,(ix + Writer.bufferSize)
+	ld b,(ix + Writer.bufferSize + 1)
+	add hl,bc
+	ld (ix + Writer.count),l
+	ld (ix + Writer.count + 1),h
+	ret nc
+	inc (ix + Writer.count + 2)
+	ret nz
+	inc (ix + Writer.count + 3)
+	ret
+
+; ix = this
+; dehl <- count bytes written
+Writer_GetCount:
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
+	ld c,(ix + Writer.bufferStart)
+	ld b,(ix + Writer.bufferStart + 1)
+	and a
+	sbc hl,bc
+	call c,System_ThrowException
+	ld c,(ix + Writer.count)
+	ld b,(ix + Writer.count + 1)
+	ld e,(ix + Writer.count + 2)
+	ld d,(ix + Writer.count + 3)
+	add hl,bc
+	ret nc
+	inc de
+	ret

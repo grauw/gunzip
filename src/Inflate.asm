@@ -10,8 +10,6 @@ Inflate: MACRO
 		db 0
 	bitCounter:
 		db 1
-	isize:
-		dd 0
 	crc32:
 		dd 0FFFFFFFFH
 	_size:
@@ -131,23 +129,11 @@ Inflate_Align:
 ; ix = this
 ; Modifies: hl, de
 Inflate_Write:
-	call Inflate_IncreaseISIZE
 	call Inflate_UpdateCRC32
 	push ix
 	call Inflate_GetWriter
 	call Writer_Write
 	pop ix
-	ret
-
-; ix = this
-Inflate_IncreaseISIZE:
-	inc (ix + Inflate.isize)
-	ret nz
-	inc (ix + Inflate.isize + 1)
-	ret nz
-	inc (ix + Inflate.isize + 2)
-	ret nz
-	inc (ix + Inflate.isize + 3)
 	ret
 
 ; a = value
