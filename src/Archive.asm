@@ -229,17 +229,17 @@ Archive_VerifyISIZE:
 	call Archive_GetWriter
 	call Writer_GetCount
 	pop ix
-	ld a,(ix + Archive.isize)
-	cp l
+	ld a,l
+	cp (ix + Archive.isize)
 	ret nz
-	ld a,(ix + Archive.isize + 1)
-	cp h
+	ld a,h
+	cp (ix + Archive.isize + 1)
 	ret nz
-	ld a,(ix + Archive.isize + 2)
-	cp e
+	ld a,e
+	cp (ix + Archive.isize + 2)
 	ret nz
-	ld a,(ix + Archive.isize + 3)
-	cp d
+	ld a,d
+	cp (ix + Archive.isize + 3)
 	ret
 
 ; ix = this
@@ -249,21 +249,21 @@ Archive_VerifyCRC32:
 	call Archive_GetWriter
 	call Writer_GetCRC32
 	pop ix
-	ld a,(ix + Archive.crc32)
+	ld a,l
 	cpl
-	cp l
+	cp (ix + Archive.crc32)
 	ret nz
-	ld a,(ix + Archive.crc32 + 1)
+	ld a,h
 	cpl
-	cp h
+	cp (ix + Archive.crc32 + 1)
 	ret nz
-	ld a,(ix + Archive.crc32 + 2)
+	ld a,e
 	cpl
-	cp e
+	cp (ix + Archive.crc32 + 2)
 	ret nz
-	ld a,(ix + Archive.crc32 + 3)
+	ld a,d
 	cpl
-	cp d
+	cp (ix + Archive.crc32 + 3)
 	ret
 
 ;
