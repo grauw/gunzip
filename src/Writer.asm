@@ -15,6 +15,8 @@ Writer: MACRO ?flusher
 		dw 0
 	count:
 		dd 0
+	crc32:
+		dd 0FFFFFFFFH
 	_size:
 	ENDM
 
@@ -70,6 +72,7 @@ NextBlock:
 	push bc
 	push de
 	call Writer_IncreaseCount
+	call Writer_UpdateCRC32
 	call Writer_FlushBuffer
 	pop de
 	pop bc
@@ -116,3 +119,104 @@ Writer_GetCount:
 	ret nc
 	inc de
 	ret
+
+; a = value
+; ix = this
+; Modifies: af, bc, de, hl
+Writer_UpdateCRC32:
+	exx
+	push bc
+	push hl
+	ld l,(ix + Writer.bufferStart)
+	ld h,(ix + Writer.bufferStart + 1)
+	ld c,(ix + Writer.bufferSize)
+	ld b,(ix + Writer.bufferSize + 1)
+	exx
+	ld l,(ix + Writer.crc32)
+	ld h,(ix + Writer.crc32 + 1)
+	ld e,(ix + Writer.crc32 + 2)
+	ld d,(ix + Writer.crc32 + 3)
+	call Writer_CalculateCRC32
+	ld (ix + Writer.crc32),l
+	ld (ix + Writer.crc32 + 1),h
+	ld (ix + Writer.crc32 + 2),e
+	ld (ix + Writer.crc32 + 3),d
+	exx
+	pop hl
+	pop bc
+	exx
+	ret
+
+; ix = this
+; dehl <- crc32
+; Modifies: af, bc, de, hl
+Writer_GetCRC32:
+	exx
+	push bc
+	push hl
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
+	ld c,(ix + Writer.bufferStart)
+	ld b,(ix + Writer.bufferStart + 1)
+	and a
+	sbc hl,bc
+	call c,System_ThrowException
+	ld a,l
+	ld l,c
+	ld c,a
+	ld a,h
+	ld h,b
+	ld b,a
+	exx
+	ld l,(ix + Writer.crc32)
+	ld h,(ix + Writer.crc32 + 1)
+	ld e,(ix + Writer.crc32 + 2)
+	ld d,(ix + Writer.crc32 + 3)
+	call nz,Writer_CalculateCRC32
+	exx
+	pop hl
+	pop bc
+	exx
+	ret
+
+; bc' = byte count
+; hl' = read address
+; dehl = current crc
+; ix = this
+; dehl <- updated crc
+; Modifies: af, bc, de, hl, bc', hl'
+Writer_CalculateCRC32: PROC
+	exx
+	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
+	dec bc
+	inc b
+	ld c,b
+	ld b,a
+Loop:
+	ld a,(hl)
+	inc hl
+	exx
+	xor l
+	ld c,a
+	ld b,CRC32Table >> 8
+	ld a,(bc)
+	xor h
+	ld l,a
+	inc b
+	ld a,(bc)
+	xor e
+	ld h,a
+	inc b
+	ld a,(bc)
+	xor d
+	ld e,a
+	inc b
+	ld a,(bc)
+	ld d,a
+	exx
+	djnz Loop
+	dec c
+	jp nz,Loop
+	exx
+	ret
+	ENDP

@@ -246,25 +246,24 @@ Archive_VerifyISIZE:
 ; f <- nz: mismatch
 Archive_VerifyCRC32:
 	push ix
-	call Archive_GetInflate
+	call Archive_GetWriter
+	call Writer_GetCRC32
 	pop ix
-	ld iyl,e
-	ld iyh,d
 	ld a,(ix + Archive.crc32)
 	cpl
-	cp (iy + Inflate.crc32)
+	cp l
 	ret nz
 	ld a,(ix + Archive.crc32 + 1)
 	cpl
-	cp (iy + Inflate.crc32 + 1)
+	cp h
 	ret nz
 	ld a,(ix + Archive.crc32 + 2)
 	cpl
-	cp (iy + Inflate.crc32 + 2)
+	cp e
 	ret nz
 	ld a,(ix + Archive.crc32 + 3)
 	cpl
-	cp (iy + Inflate.crc32 + 3)
+	cp d
 	ret
 
 ;

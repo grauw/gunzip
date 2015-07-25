@@ -10,8 +10,6 @@ Inflate: MACRO
 		db 0
 	bitCounter:
 		db 1
-	crc32:
-		dd 0FFFFFFFFH
 	_size:
 	ENDM
 
@@ -127,38 +125,12 @@ Inflate_Align:
 
 ; a = value
 ; ix = this
-; Modifies: hl, de
+; Modifies: af, hl
 Inflate_Write:
-	call Inflate_UpdateCRC32
 	push ix
 	call Inflate_GetWriter
 	call Writer_Write
 	pop ix
-	ret
-
-; a = value
-; ix = this
-; Modifies: hl, de
-Inflate_UpdateCRC32:
-	push af
-	xor (ix + Inflate.crc32)
-	ld l,a
-	ld h,CRC32Table >> 8
-	ld a,(hl)
-	xor (ix + Inflate.crc32 + 1)
-	ld (ix + Inflate.crc32),a
-	inc h
-	ld a,(hl)
-	xor (ix + Inflate.crc32 + 2)
-	ld (ix + Inflate.crc32 + 1),a
-	inc h
-	ld a,(hl)
-	xor (ix + Inflate.crc32 + 3)
-	ld (ix + Inflate.crc32 + 2),a
-	inc h
-	ld a,(hl)
-	ld (ix + Inflate.crc32 + 3),a
-	pop af
 	ret
 
 ; ix = this
