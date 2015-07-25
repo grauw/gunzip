@@ -153,6 +153,8 @@ Inflate.prototype.processDynamicCompressedBlock = function() {
 	//      single stream of lengths.  It is possible (and advantageous) for
 	//      a repeat code (16, 17, or 18) to go across the boundary between
 	//      the two sets of lengths.
+	// FIXME? One distance code of zero bits means that there are no
+	//        distance codes used at all (the data is all literals).
 	var literalsAlphabet = this.readHeaderAlphabet(hlit, headerCodeAlphabet);
 	var distanceAlphabet = this.readHeaderAlphabet(hdist, headerCodeAlphabet);
 	
