@@ -80,20 +80,18 @@ Inflate_ReadWord:
 
 ; ix = this
 ; f <- c: bit
-Inflate_ReadBit: PROC
+Inflate_ReadBit:
+	rr (ix + Inflate.byte)
 	dec (ix + Inflate.bitCounter)
-	call z,NextByte
-	srl (ix + Inflate.byte)
-	ret
-NextByte:
+	ret nz
 	push ix
 	call Inflate_GetReader
 	call Reader_Read
 	pop ix
+	rra
 	ld (ix + Inflate.byte),a
 	ld (ix + Inflate.bitCounter),8
 	ret
-	ENDP
 
 ; b = nr of bits to read (1-8)
 ; ix = this
