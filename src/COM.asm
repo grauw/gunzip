@@ -43,6 +43,7 @@ COM_Main:
 	INCLUDE "alphabet/Branch.asm"
 	INCLUDE "Reader.asm"
 	INCLUDE "Writer.asm"
+	INCLUDE "WriterTest.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 	INCLUDE "NullWriter.asm"
