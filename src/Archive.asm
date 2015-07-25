@@ -269,7 +269,7 @@ Archive_notDeflateError:
 	db "Not compressed with DEFLATE.",13,10,0
 
 Archive_isizeMismatchError:
-	db "Output file size mismatch.",13,10,0
+	db "Inflated size mismatch.",13,10,0
 
 Archive_crc32MismatchError:
-	db "Output file CRC32 mismatch.",13,10,0
+	db "Inflated CRC32 mismatch.",13,10,0
