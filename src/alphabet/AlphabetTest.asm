@@ -6,7 +6,6 @@ AlphabetTest_Test:
 	call AlphabetTest_TestTreeBuilding
 	ret
 
-; ix = alphabet
 AlphabetTest_TestCodeBuilding:
 	call Alphabet_class.New
 	call Alphabet_Construct
@@ -43,7 +42,6 @@ AlphabetTest_expectedCodeLengthCounts:
 AlphabetTest_expectedNextCodes:
 	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0
 
-; ix = alphabet
 AlphabetTest_TestTreeBuilding: PROC
 	call Alphabet_class.New
 	call Alphabet_Construct
