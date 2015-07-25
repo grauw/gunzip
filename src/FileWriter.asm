@@ -47,10 +47,8 @@ FileWriter_Destruct:
 	ret
 
 ; ix = this
-; Modifies: hl
+; Modifies: af, bc, de, hl
 FileWriter_WriteToFile:
-	push bc
-	push de
 	ld b,(ix + FileWriter.fileHandle)
 	ld e,(ix + FileWriter.super.bufferStart)
 	ld d,(ix + FileWriter.super.bufferStart + 1)
@@ -60,7 +58,5 @@ FileWriter_WriteToFile:
 	sbc hl,de
 	ld c,_WRITE
 	call BDOS
-	pop de
-	pop bc
 	call Application_CheckDOSError
 	ret

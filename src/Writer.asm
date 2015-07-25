@@ -65,11 +65,16 @@ Writer_Write: PROC
 	ld (ix + Writer.bufferPosition + 1),h
 	ret
 NextBlock:
+	push bc
+	push de
 	call Writer_FlushBuffer
+	pop de
+	pop bc
 	ld h,(ix + Writer.bufferStart + 1)
 	ret
 	ENDP
 
 ; ix = this
+; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
 	jp ix

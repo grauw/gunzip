@@ -65,7 +65,11 @@ Reader_Read: PROC
 	ld (ix + Reader.bufferPosition + 1),h
 	ret
 NextBlock:
+	push bc
+	push de
 	call Reader_FillBuffer
+	pop de
+	pop bc
 	ld h,(ix + Reader.bufferStart + 1)
 	ret
 	ENDP
@@ -82,5 +86,6 @@ Reader_Skip:
 	ret
 
 ; ix = this
+; Modifies: af, bc, de, hl
 Reader_FillBuffer:
 	jp ix

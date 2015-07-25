@@ -46,10 +46,8 @@ FileReader_Destruct:
 	ret
 
 ; ix = this
-; Modifies: hl
+; Modifies: af, bc, de, hl
 FileReader_ReadFromFile: PROC
-	push bc
-	push de
 	ld b,(ix + FileReader.fileHandle)
 	ld e,(ix + FileReader.super.bufferStart)
 	ld d,(ix + FileReader.super.bufferStart + 1)
@@ -59,8 +57,6 @@ FileReader_ReadFromFile: PROC
 	sbc hl,de
 	ld c,_READ
 	call BDOS
-	pop de
-	pop bc
 	cp .EOF
 	jp z,EndOfFile
 	call Application_CheckDOSError
