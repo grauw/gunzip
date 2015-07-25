@@ -74,6 +74,11 @@ NextBlock:
 	ret
 	ENDP
 
+; ix = this
+; Modifies: af, bc, de, hl
+Reader_FillBuffer:
+	jp ix
+
 ; bc = nr of bytes to skip
 ; ix = this
 ; Modifies: hl, a
@@ -84,8 +89,3 @@ Reader_Skip:
 	or c
 	jr nz,Reader_Skip
 	ret
-
-; ix = this
-; Modifies: af, bc, de, hl
-Reader_FillBuffer:
-	jp ix
