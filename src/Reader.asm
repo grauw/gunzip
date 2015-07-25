@@ -7,6 +7,8 @@ Reader: MACRO ?filler
 	filler: equ $ - 2
 	bufferStart:
 		dw 0
+	bufferSize:
+		dw 0
 	bufferEnd:
 		dw 0
 	bufferPosition:
@@ -30,6 +32,8 @@ Reader_Construct:
 	call nz,System_ThrowException
 	ld (ix + Reader.bufferStart),l
 	ld (ix + Reader.bufferStart + 1),h
+	ld (ix + Reader.bufferSize),c
+	ld (ix + Reader.bufferSize + 1),b
 	ld (ix + Reader.bufferPosition),l
 	ld (ix + Reader.bufferPosition + 1),h
 	add hl,bc

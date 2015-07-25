@@ -7,6 +7,8 @@ Writer: MACRO ?flusher
 	flusher: equ $ - 2
 	bufferStart:
 		dw 0
+	bufferSize:
+		dw 0
 	bufferEnd:
 		dw 0
 	bufferPosition:
@@ -30,6 +32,8 @@ Writer_Construct:
 	call nz,System_ThrowException
 	ld (ix + Writer.bufferStart),l
 	ld (ix + Writer.bufferStart + 1),h
+	ld (ix + Writer.bufferSize),c
+	ld (ix + Writer.bufferSize + 1),b
 	ld (ix + Writer.bufferPosition),l
 	ld (ix + Writer.bufferPosition + 1),h
 	add hl,bc
