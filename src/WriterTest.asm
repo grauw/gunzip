@@ -70,21 +70,14 @@ Loop1:
 	call Writer_Write
 	djnz Loop1
 	call Writer_GetCRC32
-	ld a,l
-	cpl
-	cp 064H
+	ld bc,07364H
+	scf
+	adc hl,bc
 	call nz,System_ThrowException
-	ld a,h
-	cpl
-	cp 073H
-	call nz,System_ThrowException
-	ld a,e
-	cpl
-	cp 0A8H
-	call nz,System_ThrowException
-	ld a,d
-	cpl
-	cp 0DAH
+	ex de,hl
+	ld bc,0DAA8H
+	scf
+	adc hl,bc
 	call nz,System_ThrowException
 
 	ld b,200
@@ -93,21 +86,14 @@ Loop2:
 	call Writer_Write
 	djnz Loop2
 	call Writer_GetCRC32
-	ld a,l
-	cpl
-	cp 096H
+	ld bc,04E96H
+	scf
+	adc hl,bc
 	call nz,System_ThrowException
-	ld a,h
-	cpl
-	cp 04EH
-	call nz,System_ThrowException
-	ld a,e
-	cpl
-	cp 0A9H
-	call nz,System_ThrowException
-	ld a,d
-	cpl
-	cp 02DH
+	ex de,hl
+	ld bc,02DA9H
+	scf
+	adc hl,bc
 	call nz,System_ThrowException
 
 	call NullWriter_Destruct
