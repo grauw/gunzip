@@ -104,12 +104,6 @@ Application_ParseCLI:
 	or h
 	ld hl,Application_usageInstructions
 	call z,Application_TerminateWithError
-	ld l,(ix + CLI.outputPath)
-	ld h,(ix + CLI.outputPath + 1)
-	ld a,l
-	or h
-	ld hl,Application_usageInstructions
-	call z,Application_TerminateWithError
 	pop ix
 	ret
 
@@ -131,6 +125,18 @@ Application_PrintFilename:
 
 ; ix = this
 Application_Inflate:
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.outputPath)
+	ld h,(ix + CLI.outputPath + 1)
+	pop ix
+	ld a,l
+	or h
+	jp z,Application_InflateTest
+	jp Application_InflateToFile
+
+; ix = this
+Application_InflateToFile:
 	call Application_CreateFileReader
 	push de
 	call Application_CreateFileWriter
@@ -150,6 +156,35 @@ Application_Inflate:
 	ld ixh,d
 	call FileWriter_Destruct
 	call FileWriter_class.Delete
+	pop de
+	ld ixl,e
+	ld ixh,d
+	call FileReader_Destruct
+	call FileReader_class.Delete
+	pop ix
+	ret
+
+; ix = this
+Application_InflateTest:
+	call Application_CreateFileReader
+	push de
+	call Application_CreateNullWriter
+	pop hl
+	push ix
+	push hl
+	push de
+	call Archive_class.New
+	call Archive_Construct
+
+	call Archive_Inflate
+
+	call Archive_Destruct
+	call Archive_class.Delete
+	pop de
+	ld ixl,e
+	ld ixh,d
+	call NullWriter_Destruct
+	call NullWriter_class.Delete
 	pop de
 	ld ixl,e
 	ld ixh,d
@@ -187,6 +222,17 @@ Application_CreateFileWriter:
 	push ix
 	call FileWriter_class.New
 	call FileWriter_Construct
+	pop ix
+	ret
+
+; ix = this
+; de <- file writer
+Application_CreateNullWriter:
+	ld hl,OBUFFER
+	ld bc,OBUFFER_SIZE
+	push ix
+	call NullWriter_class.New
+	call NullWriter_Construct
 	pop ix
 	ret
 
