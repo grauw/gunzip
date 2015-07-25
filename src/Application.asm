@@ -89,7 +89,6 @@ Application_GetCLI:
 ; ix = this
 Application_EnterMainLoop:
 	call Application_ParseCLI
-	call Application_PrintFilename
 	call Application_Inflate
 	ret
 
@@ -108,22 +107,6 @@ Application_ParseCLI:
 	ret
 
 ; ix = this
-Application_PrintFilename:
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	pop ix
-	push hl
-	ld hl,Application_inflatingFile
-	call System_Print
-	pop hl
-	call System_Print
-	ld hl,Application_dotDotDot
-	call System_Print
-	ret
-
-; ix = this
 Application_Inflate:
 	push ix
 	call Application_GetCLI
@@ -137,6 +120,17 @@ Application_Inflate:
 
 ; ix = this
 Application_InflateToFile:
+	ld hl,Application_inflatingFile
+	call System_Print
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	pop ix
+	call System_Print
+	ld hl,Application_dotDotDot
+	call System_Print
+
 	call Application_CreateFileReader
 	push de
 	call Application_CreateFileWriter
@@ -166,6 +160,17 @@ Application_InflateToFile:
 
 ; ix = this
 Application_InflateTest:
+	ld hl,Application_testingFile
+	call System_Print
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	pop ix
+	call System_Print
+	ld hl,Application_dotDotDot
+	call System_Print
+
 	call Application_CreateFileReader
 	push de
 	call Application_CreateNullWriter
@@ -265,6 +270,9 @@ Application_welcome:
 
 Application_inflatingFile:
 	db "Inflating ",0
+
+Application_testingFile:
+	db "Testing ",0
 
 Application_dotDotDot:
 	db "...",13,10,0
