@@ -11,30 +11,16 @@ FileWriter: MACRO
 FileWriter_class: Class FileWriter, FileWriter_template, Heap_main
 FileWriter_template: FileWriter
 
+; de = file path
 ; hl = buffer start
 ; bc = buffer size
 ; ix = this
 ; ix <- this
 ; de <- this
 FileWriter_Construct:
+	push de
 	call Writer_Construct
-	ret
-
-; ix = this
-; ix <- this
-FileWriter_Destruct:
-	ld a,(ix + FileWriter.fileHandle)  ; check if file was closed
-	cp 0FFH
-	call nz,System_ThrowException
-	call Writer_Destruct
-	ret
-
-; de = file path
-; ix = this
-FileWriter_Open:
-	ld a,(ix + FileWriter.fileHandle)  ; check if file was not already opened
-	cp 0FFH
-	call nz,System_ThrowException
+	pop de
 	ld a,00000010B  ; write only
 	ld b,0
 	ld c,_CREATE
@@ -45,16 +31,19 @@ FileWriter_Open:
 	ld h,(ix + FileWriter.super.bufferStart + 1)
 	ld (ix + FileWriter.super.bufferPosition),l
 	ld (ix + FileWriter.super.bufferPosition + 1),h
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this
-FileWriter_Close:
+; ix <- this
+FileWriter_Destruct:
 	call FileWriter_WriteToFile
 	ld b,(ix + FileWriter.fileHandle)
 	ld c,_CLOSE
 	call BDOS
 	call Application_CheckDOSError
-	ld (ix + FileWriter.fileHandle),0FFH
+	call Writer_Destruct
 	ret
 
 ; ix = this

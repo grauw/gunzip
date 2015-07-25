@@ -4,8 +4,6 @@
 Application: MACRO
 	cli:
 		dw 0
-	archive:
-		dw 0
 	_size:
 	ENDM
 
@@ -64,12 +62,6 @@ Application_Construct:
 	pop ix
 	ld (ix + Application.cli),e
 	ld (ix + Application.cli + 1),d
-	push ix
-	call Archive_class.New
-	call Archive_Construct
-	pop ix
-	ld (ix + Application.archive),e
-	ld (ix + Application.archive + 1),d
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -82,11 +74,6 @@ Application_Destruct:
 	call CLI_Destruct
 	call CLI_class.Delete
 	pop ix
-	push ix
-	call Application_GetArchive
-	call Archive_Destruct
-	call Archive_class.Delete
-	pop ix
 	ret
 
 ; ix = this
@@ -95,16 +82,6 @@ Application_Destruct:
 Application_GetCLI:
 	ld e,(ix + Application.cli)
 	ld d,(ix + Application.cli + 1)
-	ld ixl,e
-	ld ixh,d
-	ret
-
-; ix = this
-; de <- Gzip archive
-; ix <- Gzip archive
-Application_GetArchive:
-	ld e,(ix + Application.archive)
-	ld d,(ix + Application.archive + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -162,10 +139,13 @@ Application_Inflate:
 	ld d,(ix + CLI.outputPath + 1)
 	pop ix
 	push ix
-	push de
-	call Application_GetArchive
-	pop de
+	call Archive_class.New
+	call Archive_Construct
+
 	call Archive_Inflate
+
+	call Archive_Destruct
+	call Archive_class.Delete
 	pop ix
 	ret
 

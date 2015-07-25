@@ -11,30 +11,16 @@ FileReader: MACRO
 FileReader_class: Class FileReader, FileReader_template, Heap_main
 FileReader_template: FileReader
 
+; de = file path
 ; hl = buffer start
 ; bc = buffer size
 ; ix = this
 ; ix <- this
 ; de <- this
 FileReader_Construct:
+	push de
 	call Reader_Construct
-	ret
-
-; ix = this
-; ix <- this
-FileReader_Destruct:
-	ld a,(ix + FileReader.fileHandle)  ; check if file was closed
-	cp 0FFH
-	call nz,System_ThrowException
-	call Reader_Destruct
-	ret
-
-; de = file path
-; ix = this
-FileReader_Open:
-	ld a,(ix + FileReader.fileHandle)  ; check if file was not already opened
-	cp 0FFH
-	call nz,System_ThrowException
+	pop de
 	ld a,00000001B  ; read only
 	ld c,_OPEN
 	call BDOS
@@ -45,15 +31,18 @@ FileReader_Open:
 	ld (ix + FileReader.super.bufferPosition),l
 	ld (ix + FileReader.super.bufferPosition + 1),h
 	call FileReader_ReadFromFile
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this
-FileReader_Close:
+; ix <- this
+FileReader_Destruct:
 	ld b,(ix + FileReader.fileHandle)
 	ld c,_CLOSE
 	call BDOS
 	call Application_CheckDOSError
-	ld (ix + FileReader.fileHandle),0FFH
+	call Reader_Destruct
 	ret
 
 ; ix = this

@@ -31,11 +31,15 @@ Archive: MACRO
 Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
+; hl = input archive path
+; de = output file path
 ; ix = this
 ; ix <- this
 ; de <- this
 Archive_Construct:
+	push de
 	push ix
+	ex de,hl
 	ld hl,IBUFFER
 	ld bc,IBUFFER_SIZE
 	call FileReader_class.New
@@ -43,6 +47,7 @@ Archive_Construct:
 	pop ix
 	ld (ix + Archive.reader),e
 	ld (ix + Archive.reader + 1),d
+	pop de
 	push ix
 	ld hl,OBUFFER
 	ld bc,OBUFFER_SIZE
@@ -135,37 +140,8 @@ Archive_Skip:
 	pop ix
 	ret
 
-; hl = input archive path
-; de = output file path
 ; ix = this
 Archive_Inflate:
-	push de
-	push ix
-	call Archive_GetReader
-	ex de,hl
-	call FileReader_Open
-	pop ix
-	pop hl
-	push ix
-	call Archive_GetWriter
-	ex de,hl
-	call FileWriter_Open
-	pop ix
-
-	call Archive_Process
-
-	push ix
-	call Archive_GetReader
-	call FileReader_Close
-	pop ix
-	push ix
-	call Archive_GetWriter
-	call FileWriter_Close
-	pop ix
-	ret
-
-; ix = this
-Archive_Process:
 	call Archive_Read
 	cp 31  ; gzip signature (1)
 	ld hl,Archive_notGzipError
