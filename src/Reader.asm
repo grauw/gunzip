@@ -13,8 +13,6 @@ Reader: MACRO ?filler
 		dw 0
 	bufferPosition:
 		dw 0
-	fileHandle:
-		db 0FFH
 	_size:
 	ENDM
 
