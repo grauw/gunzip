@@ -31,36 +31,22 @@ Archive: MACRO
 Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
-; hl = input archive path
-; de = output file path
+; hl = buffer reader
+; de = buffer writer (min 32K)
 ; ix = this
 ; ix <- this
 ; de <- this
 Archive_Construct:
-	push de
-	push ix
-	ex de,hl
-	ld hl,IBUFFER
-	ld bc,IBUFFER_SIZE
-	call FileReader_class.New
-	call FileReader_Construct
-	pop ix
-	ld (ix + Archive.reader),e
-	ld (ix + Archive.reader + 1),d
-	pop de
-	push ix
-	ld hl,OBUFFER
-	ld bc,OBUFFER_SIZE
-	call FileWriter_class.New
-	call FileWriter_Construct
-	pop ix
+	ld iyl,e  ; check if write buffer is at least 32K
+	ld iyh,d
+	ld a,(iy + Writer.bufferSize + 1)
+	cp 80H
+	call c,System_ThrowException
+	ld (ix + Archive.reader),l
+	ld (ix + Archive.reader + 1),h
 	ld (ix + Archive.writer),e
 	ld (ix + Archive.writer + 1),d
 	push ix
-	ld l,(ix + Archive.reader)
-	ld h,(ix + Archive.reader + 1)
-	ld e,(ix + Archive.writer)
-	ld d,(ix + Archive.writer + 1)
 	call Inflate_class.New
 	call Inflate_Construct
 	pop ix
@@ -77,16 +63,6 @@ Archive_Destruct:
 	call Archive_GetInflate
 	call Inflate_Destruct
 	call Inflate_class.Delete
-	pop ix
-	push ix
-	call Archive_GetReader
-	call FileReader_Destruct
-	call FileReader_class.Delete
-	pop ix
-	push ix
-	call Archive_GetWriter
-	call FileWriter_Destruct
-	call FileWriter_class.Delete
 	pop ix
 	ret
 

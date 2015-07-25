@@ -131,14 +131,13 @@ Application_PrintFilename:
 
 ; ix = this
 Application_Inflate:
+	call Application_CreateFileReader
+	push de
+	call Application_CreateFileWriter
+	pop hl
 	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	ld e,(ix + CLI.outputPath)
-	ld d,(ix + CLI.outputPath + 1)
-	pop ix
-	push ix
+	push hl
+	push de
 	call Archive_class.New
 	call Archive_Construct
 
@@ -146,6 +145,48 @@ Application_Inflate:
 
 	call Archive_Destruct
 	call Archive_class.Delete
+	pop de
+	ld ixl,e
+	ld ixh,d
+	call FileWriter_Destruct
+	call FileWriter_class.Delete
+	pop de
+	ld ixl,e
+	ld ixh,d
+	call FileReader_Destruct
+	call FileReader_class.Delete
+	pop ix
+	ret
+
+; ix = this
+; de <- file reader
+Application_CreateFileReader:
+	push ix
+	call Application_GetCLI
+	ld e,(ix + CLI.archivePath)
+	ld d,(ix + CLI.archivePath + 1)
+	pop ix
+	ld hl,IBUFFER
+	ld bc,IBUFFER_SIZE
+	push ix
+	call FileReader_class.New
+	call FileReader_Construct
+	pop ix
+	ret
+
+; ix = this
+; de <- file writer
+Application_CreateFileWriter:
+	push ix
+	call Application_GetCLI
+	ld e,(ix + CLI.outputPath)
+	ld d,(ix + CLI.outputPath + 1)
+	pop ix
+	ld hl,OBUFFER
+	ld bc,OBUFFER_SIZE
+	push ix
+	call FileWriter_class.New
+	call FileWriter_Construct
 	pop ix
 	ret
 
