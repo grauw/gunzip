@@ -6,10 +6,6 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
-	byte:
-		db 0
-	bitCounter:
-		db 1
 	_size:
 	ENDM
 
@@ -81,44 +77,28 @@ Inflate_ReadWord:
 ; ix = this
 ; f <- c: bit
 Inflate_ReadBit:
-	rr (ix + Inflate.byte)
-	dec (ix + Inflate.bitCounter)
-	ret nz
 	push ix
 	call Inflate_GetReader
-	call Reader_Read
+	call Reader_ReadBit
 	pop ix
-	rra
-	ld (ix + Inflate.byte),a
-	ld (ix + Inflate.bitCounter),8
 	ret
 
 ; b = nr of bits to read (1-8)
 ; ix = this
 ; a = value
-Inflate_ReadBits: PROC
-	ld a,9
-	sub b
-	call c,System_ThrowException
-	call z,System_ThrowException
-	ld c,a
-	xor a
-Loop1:
-	call Inflate_ReadBit
-	rra
-	djnz Loop1
-	dec c
-	ret z
-	ld b,c
-Loop2:
-	rrca
-	djnz Loop2
+Inflate_ReadBits:
+	push ix
+	call Inflate_GetReader
+	call Reader_ReadBits
+	pop ix
 	ret
-	ENDP
 
 ; ix = this
 Inflate_Align:
-	ld (ix + Inflate.bitCounter),1
+	push ix
+	call Inflate_GetReader
+	call Reader_Align
+	pop ix
 	ret
 
 ; a = value

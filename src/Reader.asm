@@ -13,6 +13,10 @@ Reader: MACRO ?filler
 		dw 0
 	bufferPosition:
 		dw 0
+	byte:
+		db 0
+	bitCounter:
+		db 1
 	_size:
 	ENDM
 
@@ -88,4 +92,44 @@ Reader_Skip:
 	ld a,b
 	or c
 	jr nz,Reader_Skip
+	ret
+
+; ix = this
+; f <- c: bit
+Reader_ReadBit:
+	rr (ix + Reader.byte)
+	dec (ix + Reader.bitCounter)
+	ret nz
+	call Reader_Read
+	rra
+	ld (ix + Reader.byte),a
+	ld (ix + Reader.bitCounter),8
+	ret
+
+; b = nr of bits to read (1-8)
+; ix = this
+; a = value
+Reader_ReadBits: PROC
+	ld a,9
+	sub b
+	call c,System_ThrowException
+	call z,System_ThrowException
+	ld c,a
+	xor a
+Loop1:
+	call Reader_ReadBit
+	rra
+	djnz Loop1
+	dec c
+	ret z
+	ld b,c
+Loop2:
+	rrca
+	djnz Loop2
+	ret
+	ENDP
+
+; ix = this
+Reader_Align:
+	ld (ix + Reader.bitCounter),1
 	ret
