@@ -100,10 +100,14 @@ Reader_ReadBit:
 	rr (ix + Reader.byte)
 	dec (ix + Reader.bitCounter)
 	ret nz
+	push bc
+	ld c,a
 	call Reader_Read
 	rra
 	ld (ix + Reader.byte),a
 	ld (ix + Reader.bitCounter),8
+	ld a,c
+	pop bc
 	ret
 
 ; b = nr of bits to read (1-8)
