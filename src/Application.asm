@@ -16,6 +16,8 @@ Application_Main:
 	ld hl,Application_dos2RequiredError
 	call c,Application_TerminateWithError
 
+	call Application_CheckStack
+
 	ld hl,Application_welcome
 	call System_Print
 
@@ -240,6 +242,13 @@ Application_CreateNullWriter:
 	call NullWriter_class.New
 	call NullWriter_Construct
 	pop ix
+	ret
+
+; Check if the stack is well above the heap
+Application_CheckStack:
+	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
+	add hl,sp
+	call nc,System_ThrowException
 	ret
 
 ; a <- DOS error code
