@@ -304,7 +304,7 @@ Inflate_fixedDistanceCodeLengths:
 Inflate_fixedDistanceCodeLengthsCount: equ $ - Inflate_fixedDistanceCodeLengths
 
 Inflate_distanceSymbols:
-	dw Inflate_WriteLiteral.0, Inflate_CopyDistance.1, Inflate_CopyDistance.2, Inflate_CopyDistance.3
+	dw Inflate_CopyDistance.0, Inflate_CopyDistance.1, Inflate_CopyDistance.2, Inflate_CopyDistance.3
 	dw Inflate_CopyDistance.4, Inflate_CopyDistance.5, Inflate_CopyDistance.6, Inflate_CopyDistance.7
 	dw Inflate_CopyDistance.8, Inflate_CopyDistance.9, Inflate_CopyDistance.10, Inflate_CopyDistance.11
 	dw Inflate_CopyDistance.12, Inflate_CopyDistance.13, Inflate_CopyDistance.14, Inflate_CopyDistance.15
