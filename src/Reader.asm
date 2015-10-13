@@ -112,24 +112,18 @@ Reader_ReadBit:
 
 ; b = nr of bits to read (1-8)
 ; ix = this
-; a = value
+; a <- value
+; Modifies: af, bc
 Reader_ReadBits: PROC
-	ld a,9
-	sub b
-	call c,System_ThrowException
-	call z,System_ThrowException
-	ld c,a
+	ld c,1
 	xor a
-Loop1:
+Loop:
 	call Reader_ReadBit
-	rra
-	djnz Loop1
-	dec c
-	ret z
-	ld b,c
-Loop2:
-	rrca
-	djnz Loop2
+	jr nc,Zero
+	or c
+Zero:
+	rlc c
+	djnz Loop
 	ret
 	ENDP
 
