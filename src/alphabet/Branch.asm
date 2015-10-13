@@ -4,8 +4,7 @@
 Branch_ID: equ 0CDH  ; First byte of a branch object, for ID purposes
 
 Branch: MACRO
-	; ix = inflate
-	; TODO ix = reader
+	; ix = reader
 	Process:
 		call Reader_ReadBit
 		jp nc,0
