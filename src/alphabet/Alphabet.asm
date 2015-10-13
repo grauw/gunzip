@@ -7,10 +7,7 @@
 Alphabet_MAX_CODELENGTH: equ 16
 
 Alphabet: MACRO
-	; de = next 16 bits
 	; ix = inflate object
-	; b <- bits consumed
-	; de <- next 16-b bits
 	Process:
 		jp 0
 	root: equ $ - 2
@@ -58,14 +55,13 @@ Alphabet_GetRoot:
 	ld ixh,d
 	ret
 
-; de = next 16 bits
 ; ix = this
-; b <- bits consumed
-; de <- next 16-b bits
-; Modifies: f, b, de
 Alphabet_Process:
-	ld b,0
 	jp ix
+
+; hl = this
+Alphabet_Process_IY:
+	jp iy
 
 ; bc = code length table length
 ; de = code length table

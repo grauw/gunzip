@@ -1,18 +1,13 @@
 ;
 ; Huffman tree node
 ;
-Branch_ID: equ 0CBH  ; First byte of a branch object, for ID purposes
+Branch_ID: equ 0CDH  ; First byte of a branch object, for ID purposes
 
 Branch: MACRO
-	; b = bits consumed
-	; de = next 16-b bits (right aligned)
 	; ix = inflate
-	; b <- bits consumed + 1
-	; de <- next 16-b bits (right aligned)
+	; TODO ix = reader
 	Process:
-		srl d
-		rr e
-		inc b
+		call Reader_ReadBit
 		jp nc,0
 	zero: equ $ - 2
 		jp 0

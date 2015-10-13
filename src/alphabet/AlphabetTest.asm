@@ -51,22 +51,32 @@ AlphabetTest_TestTreeBuilding: PROC
 	ld hl,AlphabetTest_testSymbols
 	call Alphabet_Initialize
 
+	push ix
+	ld hl,AlphabetTest_testCodes
+	ld de,IBUFFER
+	ld bc,AlphabetTest_testCodes_size
+	ldir
+	ld hl,IBUFFER
+	ld bc,IBUFFER_SIZE
+	call Reader_class.New
+	call Reader_Construct
+	pop iy
+
 	ld b,7
-	ld hl,AlphabetTest_codeSymbolLengthTriplets
+	ld hl,AlphabetTest_expectedSymbols
 Loop:
-	ld e,(hl)
-	inc hl
-	push bc
-	call Alphabet_Process
+	push hl
+	call Alphabet_Process_IY
+	pop hl
 	cp (hl)
 	call nz,System_ThrowException
 	inc hl
-	ld a,b
-	cp (hl)
-	call nz,System_ThrowException
-	inc hl
-	pop bc
 	djnz Loop
+
+	push iy
+	call Reader_Destruct
+	call Reader_class.Delete
+	pop ix
 
 	call Alphabet_Destruct
 	call Alphabet_class.Delete
@@ -92,8 +102,12 @@ AlphabetTest_ReturnLiteral: REPT 7, ?value
 	ret
 	ENDM
 
-AlphabetTest_codeSymbolLengthTriplets:
-	db 0B, 3, 1, 001B, 1, 3, 101B, 4, 3, 0011B, 0, 4, 1011B, 2, 4, 0111B, 5, 4, 1111B, 6, 4
+AlphabetTest_testCodes:
+	db 11010010B, 11011001B, 1111011B
+AlphabetTest_testCodes_size: equ $ - AlphabetTest_testCodes
+
+AlphabetTest_expectedSymbols:
+	db 3, 1, 4, 0, 2, 5, 6
 
 ; hl = array A
 ; de = array B
