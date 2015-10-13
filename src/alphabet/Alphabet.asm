@@ -59,7 +59,7 @@ Alphabet_GetRoot:
 Alphabet_Process:
 	jp ix
 
-; hl = this
+; iy = this
 Alphabet_Process_IY:
 	jp iy
 
