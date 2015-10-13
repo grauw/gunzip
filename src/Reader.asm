@@ -127,6 +127,25 @@ Zero:
 	ret
 	ENDP
 
+; b = nr of bits to read (1-16)
+; de = base value
+; ix = this
+; de <- value
+; Modifies: af, bc, de, hl
+Reader_ReadAndAddBits: PROC
+	ld hl,1
+Loop:
+	call Reader_ReadBit
+	jr nc,Zero
+	ex de,hl
+	add hl,de
+	ex de,hl
+Zero:
+	add hl,hl
+	djnz Loop
+	ret
+	ENDP
+
 ; ix = this
 Reader_Align:
 	ld (ix + Reader.bitCounter),1

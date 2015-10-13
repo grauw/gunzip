@@ -63,6 +63,11 @@ Alphabet_Process:
 Alphabet_Process_IY:
 	jp iy
 
+; hl = this
+Alphabet_Process_Jump_HL: MACRO
+	jp hl
+	ENDM
+
 ; bc = code length table length
 ; de = code length table
 ; hl = symbol handler table

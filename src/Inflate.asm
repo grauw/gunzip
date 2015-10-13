@@ -6,6 +6,10 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
+	literalLengthAlphabet:
+		dw 0
+	distanceAlphabet:
+		dw 0
 	_size:
 	ENDM
 
@@ -111,6 +115,77 @@ Inflate_Write:
 	pop ix
 	ret
 
+; bc = byte count
+; de = distance
+; ix = this
+; Modifies: af, hl
+Inflate_Copy:
+	push ix
+	push de
+	call Inflate_GetWriter
+	pop de
+	call Writer_Copy
+	pop ix
+	ret
+
+; ix = this
+; de <- alphabet
+Inflate_CreateFixedLiteralLengthAlphabet:
+	push ix
+	call Alphabet_class.New
+	call Alphabet_Construct
+	ld bc,Inflate_fixedLiteralLengthCodeLengthsCount
+	ld de,Inflate_fixedLiteralLengthCodeLengths
+	ld hl,Inflate_literalLengthSymbols
+	call Alphabet_Initialize
+	ld e,ixl
+	ld d,ixh
+	pop ix
+	ld (ix + Inflate.literalLengthAlphabet),e
+	ld (ix + Inflate.literalLengthAlphabet + 1),d
+	ret
+
+; ix = this
+; de <- alphabet
+Inflate_CreateFixedDistanceAlphabet:
+	push ix
+	call Alphabet_class.New
+	call Alphabet_Construct
+	ld bc,Inflate_fixedDistanceCodeLengthsCount
+	ld de,Inflate_fixedDistanceCodeLengths
+	ld hl,Inflate_distanceSymbols
+	call Alphabet_Initialize
+	ld e,ixl
+	ld d,ixh
+	pop ix
+	ld (ix + Inflate.distanceAlphabet),e
+	ld (ix + Inflate.distanceAlphabet + 1),d
+	ret
+
+; ix = this
+Inflate_DestroyLiteralLengthAlphabet:
+	push ix
+	ld e,(ix + Inflate.literalLengthAlphabet)
+	ld d,(ix + Inflate.literalLengthAlphabet + 1)
+	ld ixl,e
+	ld ixh,d
+	call Alphabet_Destruct
+	call Alphabet_class.Delete
+	pop ix
+	ret
+
+; ix = this
+Inflate_DestroyDistanceAlphabet:
+	push ix
+	ld e,(ix + Inflate.distanceAlphabet)
+	ld d,(ix + Inflate.distanceAlphabet + 1)
+	ld ixl,e
+	ld ixh,d
+	call Alphabet_Destruct
+	call Alphabet_class.Delete
+	pop ix
+	ret
+
 ; ix = this
 Inflate_Inflate:
 	call Inflate_ReadBit
@@ -164,12 +239,11 @@ Loop:
 
 ; ix = this
 Inflate_InflateFixedCompressed:
-	ld a,"1"
-	call System_PrintChar
-	call System_PrintCrLf
-	ld b,1
-	ld c,_TERM
-	call BDOS
+	call Inflate_CreateFixedLiteralLengthAlphabet
+	call Inflate_CreateFixedDistanceAlphabet
+	call Inflate_DecodeLiteralLength
+	call Inflate_DestroyLiteralLengthAlphabet
+	call Inflate_DestroyDistanceAlphabet
 	ret
 
 ; ix = this
@@ -182,29 +256,308 @@ Inflate_InflateDynamicCompressed:
 	call BDOS
 	ret
 
-; Literal/length symbols 0-255
 ; ix = this
+Inflate_DecodeLiteralLength:
+	ld l,(ix + Inflate.literalLengthAlphabet)
+	ld h,(ix + Inflate.literalLengthAlphabet + 1)
+	push ix
+	call Inflate_GetReader
+	Alphabet_Process_Jump_HL
+
+; Literal/length symbols 0-255
+; ix = reader
 Inflate_WriteLiteral: REPT 256, ?value
 	ld a,?value
-	jp Inflate_Write
+	jp Inflate_WriteAndNext
 	ENDM
 
 ; Literal/length symbol 256
-; ix = this
+; ix = reader
 Inflate_EndBlock:
+	pop ix
 	ret
 
 ; Literal/length symbols 257-285
-; ix = this
-Inflate_CopyLength: REPT 29, ?value
-	jp System_ThrowException
-	ENDM
+; ix = reader
+Inflate_CopyLength.0:
+	ld bc,3
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.1:
+	ld bc,4
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.2:
+	ld bc,5
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.3:
+	ld bc,6
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.4:
+	ld bc,7
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.5:
+	ld bc,8
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.6:
+	ld bc,9
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.7:
+	ld bc,10
+	jp Inflate_DecodeDistance
+Inflate_CopyLength.8:
+	ld a,1
+	ld bc,11
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.9:
+	ld a,1
+	ld bc,13
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.10:
+	ld a,1
+	ld bc,15
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.11:
+	ld a,1
+	ld bc,17
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.12:
+	ld a,2
+	ld bc,19
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.13:
+	ld a,2
+	ld bc,23
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.14:
+	ld a,2
+	ld bc,27
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.15:
+	ld a,2
+	ld bc,31
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.16:
+	ld a,3
+	ld bc,35
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.17:
+	ld a,3
+	ld bc,43
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.18:
+	ld a,3
+	ld bc,51
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.19:
+	ld a,3
+	ld bc,59
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.20:
+	ld a,4
+	ld bc,67
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.21:
+	ld a,4
+	ld bc,83
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.22:
+	ld a,4
+	ld bc,99
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.23:
+	ld a,4
+	ld bc,115
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.24:
+	ld a,5
+	ld bc,131
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.25:
+	ld a,5
+	ld bc,163
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.26:
+	ld a,5
+	ld bc,195
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.27:
+	ld a,5
+	ld bc,227
+	jp Inflate_ReadExtraLengthBits
+Inflate_CopyLength.28:
+	ld bc,258
+	jp Inflate_DecodeDistance
+
+; a = bits
+; bc = offset
+; ix = reader
+; bc <- value
+Inflate_ReadExtraLengthBits:
+	push bc
+	ld b,a
+	call Reader_ReadBits
+	ld c,a
+	ld b,0
+	pop hl
+	add hl,bc
+	ld c,l
+	ld b,h
+	jp Inflate_DecodeDistance
+
+; bc = length
+; ix = reader
+Inflate_DecodeDistance:
+	pop ix
+	ld l,(ix + Inflate.distanceAlphabet)
+	ld h,(ix + Inflate.distanceAlphabet + 1)
+	push ix
+	call Inflate_GetReader
+	Alphabet_Process_Jump_HL
 
 ; Distance symbols 0-29
-; ix = this
-Inflate_CopyDistance: REPT 30, ?value
-	jp System_ThrowException
-	ENDM
+; ix = reader
+Inflate_CopyDistance.0:
+	ld de,1
+	jp Inflate_CopyAndNext
+Inflate_CopyDistance.1:
+	ld de,2
+	jp Inflate_CopyAndNext
+Inflate_CopyDistance.2:
+	ld de,3
+	jp Inflate_CopyAndNext
+Inflate_CopyDistance.3:
+	ld de,4
+	jp Inflate_CopyAndNext
+Inflate_CopyDistance.4:
+	ld a,1
+	ld de,5
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.5:
+	ld a,1
+	ld de,7
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.6:
+	ld a,2
+	ld de,9
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.7:
+	ld a,2
+	ld de,13
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.8:
+	ld a,3
+	ld de,17
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.9:
+	ld a,3
+	ld de,25
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.10:
+	ld a,4
+	ld de,33
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.11:
+	ld a,4
+	ld de,49
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.12:
+	ld a,5
+	ld de,65
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.13:
+	ld a,5
+	ld de,97
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.14:
+	ld a,6
+	ld de,129
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.15:
+	ld a,6
+	ld de,193
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.16:
+	ld a,7
+	ld de,257
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.17:
+	ld a,7
+	ld de,385
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.18:
+	ld a,8
+	ld de,513
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.19:
+	ld a,8
+	ld de,769
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.20:
+	ld a,9
+	ld de,1025
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.21:
+	ld a,9
+	ld de,1537
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.22:
+	ld a,10
+	ld de,2049
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.23:
+	ld a,10
+	ld de,3073
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.24:
+	ld a,11
+	ld de,4097
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.25:
+	ld a,11
+	ld de,6145
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.26:
+	ld a,12
+	ld de,8193
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.27:
+	ld a,12
+	ld de,12289
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.28:
+	ld a,13
+	ld de,16385
+	jp Inflate_ReadExtraDistanceBits
+Inflate_CopyDistance.29:
+	ld a,13
+	ld de,24577
+	jp Inflate_ReadExtraDistanceBits
+
+; a = bits
+; bc = length (preserved)
+; de = offset
+; ix = reader
+; de <- value
+Inflate_ReadExtraDistanceBits:
+	push bc
+	ld b,a
+	call Reader_ReadAndAddBits
+	pop bc
+	jp Inflate_CopyAndNext
+
+; a = value
+; ix = reader
+Inflate_WriteAndNext:
+	pop ix
+	call Inflate_Write
+	jp Inflate_DecodeLiteralLength
+
+; bc = byte count
+; de = distance
+; ix = reader
+Inflate_CopyAndNext:
+	pop ix
+	call Inflate_Copy
+	jp Inflate_DecodeLiteralLength
 
 ;
 Inflate_fixedLiteralLengthCodeLengths:

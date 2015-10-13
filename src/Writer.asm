@@ -80,6 +80,34 @@ NextBlock:
 	ret
 	ENDP
 
+; bc = byte count
+; de = distance
+; ix = this
+Writer_Copy:
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
+	and a
+	push hl
+	sbc hl,de
+	call c,System_ThrowException  ; TODO
+	ld a,h
+	cp (ix + Writer.bufferStart + 1)
+	call c,System_ThrowException  ; TODO
+	pop de
+	push de
+	ex de,hl
+	add hl,bc
+	call c,System_ThrowException  ; TODO
+	ld a,h
+	cp (ix + Writer.bufferEnd + 1)
+	call nc,System_ThrowException  ; TODO
+	ex de,hl
+	pop de
+	ldir
+	ld (ix + Writer.bufferPosition),e
+	ld (ix + Writer.bufferPosition + 1),d
+	ret
+
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
