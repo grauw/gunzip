@@ -7,10 +7,8 @@
 Alphabet_MAX_CODELENGTH: equ 16
 
 Alphabet: MACRO
-	; ix = inflate object
-	Process:
-		jp 0
-	root: equ $ - 2
+	root:
+		dw 0
 	codeLengthCounts:
 		ds Alphabet_MAX_CODELENGTH + 1, 0  ; allocate on stack?
 	nextCodes:
@@ -57,16 +55,15 @@ Alphabet_GetRoot:
 
 ; ix = this
 Alphabet_Process:
-	jp ix
+	ld l,(ix + Alphabet.root)
+	ld h,(ix + Alphabet.root + 1)
+	jp hl
 
 ; iy = this
 Alphabet_Process_IY:
-	jp iy
-
-; hl = this
-Alphabet_Process_Jump_HL: MACRO
+	ld l,(iy + Alphabet.root)
+	ld h,(iy + Alphabet.root + 1)
 	jp hl
-	ENDM
 
 ; bc = code length table length
 ; de = code length table

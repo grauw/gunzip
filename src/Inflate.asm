@@ -10,6 +10,10 @@ Inflate: MACRO
 		dw 0
 	distanceAlphabet:
 		dw 0
+	literalLengthRoot:
+		dw 0
+	distanceRoot:
+		dw 0
 	_size:
 	ENDM
 
@@ -130,6 +134,7 @@ Inflate_Copy:
 
 ; ix = this
 ; de <- alphabet
+; hl <- root branch
 Inflate_CreateFixedLiteralLengthAlphabet:
 	push ix
 	call Alphabet_class.New
@@ -138,15 +143,20 @@ Inflate_CreateFixedLiteralLengthAlphabet:
 	ld de,Inflate_fixedLiteralLengthCodeLengths
 	ld hl,Inflate_literalLengthSymbols
 	call Alphabet_Initialize
+	ld l,(ix + Alphabet.root)
+	ld h,(ix + Alphabet.root + 1)
 	ld e,ixl
 	ld d,ixh
 	pop ix
 	ld (ix + Inflate.literalLengthAlphabet),e
 	ld (ix + Inflate.literalLengthAlphabet + 1),d
+	ld (ix + Inflate.literalLengthRoot),l
+	ld (ix + Inflate.literalLengthRoot + 1),h
 	ret
 
 ; ix = this
 ; de <- alphabet
+; hl <- root branch
 Inflate_CreateFixedDistanceAlphabet:
 	push ix
 	call Alphabet_class.New
@@ -155,11 +165,15 @@ Inflate_CreateFixedDistanceAlphabet:
 	ld de,Inflate_fixedDistanceCodeLengths
 	ld hl,Inflate_distanceSymbols
 	call Alphabet_Initialize
+	ld l,(ix + Alphabet.root)
+	ld h,(ix + Alphabet.root + 1)
 	ld e,ixl
 	ld d,ixh
 	pop ix
 	ld (ix + Inflate.distanceAlphabet),e
 	ld (ix + Inflate.distanceAlphabet + 1),d
+	ld (ix + Inflate.distanceRoot),l
+	ld (ix + Inflate.distanceRoot + 1),h
 	ret
 
 ; ix = this
@@ -258,11 +272,11 @@ Inflate_InflateDynamicCompressed:
 
 ; ix = this
 Inflate_DecodeLiteralLength:
-	ld l,(ix + Inflate.literalLengthAlphabet)
-	ld h,(ix + Inflate.literalLengthAlphabet + 1)
+	ld l,(ix + Inflate.literalLengthRoot)
+	ld h,(ix + Inflate.literalLengthRoot + 1)
 	push ix
 	call Inflate_GetReader
-	Alphabet_Process_Jump_HL
+	jp hl
 
 ; Literal/length symbols 0-255
 ; ix = reader
@@ -407,11 +421,11 @@ Inflate_ReadExtraLengthBits:
 ; ix = reader
 Inflate_DecodeDistance:
 	pop ix
-	ld l,(ix + Inflate.distanceAlphabet)
-	ld h,(ix + Inflate.distanceAlphabet + 1)
+	ld l,(ix + Inflate.distanceRoot)
+	ld h,(ix + Inflate.distanceRoot + 1)
 	push ix
 	call Inflate_GetReader
-	Alphabet_Process_Jump_HL
+	jp hl
 
 ; Distance symbols 0-29
 ; ix = reader
