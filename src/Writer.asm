@@ -80,6 +80,16 @@ NextBlock:
 	ret
 	ENDP
 
+; a = value
+; iy = this
+; Modifies: hl
+Writer_Write_IY:
+	push iy
+	ex (sp),ix
+	call Writer_Write
+	pop ix
+	ret
+
 ; bc = byte count
 ; de = distance
 ; ix = this
@@ -106,6 +116,16 @@ Writer_Copy:
 	ldir
 	ld (ix + Writer.bufferPosition),e
 	ld (ix + Writer.bufferPosition + 1),d
+	ret
+
+; bc = byte count
+; de = distance
+; iy = this
+Writer_Copy_IY:
+	push iy
+	ex (sp),ix
+	call Writer_Copy
+	pop ix
 	ret
 
 ; ix = this
