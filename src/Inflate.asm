@@ -127,74 +127,6 @@ Inflate_Write:
 	ret
 
 ; ix = this
-; de <- alphabet
-; hl <- root branch
-Inflate_CreateFixedLiteralLengthAlphabet:
-	push ix
-	call Alphabet_class.New
-	call Alphabet_Construct
-	ld bc,Inflate_fixedLiteralLengthCodeLengthsCount
-	ld de,Inflate_fixedLiteralLengthCodeLengths
-	ld hl,Inflate_literalLengthSymbols
-	call Alphabet_Initialize
-	ld l,(ix + Alphabet.root)
-	ld h,(ix + Alphabet.root + 1)
-	ld e,ixl
-	ld d,ixh
-	pop ix
-	ld (ix + Inflate.literalLengthAlphabet),e
-	ld (ix + Inflate.literalLengthAlphabet + 1),d
-	ld (ix + Inflate.literalLengthRoot),l
-	ld (ix + Inflate.literalLengthRoot + 1),h
-	ret
-
-; ix = this
-; de <- alphabet
-; hl <- root branch
-Inflate_CreateFixedDistanceAlphabet:
-	push ix
-	call Alphabet_class.New
-	call Alphabet_Construct
-	ld bc,Inflate_fixedDistanceCodeLengthsCount
-	ld de,Inflate_fixedDistanceCodeLengths
-	ld hl,Inflate_distanceSymbols
-	call Alphabet_Initialize
-	ld l,(ix + Alphabet.root)
-	ld h,(ix + Alphabet.root + 1)
-	ld e,ixl
-	ld d,ixh
-	pop ix
-	ld (ix + Inflate.distanceAlphabet),e
-	ld (ix + Inflate.distanceAlphabet + 1),d
-	ld (ix + Inflate.distanceRoot),l
-	ld (ix + Inflate.distanceRoot + 1),h
-	ret
-
-; ix = this
-Inflate_DestroyLiteralLengthAlphabet:
-	push ix
-	ld e,(ix + Inflate.literalLengthAlphabet)
-	ld d,(ix + Inflate.literalLengthAlphabet + 1)
-	ld ixl,e
-	ld ixh,d
-	call Alphabet_Destruct
-	call Alphabet_class.Delete
-	pop ix
-	ret
-
-; ix = this
-Inflate_DestroyDistanceAlphabet:
-	push ix
-	ld e,(ix + Inflate.distanceAlphabet)
-	ld d,(ix + Inflate.distanceAlphabet + 1)
-	ld ixl,e
-	ld ixh,d
-	call Alphabet_Destruct
-	call Alphabet_class.Delete
-	pop ix
-	ret
-
-; ix = this
 Inflate_Inflate:
 	call Inflate_ReadBit
 	push af
@@ -247,11 +179,28 @@ Loop:
 
 ; ix = this
 Inflate_InflateFixedCompressed:
-	call Inflate_CreateFixedLiteralLengthAlphabet
-	call Inflate_CreateFixedDistanceAlphabet
+	push ix
+	call FixedAlphabets_class.New
+	ld hl,Inflate_literalLengthSymbols
+	ld de,Inflate_distanceSymbols
+	call FixedAlphabets_Construct
+	call FixedAlphabets_GetRoots
+	ex (sp),ix
+	ld (ix + Inflate.literalLengthRoot),l
+	ld (ix + Inflate.literalLengthRoot + 1),h
+	ld (ix + Inflate.distanceRoot),e
+	ld (ix + Inflate.distanceRoot + 1),d
+
 	call Inflate_InflateCompressed
-	call Inflate_DestroyLiteralLengthAlphabet
-	call Inflate_DestroyDistanceAlphabet
+
+	ld (ix + Inflate.literalLengthRoot),0
+	ld (ix + Inflate.literalLengthRoot + 1),0
+	ld (ix + Inflate.distanceRoot),0
+	ld (ix + Inflate.distanceRoot + 1),0
+	ex (sp),ix
+	call FixedAlphabets_Destruct
+	call FixedAlphabets_class.Delete
+	pop ix
 	ret
 
 ; ix = this
@@ -615,22 +564,6 @@ Inflate_CopyAndNext:
 	jp Inflate_DecodeLiteralLength
 
 ;
-Inflate_fixedLiteralLengthCodeLengths:
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8  ; 0-143: 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9  ; 144-255: 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 7, 7, 7, 7, 7, 7, 7, 7  ; 256-279: 7
-	db 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8  ; 280-287: 8
-
-Inflate_fixedLiteralLengthCodeLengthsCount: equ $ - Inflate_fixedLiteralLengthCodeLengths
-
 Inflate_literalLengthSymbols:
 	dw Inflate_WriteLiteral.0, Inflate_WriteLiteral.1, Inflate_WriteLiteral.2, Inflate_WriteLiteral.3
 	dw Inflate_WriteLiteral.4, Inflate_WriteLiteral.5, Inflate_WriteLiteral.6, Inflate_WriteLiteral.7
@@ -704,12 +637,6 @@ Inflate_literalLengthSymbols:
 	dw Inflate_CopyLength.19, Inflate_CopyLength.20, Inflate_CopyLength.21, Inflate_CopyLength.22
 	dw Inflate_CopyLength.23, Inflate_CopyLength.24, Inflate_CopyLength.25, Inflate_CopyLength.26
 	dw Inflate_CopyLength.27, Inflate_CopyLength.28, System_ThrowException, System_ThrowException
-
-Inflate_fixedDistanceCodeLengths:
-	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-
-Inflate_fixedDistanceCodeLengthsCount: equ $ - Inflate_fixedDistanceCodeLengths
 
 Inflate_distanceSymbols:
 	dw Inflate_CopyDistance.0, Inflate_CopyDistance.1, Inflate_CopyDistance.2, Inflate_CopyDistance.3

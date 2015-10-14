@@ -128,6 +128,17 @@ Zero:
 	ret
 	ENDP
 
+; b = nr of bits to read (1-8)
+; iy = this
+; a <- value
+; Modifies: af, bc, hl
+Reader_ReadBits_IY:
+	push iy
+	ex (sp),ix
+	call Reader_ReadBits
+	pop ix
+	ret
+
 ; b = nr of bits to read (1-16)
 ; de = base value
 ; ix = this

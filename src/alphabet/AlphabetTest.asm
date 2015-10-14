@@ -10,8 +10,8 @@ AlphabetTest_TestCodeBuilding:
 	call Alphabet_class.New
 	call Alphabet_Construct
 
-	ld bc,Inflate_fixedLiteralLengthCodeLengthsCount
-	ld hl,Inflate_fixedLiteralLengthCodeLengths
+	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
+	ld hl,FixedAlphabets_literalLengthCodeLengths
 	call Alphabet_CountCodeLengths
 	ld e,ixl
 	ld d,ixh
