@@ -26,31 +26,6 @@ FixedAlphabets_Construct:
 	ld d,ixh
 	ret
 
-; ix = this
-; ix <- this
-FixedAlphabets_Destruct:
-	push ix
-	call FixedAlphabets_GetDistanceAlphabet
-	call Alphabet_Destruct
-	pop ix
-	push ix
-	call FixedAlphabets_GetLiteralLengthAlphabet
-	call Alphabet_Destruct
-	pop ix
-	ret
-
-; ix = this
-FixedAlphabets_GetLiteralLengthAlphabet:
-	ld de,FixedAlphabets.literalLengthAlphabet
-	add ix,de
-	ret
-
-; ix = this
-FixedAlphabets_GetDistanceAlphabet:
-	ld de,FixedAlphabets.distanceAlphabet
-	add ix,de
-	ret
-
 ; hl = literal/length symbol handlers table
 ; ix = this
 FixedAlphabets_ConstructLiteralLengthAlphabet:
@@ -77,6 +52,31 @@ FixedAlphabets_ConstructDistanceAlphabet:
 	ld de,FixedAlphabets_distanceCodeLengths
 	call Alphabet_Initialize
 	pop ix
+	ret
+
+; ix = this
+; ix <- this
+FixedAlphabets_Destruct:
+	push ix
+	call FixedAlphabets_GetDistanceAlphabet
+	call Alphabet_Destruct
+	pop ix
+	push ix
+	call FixedAlphabets_GetLiteralLengthAlphabet
+	call Alphabet_Destruct
+	pop ix
+	ret
+
+; ix = this
+FixedAlphabets_GetLiteralLengthAlphabet:
+	ld de,FixedAlphabets.literalLengthAlphabet
+	add ix,de
+	ret
+
+; ix = this
+FixedAlphabets_GetDistanceAlphabet:
+	ld de,FixedAlphabets.distanceAlphabet
+	add ix,de
 	ret
 
 ; ix = this
