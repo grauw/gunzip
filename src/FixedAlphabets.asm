@@ -19,33 +19,21 @@ FixedAlphabets_template: FixedAlphabets
 ; de <- this
 FixedAlphabets_Construct:
 	push de
-	call FixedAlphabets_ConstructLiteralLengthAlphabet
-	pop hl
-	call FixedAlphabets_ConstructDistanceAlphabet
-	ld e,ixl
-	ld d,ixh
-	ret
-
-; hl = literal/length symbol handlers table
-; ix = this
-FixedAlphabets_ConstructLiteralLengthAlphabet:
 	push ix
 	call FixedAlphabets_GetLiteralLengthAlphabet
 	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
 	ld de,FixedAlphabets_literalLengthCodeLengths
 	call Alphabet_Construct
 	pop ix
-	ret
-
-; hl = distance symbol handlers table
-; ix = this
-FixedAlphabets_ConstructDistanceAlphabet:
+	pop hl
 	push ix
 	call FixedAlphabets_GetDistanceAlphabet
 	ld bc,FixedAlphabets_distanceCodeLengthsCount
 	ld de,FixedAlphabets_distanceCodeLengths
 	call Alphabet_Construct
 	pop ix
+	ld e,ixl
+	ld d,ixh
 	ret
 
 ; ix = this
