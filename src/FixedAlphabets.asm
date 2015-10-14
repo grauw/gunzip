@@ -19,19 +19,9 @@ FixedAlphabets_template: FixedAlphabets
 ; de <- this
 FixedAlphabets_Construct:
 	push de
-	push hl
-	push ix
-	call FixedAlphabets_GetLiteralLengthAlphabet
-	call Alphabet_Construct
-	pop ix
+	call FixedAlphabets_ConstructLiteralLengthAlphabet
 	pop hl
-	call FixedAlphabets_CreateLiteralLengthAlphabet
-	push ix
-	call FixedAlphabets_GetDistanceAlphabet
-	call Alphabet_Construct
-	pop ix
-	pop hl
-	call FixedAlphabets_CreateDistanceAlphabet
+	call FixedAlphabets_ConstructDistanceAlphabet
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -63,9 +53,12 @@ FixedAlphabets_GetDistanceAlphabet:
 
 ; hl = literal/length symbol handlers table
 ; ix = this
-FixedAlphabets_CreateLiteralLengthAlphabet:
+FixedAlphabets_ConstructLiteralLengthAlphabet:
 	push ix
+	push hl
 	call FixedAlphabets_GetLiteralLengthAlphabet
+	call Alphabet_Construct
+	pop hl
 	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
 	ld de,FixedAlphabets_literalLengthCodeLengths
 	call Alphabet_Initialize
@@ -74,9 +67,12 @@ FixedAlphabets_CreateLiteralLengthAlphabet:
 
 ; hl = distance symbol handlers table
 ; ix = this
-FixedAlphabets_CreateDistanceAlphabet:
+FixedAlphabets_ConstructDistanceAlphabet:
 	push ix
+	push hl
 	call FixedAlphabets_GetDistanceAlphabet
+	call Alphabet_Construct
+	pop hl
 	ld bc,FixedAlphabets_distanceCodeLengthsCount
 	ld de,FixedAlphabets_distanceCodeLengths
 	call Alphabet_Initialize
