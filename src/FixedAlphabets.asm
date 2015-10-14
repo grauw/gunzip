@@ -30,13 +30,10 @@ FixedAlphabets_Construct:
 ; ix = this
 FixedAlphabets_ConstructLiteralLengthAlphabet:
 	push ix
-	push hl
 	call FixedAlphabets_GetLiteralLengthAlphabet
-	call Alphabet_Construct
-	pop hl
 	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
 	ld de,FixedAlphabets_literalLengthCodeLengths
-	call Alphabet_Initialize
+	call Alphabet_Construct
 	pop ix
 	ret
 
@@ -44,13 +41,10 @@ FixedAlphabets_ConstructLiteralLengthAlphabet:
 ; ix = this
 FixedAlphabets_ConstructDistanceAlphabet:
 	push ix
-	push hl
 	call FixedAlphabets_GetDistanceAlphabet
-	call Alphabet_Construct
-	pop hl
 	ld bc,FixedAlphabets_distanceCodeLengthsCount
 	ld de,FixedAlphabets_distanceCodeLengths
-	call Alphabet_Initialize
+	call Alphabet_Construct
 	pop ix
 	ret
 

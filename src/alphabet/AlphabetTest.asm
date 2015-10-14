@@ -8,11 +8,10 @@ AlphabetTest_Test:
 
 AlphabetTest_TestCodeBuilding:
 	call Alphabet_class.New
-	call Alphabet_Construct
-
 	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
-	ld hl,FixedAlphabets_literalLengthCodeLengths
-	call Alphabet_CountCodeLengths
+	ld de,FixedAlphabets_literalLengthCodeLengths
+	ld hl,Inflate_literalLengthSymbols
+	call Alphabet_Construct
 	ld e,ixl
 	ld d,ixh
 	ld hl,Alphabet.codeLengthCounts
@@ -44,12 +43,10 @@ AlphabetTest_expectedNextCodes:
 
 AlphabetTest_TestTreeBuilding: PROC
 	call Alphabet_class.New
-	call Alphabet_Construct
-
 	ld bc,AlphabetTest_testCodeLengthsCount
 	ld de,AlphabetTest_testCodeLengths
 	ld hl,AlphabetTest_testSymbols
-	call Alphabet_Initialize
+	call Alphabet_Construct
 
 	push ix
 	ld hl,AlphabetTest_testCodes

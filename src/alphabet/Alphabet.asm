@@ -19,16 +19,29 @@ Alphabet: MACRO
 Alphabet_class: Class Alphabet, Alphabet_template, Heap_main
 Alphabet_template: Alphabet
 
+; bc = code length table length
+; de = code length table
+; hl = symbol handler table
 ; ix = this
 ; ix <- this
 ; de <- this
 Alphabet_Construct:
+	push bc
+	push de
+	push hl
+	ex de,hl
+	call Alphabet_CountCodeLengths
+	call Alphabet_CalculateNextCodes
 	push ix
 	call Branch_class.New
 	call Branch_Construct
 	pop ix
 	ld (ix + Alphabet.root),e
 	ld (ix + Alphabet.root + 1),d
+	pop hl
+	pop de
+	pop bc
+	call Alphabet_BuildTree
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -64,23 +77,6 @@ Alphabet_Process_IY:
 	ld l,(iy + Alphabet.root)
 	ld h,(iy + Alphabet.root + 1)
 	jp hl
-
-; bc = code length table length
-; de = code length table
-; hl = symbol handler table
-; ix = this
-Alphabet_Initialize:
-	push bc
-	push de
-	push hl
-	ex de,hl
-	call Alphabet_CountCodeLengths
-	call Alphabet_CalculateNextCodes
-	pop hl
-	pop de
-	pop bc
-	call Alphabet_BuildTree
-	ret
 
 ; bc = code length table length
 ; hl = code length table
