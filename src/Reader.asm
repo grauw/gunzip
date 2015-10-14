@@ -96,6 +96,7 @@ Reader_Skip:
 
 ; ix = this
 ; f <- c: bit
+; Modifies: hl
 Reader_ReadBit:
 	rr (ix + Reader.byte)
 	dec (ix + Reader.bitCounter)
@@ -113,7 +114,7 @@ Reader_ReadBit:
 ; b = nr of bits to read (1-8)
 ; ix = this
 ; a <- value
-; Modifies: af, bc
+; Modifies: af, bc, hl
 Reader_ReadBits: PROC
 	ld c,1
 	xor a

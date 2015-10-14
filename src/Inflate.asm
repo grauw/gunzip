@@ -89,6 +89,7 @@ Inflate_ReadWord:
 
 ; ix = this
 ; f <- c: bit
+; Modifies: de, hl
 Inflate_ReadBit:
 	push ix
 	call Inflate_GetReader
@@ -99,6 +100,7 @@ Inflate_ReadBit:
 ; b = nr of bits to read (1-8)
 ; ix = this
 ; a = value
+; Modifies: af, bc, de, hl
 Inflate_ReadBits:
 	push ix
 	call Inflate_GetReader
