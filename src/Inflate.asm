@@ -51,6 +51,16 @@ Inflate_GetReader:
 	ret
 
 ; ix = this
+; de <- file reader
+; ix <- file reader
+Inflate_GetReaderIY:
+	ld e,(ix + Inflate.reader)
+	ld d,(ix + Inflate.reader + 1)
+	ld iyl,e
+	ld iyh,d
+	ret
+
+; ix = this
 ; de <- file writer
 ; ix <- file writer
 Inflate_GetWriter:
@@ -201,12 +211,29 @@ Inflate_InflateFixedCompressed:
 
 ; ix = this
 Inflate_InflateDynamicCompressed:
-	ld a,"2"
-	call System_PrintChar
-	call System_PrintCrLf
-	ld b,1
-	ld c,_TERM
-	call BDOS
+	push ix
+	call Inflate_GetReaderIY
+	call DynamicAlphabets_class.New
+	ld hl,Inflate_literalLengthSymbols
+	ld de,Inflate_distanceSymbols
+	call DynamicAlphabets_Construct
+	call DynamicAlphabets_GetRoots
+	ex (sp),ix
+	ld (ix + Inflate.literalLengthRoot),l
+	ld (ix + Inflate.literalLengthRoot + 1),h
+	ld (ix + Inflate.distanceRoot),e
+	ld (ix + Inflate.distanceRoot + 1),d
+
+	call Inflate_InflateCompressed
+
+	ld (ix + Inflate.literalLengthRoot),0
+	ld (ix + Inflate.literalLengthRoot + 1),0
+	ld (ix + Inflate.distanceRoot),0
+	ld (ix + Inflate.distanceRoot + 1),0
+	ex (sp),ix
+	call DynamicAlphabets_Destruct
+	call DynamicAlphabets_class.Delete
+	pop ix
 	ret
 
 ; ix = this

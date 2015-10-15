@@ -43,6 +43,7 @@ COM_Main:
 	INCLUDE "alphabet/AlphabetTest.asm"
 	INCLUDE "alphabet/Branch.asm"
 	INCLUDE "FixedAlphabets.asm"
+	INCLUDE "DynamicAlphabets.asm"
 	INCLUDE "Reader.asm"
 	INCLUDE "Writer.asm"
 	INCLUDE "WriterTest.asm"
