@@ -96,25 +96,27 @@ Reader_Skip:
 
 ; ix = this
 ; f <- c: bit
-; Modifies: hl
+; Modifies: none
 Reader_ReadBit:
 	rr (ix + Reader.byte)
 	dec (ix + Reader.bitCounter)
 	ret nz
 	push bc
+	push hl
 	ld c,a
 	call Reader_Read
 	rra
 	ld (ix + Reader.byte),a
 	ld (ix + Reader.bitCounter),8
 	ld a,c
+	pop hl
 	pop bc
 	ret
 
 ; b = nr of bits to read (1-8)
 ; ix = this
 ; a <- value
-; Modifies: af, bc, hl
+; Modifies: af, bc
 Reader_ReadBits: PROC
 	ld c,1
 	xor a
@@ -131,7 +133,7 @@ Zero:
 ; b = nr of bits to read (1-8)
 ; iy = this
 ; a <- value
-; Modifies: af, bc, hl
+; Modifies: af, bc
 Reader_ReadBits_IY:
 	push iy
 	ex (sp),ix
