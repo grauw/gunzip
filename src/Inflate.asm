@@ -243,7 +243,7 @@ Inflate_DecodeLiteralLength:
 	exx
 	jp hl
 
-; Literal/length symbols 0-255
+; Literal/length alphabet symbols 0-255
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -262,7 +262,7 @@ Inflate_WriteAndNext:
 	call Writer_Write_IY
 	jp Inflate_DecodeLiteralLength
 
-; Literal/length symbol 256
+; Literal/length alphabet symbol 256
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -270,7 +270,7 @@ Inflate_WriteAndNext:
 Inflate_EndBlock:
 	ret
 
-; Literal/length symbols 257-285
+; Literal/length alphabet symbols 257-285
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -412,7 +412,7 @@ Inflate_DecodeDistance:
 	ex de,hl
 	jp hl
 
-; Distance symbols 0-29
+; Distance alphabet symbols 0-29
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
