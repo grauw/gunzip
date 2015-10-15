@@ -6,10 +6,6 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
-	literalLengthAlphabet:
-		dw 0
-	distanceAlphabet:
-		dw 0
 	ProcessLiteralLength:
 		exx
 		jp 0
