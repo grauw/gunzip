@@ -253,6 +253,15 @@ Inflate_WriteLiteral: REPT 256, ?value
 	jp Inflate_WriteAndNext
 	ENDM
 
+; a = value
+; hl' = literal/length alphabet root
+; de' = distance alphabet root
+; ix = reader
+; iy = writer
+Inflate_WriteAndNext:
+	call Writer_Write_IY
+	jp Inflate_DecodeLiteralLength
+
 ; Literal/length symbol 256
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
@@ -539,15 +548,6 @@ Inflate_ReadExtraDistanceBits:
 	call Reader_ReadAndAddBits
 	pop bc
 	jp Inflate_CopyAndNext
-
-; a = value
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
-; ix = reader
-; iy = writer
-Inflate_WriteAndNext:
-	call Writer_Write_IY
-	jp Inflate_DecodeLiteralLength
 
 ; bc = byte count
 ; de = distance
