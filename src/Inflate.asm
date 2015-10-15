@@ -549,7 +549,7 @@ Inflate_ReadExtraDistanceBits:
 	pop bc
 	jp Inflate_CopyAndNext
 
-; bc = byte count
+; bc = length
 ; de = distance
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
