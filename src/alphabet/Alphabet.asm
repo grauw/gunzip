@@ -10,7 +10,7 @@ Alphabet: MACRO
 	root:
 		dw 0
 	codeLengthCounts:
-		ds Alphabet_MAX_CODELENGTH + 1, 0  ; allocate on stack?
+		ds Alphabet_MAX_CODELENGTH, 0  ; allocate on stack?
 	nextCodes:
 		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
@@ -90,13 +90,14 @@ Alphabet_CountCodeLengths:
 Loop:
 	ld a,(hl)
 	inc hl
-	call Alphabet_CountCodeLength
+	and a
+	call nz,Alphabet_CountCodeLength
 	djnz Loop
 	dec c
 	jr nz,Loop
 	ret
 
-; a = code length
+; a = code length (must not be 0)
 ; ix = this
 ; Modifies: af, de
 Alphabet_CountCodeLength:
@@ -106,7 +107,7 @@ Alphabet_CountCodeLength:
 	ld e,a
 	ld d,0
 	add ix,de
-	inc (ix + Alphabet.codeLengthCounts)
+	inc (ix + Alphabet.codeLengthCounts - 1)
 	call z,System_ThrowException
 	pop ix
 	ret
@@ -123,7 +124,7 @@ Loop:
 	ld (iy + Alphabet.nextCodes + 1),h
 	inc iy
 	inc iy
-	ld e,(ix + Alphabet.codeLengthCounts + 1)
+	ld e,(ix + Alphabet.codeLengthCounts)
 	ld d,0
 	inc ix
 	add hl,de
