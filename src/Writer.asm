@@ -77,6 +77,12 @@ NextBlock:
 ; hl <- buffer position
 ; Modifies: af
 Writer_FinishBlock:
+	ld a,(ix + Writer.bufferPosition)
+	cp (ix + Writer.bufferEnd)
+	call nz,System_ThrowException
+	ld a,(ix + Writer.bufferPosition + 1)
+	cp (ix + Writer.bufferEnd + 1)
+	call nz,System_ThrowException
 	push bc
 	push de
 	call Writer_IncreaseCount
@@ -84,7 +90,7 @@ Writer_FinishBlock:
 	call Writer_FlushBuffer
 	pop de
 	pop bc
-	ld l,0
+	ld l,(ix + Writer.bufferStart)
 	ld h,(ix + Writer.bufferStart + 1)
 	ld (ix + Writer.bufferPosition),l
 	ld (ix + Writer.bufferPosition + 1),h
