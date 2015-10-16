@@ -60,7 +60,6 @@ Writer_Write: PROC
 	inc l
 	ld (ix + Writer.bufferPosition),l
 	ret nz
-WrapMSB:
 	inc h
 	push af
 	ld a,(ix + Writer.bufferEnd + 1)
@@ -70,6 +69,14 @@ WrapMSB:
 	ld (ix + Writer.bufferPosition + 1),h
 	ret
 NextBlock:
+	ld (ix + Writer.bufferPosition + 1),h
+	jp Writer_FinishBlock
+	ENDP
+
+; ix = this
+; hl <- buffer position
+; Modifies: af
+Writer_FinishBlock:
 	push bc
 	push de
 	call Writer_IncreaseCount
@@ -79,8 +86,9 @@ NextBlock:
 	pop bc
 	ld l,0
 	ld h,(ix + Writer.bufferStart + 1)
+	ld (ix + Writer.bufferPosition),l
+	ld (ix + Writer.bufferPosition + 1),h
 	ret
-	ENDP
 
 ; a = value
 ; iy = this
@@ -121,16 +129,25 @@ WrapContinue:
 	pop hl
 	ld (hl),a
 	inc l
-	call z,Writer_Write.WrapMSB
+	call z,IncreaseMSB
 	djnz Loop
 	dec c
 	jp nz,Loop
 	ld (ix + Writer.bufferPosition),l
+	ld (ix + Writer.bufferPosition + 1),h
 	ret
 Wrap:
 	add a,(ix + Writer.bufferSize + 1)
 	ld h,a
 	jp WrapContinue
+IncreaseMSB:
+	inc h
+	ld a,(ix + Writer.bufferEnd + 1)
+	cp h
+	ret nz
+	ld (ix + Writer.bufferPosition),l
+	ld (ix + Writer.bufferPosition + 1),h
+	jp Writer_FinishBlock
 	ENDP
 
 ; bc = byte count
