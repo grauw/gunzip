@@ -60,6 +60,7 @@ Writer_Write: PROC
 	inc l
 	ld (ix + Writer.bufferPosition),l
 	ret nz
+WrapMSB:
 	inc h
 	push af
 	ld a,(ix + Writer.bufferEnd + 1)
@@ -76,6 +77,7 @@ NextBlock:
 	call Writer_FlushBuffer
 	pop de
 	pop bc
+	ld l,0
 	ld h,(ix + Writer.bufferStart + 1)
 	ret
 	ENDP
@@ -93,30 +95,41 @@ Writer_Write_IY:
 ; bc = byte count
 ; de = distance
 ; ix = this
-Writer_Copy:
+; Modifies: af, bc, de, hl
+Writer_Copy: PROC
+	xor a
+	ld l,a
+	ld h,a
+	sbc hl,de
+	ex de,hl
 	ld l,(ix + Writer.bufferPosition)
 	ld h,(ix + Writer.bufferPosition + 1)
-	and a
+Loop:
 	push hl
-	sbc hl,de
-	call c,System_ThrowException  ; TODO
+	add hl,de
 	ld a,h
+	jr nc,Wrap
 	cp (ix + Writer.bufferStart + 1)
-	call c,System_ThrowException  ; TODO
-	pop de
-	push de
-	ex de,hl
-	add hl,bc
-	call c,System_ThrowException  ; TODO
-	ld a,h
-	cp (ix + Writer.bufferEnd + 1)
-	call nc,System_ThrowException  ; TODO
-	ex de,hl
-	pop de
-	ldir
-	ld (ix + Writer.bufferPosition),e
-	ld (ix + Writer.bufferPosition + 1),d
-	ret
+	jr c,Wrap
+WrapContinue:
+	ld a,(hl)
+	pop hl
+	ld (hl),a
+	inc l
+	call z,Writer_Write.WrapMSB
+	dec c
+	jp nz,Loop
+	ld (ix + Writer.bufferPosition),l
+	inc b
+	dec b
+	ret z
+	dec b
+	jp Loop
+Wrap:
+	add a,(ix + Writer.bufferSize + 1)
+	ld h,a
+	jp WrapContinue
+	ENDP
 
 ; bc = byte count
 ; de = distance
