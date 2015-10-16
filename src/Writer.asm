@@ -97,6 +97,11 @@ Writer_Write_IY:
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_Copy: PROC
+	ld a,c  ; transform 16-bit bc counter to two 8-bit counters b and c
+	dec bc
+	inc b
+	ld c,b
+	ld b,a
 	xor a
 	ld l,a
 	ld h,a
@@ -117,14 +122,11 @@ WrapContinue:
 	ld (hl),a
 	inc l
 	call z,Writer_Write.WrapMSB
+	djnz Loop
 	dec c
 	jp nz,Loop
 	ld (ix + Writer.bufferPosition),l
-	inc b
-	dec b
-	ret z
-	dec b
-	jp Loop
+	ret
 Wrap:
 	add a,(ix + Writer.bufferSize + 1)
 	ld h,a
