@@ -9,4 +9,4 @@ dist: all
 	cd bin && zip gunzip.zip gunzip.com README.md LICENSE
 
 run: all
-	openmsx -machine Panasonic_FS-A1GT -diska bin/ -script openmsx.tcl
+	openmsx -machine Panasonic_FS-A1GT -ext ide -script openmsx.tcl
