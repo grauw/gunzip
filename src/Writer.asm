@@ -73,6 +73,33 @@ NextBlock:
 	jp Writer_FinishBlock
 	ENDP
 
+; a = value
+; iy = this
+; Modifies: hl
+Writer_Write_IY: PROC
+	ld l,(iy + Writer.bufferPosition)
+	ld h,(iy + Writer.bufferPosition + 1)
+	ld (hl),a
+	inc l
+	ld (iy + Writer.bufferPosition),l
+	ret nz
+	inc h
+	push af
+	ld a,(iy + Writer.bufferEnd + 1)
+	cp h
+	call z,NextBlock
+	pop af
+	ld (iy + Writer.bufferPosition + 1),h
+	ret
+NextBlock:
+	ld (iy + Writer.bufferPosition + 1),h
+	push iy
+	ex (sp),ix
+	call Writer_FinishBlock
+	pop ix
+	ret
+	ENDP
+
 ; ix = this
 ; hl <- buffer position
 ; Modifies: af
@@ -96,21 +123,11 @@ Writer_FinishBlock:
 	ld (ix + Writer.bufferPosition + 1),h
 	ret
 
-; a = value
-; iy = this
-; Modifies: hl
-Writer_Write_IY:
-	push iy
-	ex (sp),ix
-	call Writer_Write
-	pop ix
-	ret
-
 ; bc = byte count
 ; de = distance
-; ix = this
+; iy = this
 ; Modifies: af, bc, de, hl
-Writer_Copy: PROC
+Writer_Copy_IY: PROC
 	ld a,c  ; transform 16-bit bc counter to two 8-bit counters b and c
 	dec bc
 	inc b
@@ -121,14 +138,14 @@ Writer_Copy: PROC
 	ld h,a
 	sbc hl,de
 	ex de,hl
-	ld l,(ix + Writer.bufferPosition)
-	ld h,(ix + Writer.bufferPosition + 1)
+	ld l,(iy + Writer.bufferPosition)
+	ld h,(iy + Writer.bufferPosition + 1)
 Loop:
 	push hl
 	add hl,de
 	ld a,h
 	jr nc,Wrap
-	cp (ix + Writer.bufferStart + 1)
+	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
 WrapContinue:
 	ld a,(hl)
@@ -139,32 +156,26 @@ WrapContinue:
 	djnz Loop
 	dec c
 	jp nz,Loop
-	ld (ix + Writer.bufferPosition),l
-	ld (ix + Writer.bufferPosition + 1),h
+	ld (iy + Writer.bufferPosition),l
+	ld (iy + Writer.bufferPosition + 1),h
 	ret
 Wrap:
-	add a,(ix + Writer.bufferSize + 1)
+	add a,(iy + Writer.bufferSize + 1)
 	ld h,a
 	jp WrapContinue
 IncreaseMSB:
 	inc h
-	ld a,(ix + Writer.bufferEnd + 1)
+	ld a,(iy + Writer.bufferEnd + 1)
 	cp h
 	ret nz
-	ld (ix + Writer.bufferPosition),l
-	ld (ix + Writer.bufferPosition + 1),h
-	jp Writer_FinishBlock
-	ENDP
-
-; bc = byte count
-; de = distance
-; iy = this
-Writer_Copy_IY:
+	ld (iy + Writer.bufferPosition),l
+	ld (iy + Writer.bufferPosition + 1),h
 	push iy
 	ex (sp),ix
-	call Writer_Copy
+	call Writer_FinishBlock
 	pop ix
 	ret
+	ENDP
 
 ; ix = this
 ; Modifies: af, bc, de, hl
