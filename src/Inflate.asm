@@ -414,13 +414,12 @@ Inflate_CopyLength.28:
 	jp Inflate_DecodeDistance
 
 ; a = additional length
-; bc = length offset
+; bc = length
 ; bc' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
 ; iy = writer
-; bc <- value
 Inflate_ReadExtraLengthBits:
 	add a,c
 	ld c,a
@@ -613,14 +612,13 @@ Inflate_CopyDistance.29:
 	jp Inflate_ReadExtraDistanceBitsPlus8
 
 ; a = additional distance
-; bc = length (preserved)
-; de = distance offset
+; bc = length
+; de = distance
 ; bc' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
-; de <- value
 Inflate_ReadExtraDistanceBits:
 	add a,e
 	ld e,a
@@ -630,14 +628,13 @@ Inflate_ReadExtraDistanceBits:
 
 ; a = additional distance MSB
 ; a' = additional distance LSB
-; bc = length (preserved)
-; de = distance offset
+; bc = length
+; de = distance
 ; bc' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
-; de <- value
 Inflate_ReadExtraDistanceBitsPlus8:
 	add a,d
 	ld d,a
