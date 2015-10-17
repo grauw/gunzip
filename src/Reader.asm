@@ -153,27 +153,133 @@ Reader_ReadBitInline_NextByte:
 	pop hl
 	ret
 
-; a = nr of bits to read (1-8)
 ; bc = inline bit reader state
 ; a <- value
 ; bc <- inline bit reader state
 ; Modifies: af
-Reader_ReadBitsInline: PROC
-	push de
-	ld d,a
-	ld e,1
+Reader_ReadBitsInline_1:
 	xor a
-Loop:
 	Reader_ReadBitInline
-	jr nc,Zero
-	add a,e
-Zero:
-	rlc e
-	dec d
-	jp nz,Loop
-	pop de
+	rla
 	ret
-	ENDP
+
+Reader_ReadBitsInline_2:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	rra
+	rra
+	rra
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_3:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	rra
+	rra
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_4:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	rra
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_5:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_6:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_7:
+	xor a
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	rra
+	ret
+
+Reader_ReadBitsInline_8:
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	Reader_ReadBitInline
+	rra
+	ret
 
 ; b = nr of bits to read (1-8)
 ; ix = this
