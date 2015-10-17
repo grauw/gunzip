@@ -196,11 +196,11 @@ Archive_Verify:
 
 	call Archive_VerifyISIZE
 	ld hl,Archive_isizeMismatchError
-	call nz,System_ThrowExceptionWithMessage
+	call nz,Application_TerminateWithError
 
 	call Archive_VerifyCRC32
 	ld hl,Archive_crc32MismatchError
-	call nz,System_ThrowExceptionWithMessage
+	call nz,Application_TerminateWithError
 	ret
 
 ; ix = this
