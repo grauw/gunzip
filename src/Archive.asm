@@ -119,7 +119,14 @@ Archive_Skip:
 	ret
 
 ; ix = this
-Archive_Inflate:
+Archive_Extract:
+	call Archive_ReadHeader
+	call Archive_Inflate
+	call Archive_Verify
+	ret
+
+; ix = this
+Archive_ReadHeader:
 	call Archive_Read
 	cp 31  ; gzip signature (1)
 	ld hl,Archive_notGzipError
@@ -168,12 +175,18 @@ Archive_Inflate:
 	ld a,(ix + Archive.flags)
 	and Archive_FHCRC
 	call nz,Archive_SkipHeaderCRC
+	ret
 
+; ix = this
+Archive_Inflate:
 	push ix
 	call Archive_GetInflate
 	call Inflate_Inflate
 	pop ix
+	ret
 
+; ix = this
+Archive_Verify:
 	call Archive_Read
 	ld (ix + Archive.crc32),a
 	call Archive_Read

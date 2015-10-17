@@ -144,7 +144,7 @@ Application_InflateToFile:
 	call Archive_class.New
 	call Archive_Construct
 
-	call Archive_Inflate
+	call Archive_Extract
 
 	call Archive_Destruct
 	call Archive_class.Delete
@@ -184,7 +184,7 @@ Application_InflateTest:
 	call Archive_class.New
 	call Archive_Construct
 
-	call Archive_Inflate
+	call Archive_Extract
 
 	call Archive_Destruct
 	call Archive_class.Delete
