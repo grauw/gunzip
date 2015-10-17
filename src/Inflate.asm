@@ -407,7 +407,7 @@ Inflate_CopyLength.28:
 	jp Inflate_DecodeDistance
 
 ; a = bits
-; bc = offset
+; bc = length offset
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
