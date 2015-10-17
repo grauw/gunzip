@@ -1,10 +1,12 @@
 ;
 ; Gzip archive
 ;
+Archive_FTEXT: equ 1 << 0;
 Archive_FHCRC: equ 1 << 1;
 Archive_FEXTRA: equ 1 << 2;
 Archive_FNAME: equ 1 << 3;
 Archive_FCOMMENT: equ 1 << 4;
+Archive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7;
 
 Archive: MACRO
 	reader:
@@ -147,6 +149,11 @@ Archive_Inflate:
 	ld (ix + Archive.os),a
 
 	ld a,(ix + Archive.flags)
+	and Archive_RESERVED
+	ld hl,Archive_unknownFlagError
+	jp nz,Application_TerminateWithError
+
+	ld a,(ix + Archive.flags)
 	and Archive_FEXTRA
 	call nz,Archive_SkipExtra
 
@@ -267,6 +274,9 @@ Archive_notGzipError:
 
 Archive_notDeflateError:
 	db "Not compressed with DEFLATE.",13,10,0
+
+Archive_unknownFlagError:
+	db "Unknown flag.",13,10,0
 
 Archive_isizeMismatchError:
 	db "Inflated size mismatch.",13,10,0
