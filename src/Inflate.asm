@@ -259,7 +259,7 @@ Inflate_WriteAndNext:
 	exx
 	call Writer_Write_IY
 	exx
-	jp Inflate_DecodeLiteralLength
+	jp hl  ; jp Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbol 256
 ; bc = inline bit reader state
@@ -654,7 +654,7 @@ Inflate_CopyAndNext:
 	call Writer_Copy_IY
 	exx
 	ex de,hl
-	jp Inflate_DecodeLiteralLength
+	jp hl  ; jp Inflate_DecodeLiteralLength
 
 ;
 Inflate_literalLengthSymbols:
