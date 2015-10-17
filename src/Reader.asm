@@ -61,19 +61,21 @@ Reader_Read: PROC
 	ld (ix + Reader.bufferPosition),l
 	ret nz
 	inc h
-	push af
+	ld l,a
 	ld a,(ix + Reader.bufferEnd + 1)
 	cp h
+	ld a,l
 	call z,NextBlock
-	pop af
 	ld (ix + Reader.bufferPosition + 1),h
 	ret
 NextBlock:
+	push af
 	push bc
 	push de
 	call Reader_FillBuffer
 	pop de
 	pop bc
+	pop af
 	ld h,(ix + Reader.bufferStart + 1)
 	ret
 	ENDP

@@ -61,16 +61,19 @@ Writer_Write: PROC
 	ld (ix + Writer.bufferPosition),l
 	ret nz
 	inc h
-	push af
+	ld l,a
 	ld a,(ix + Writer.bufferEnd + 1)
 	cp h
+	ld a,l
 	call z,NextBlock
-	pop af
 	ld (ix + Writer.bufferPosition + 1),h
 	ret
 NextBlock:
+	push af
 	ld (ix + Writer.bufferPosition + 1),h
-	jp Writer_FinishBlock
+	call Writer_FinishBlock
+	pop af
+	ret
 	ENDP
 
 ; a = value
@@ -84,19 +87,21 @@ Writer_Write_IY: PROC
 	ld (iy + Writer.bufferPosition),l
 	ret nz
 	inc h
-	push af
+	ld l,a
 	ld a,(iy + Writer.bufferEnd + 1)
 	cp h
+	ld a,l
 	call z,NextBlock
-	pop af
 	ld (iy + Writer.bufferPosition + 1),h
 	ret
 NextBlock:
 	ld (iy + Writer.bufferPosition + 1),h
+	push af
 	push iy
 	ex (sp),ix
 	call Writer_FinishBlock
 	pop ix
+	pop af
 	ret
 	ENDP
 
