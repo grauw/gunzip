@@ -17,7 +17,9 @@ Reader: MACRO
 	bufferEnd:
 		dw 0
 	filler:
-		dw System_ThrowException
+		dw Reader_MarkEndOfData
+	endOfData:
+		db 0
 	byte:
 		db 0
 	bitCounter:
@@ -73,11 +75,20 @@ NextBlock:
 	push bc
 	push de
 	push hl
+	bit 0,(ix + Reader.endOfData)
+	ld hl,Reader_endOfDataError
+	call nz,System_ThrowExceptionWithMessage
 	call Reader_FillBuffer
 	pop hl
 	pop de
 	pop bc
+	bit 0,(ix + Reader.endOfData)
 	ld a,(ix + Reader.bufferStart + 1)
+	ret z
+TrapNextRead:
+	ld (ix + Reader.bufferPosition),0FFH
+	ld a,(ix + Reader.bufferEnd + 1)
+	dec a
 	ret
 	ENDP
 
@@ -87,6 +98,11 @@ Reader_FillBuffer:
 	ld l,(ix + Reader.filler)
 	ld h,(ix + Reader.filler + 1)
 	jp hl
+
+; ix = this
+Reader_MarkEndOfData:
+	ld (ix + Reader.endOfData),1
+	ret
 
 ; bc = nr of bytes to skip
 ; ix = this
@@ -314,3 +330,7 @@ Reader_ReadBits_IY:
 Reader_Align:
 	ld (ix + Reader.bitCounter),1
 	ret
+
+;
+Reader_endOfDataError:
+	db "Premature end of data.",13,10,0

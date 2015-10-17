@@ -58,6 +58,6 @@ FileReader_ReadFromFile: PROC
 	call Application_CheckDOSError
 	ret
 EndOfFile:
-	; TODO
+	call Reader_MarkEndOfData
 	ret
 	ENDP
