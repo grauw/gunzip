@@ -2,7 +2,7 @@
 ; Buffered sequential-access file reader
 ;
 FileReader: MACRO
-	super: Reader FileReader_ReadFromFile
+	super: Reader
 	fileHandle:
 		db 0FFH
 	_size:
@@ -30,6 +30,8 @@ FileReader_Construct:
 	ld h,(ix + FileReader.super.bufferStart + 1)
 	ld (ix + FileReader.super.bufferPosition),l
 	ld (ix + FileReader.super.bufferPosition + 1),h
+	ld (ix + FileReader.super.filler),FileReader_ReadFromFile & 0FFH
+	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile >> 8
 	call FileReader_ReadFromFile
 	ld e,ixl
 	ld d,ixh

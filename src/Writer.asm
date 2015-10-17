@@ -1,10 +1,7 @@
 ;
 ; Memory buffer writer
 ;
-Writer: MACRO ?flusher
-	FlushBuffer:
-		jp ?flusher
-	flusher: equ $ - 2
+Writer: MACRO
 	bufferStart:
 		dw 0
 	bufferSize:
@@ -13,6 +10,8 @@ Writer: MACRO ?flusher
 		dw 0
 	bufferPosition:
 		dw 0
+	flusher:
+		dw System_ThrowException
 	count:
 		dd 0
 	crc32:
@@ -21,7 +20,7 @@ Writer: MACRO ?flusher
 	ENDM
 
 Writer_class: Class Writer, Writer_template, Heap_main
-Writer_template: Writer System_ThrowException
+Writer_template: Writer
 
 ; hl = buffer start
 ; bc = buffer size
@@ -185,7 +184,9 @@ IncreaseMSB:
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
-	jp ix
+	ld l,(ix + Writer.flusher)
+	ld h,(ix + Writer.flusher + 1)
+	jp hl
 
 ; ix = this
 ; Modifies: hl, bc

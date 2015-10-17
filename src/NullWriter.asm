@@ -2,7 +2,7 @@
 ; Buffered null file writer
 ;
 NullWriter: MACRO
-	super: Writer NullWriter_Flush
+	super: Writer
 	fileHandle:
 		db 0FFH
 	_size:
@@ -18,6 +18,8 @@ NullWriter_template: NullWriter
 ; de <- this
 NullWriter_Construct:
 	call Writer_Construct
+	ld (ix + FileWriter.super.flusher),NullWriter_Flush & 0FFH
+	ld (ix + FileWriter.super.flusher + 1),NullWriter_Flush >> 8
 	ret
 
 ; ix = this

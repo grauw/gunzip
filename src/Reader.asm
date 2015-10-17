@@ -1,10 +1,7 @@
 ;
 ; Memory buffer reader
 ;
-Reader: MACRO ?filler
-	FillBuffer:
-		jp ?filler
-	filler: equ $ - 2
+Reader: MACRO
 	bufferStart:
 		dw 0
 	bufferSize:
@@ -13,6 +10,8 @@ Reader: MACRO ?filler
 		dw 0
 	bufferPosition:
 		dw 0
+	filler:
+		dw System_ThrowException
 	byte:
 		db 0
 	bitCounter:
@@ -21,7 +20,7 @@ Reader: MACRO ?filler
 	ENDM
 
 Reader_class: Class Reader, Reader_template, Heap_main
-Reader_template: Reader System_ThrowException
+Reader_template: Reader
 
 ; hl = buffer start
 ; bc = buffer size
@@ -83,7 +82,9 @@ NextBlock:
 ; ix = this
 ; Modifies: af, bc, de, hl
 Reader_FillBuffer:
-	jp ix
+	ld l,(ix + Reader.filler)
+	ld h,(ix + Reader.filler + 1)
+	jp hl
 
 ; bc = nr of bytes to skip
 ; ix = this

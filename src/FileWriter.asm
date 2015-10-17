@@ -2,7 +2,7 @@
 ; Buffered sequential-access file writer
 ;
 FileWriter: MACRO
-	super: Writer FileWriter_WriteToFile
+	super: Writer
 	fileHandle:
 		db 0FFH
 	_size:
@@ -31,6 +31,8 @@ FileWriter_Construct:
 	ld h,(ix + FileWriter.super.bufferStart + 1)
 	ld (ix + FileWriter.super.bufferPosition),l
 	ld (ix + FileWriter.super.bufferPosition + 1),h
+	ld (ix + FileWriter.super.flusher),FileWriter_WriteToFile & 0FFH
+	ld (ix + FileWriter.super.flusher + 1),FileWriter_WriteToFile >> 8
 	ld e,ixl
 	ld d,ixh
 	ret
