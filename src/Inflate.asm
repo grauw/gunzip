@@ -165,12 +165,19 @@ Inflate_InflateUncompressed: PROC
 	dec de
 	inc d
 	ld c,d
+	push ix
+	push ix
+	call Inflate_GetWriter
+	ex (sp),ix
+	call Inflate_GetReader
+	pop iy
 Loop:
-	call Inflate_Read
-	call Inflate_Write
+	call Reader_Read
+	call Writer_Write_IY
 	djnz Loop
 	dec c
 	jp nz,Loop
+	pop ix
 	ret
 	ENDP
 
