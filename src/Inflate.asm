@@ -256,9 +256,7 @@ Inflate_WriteLiteral: REPT 256, ?value
 ; ix = reader
 ; iy = writer
 Inflate_WriteAndNext:
-	exx
 	call Writer_Write_IY
-	exx
 	jp hl  ; jp Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbol 256

@@ -2,13 +2,19 @@
 ; Memory buffer writer
 ;
 Writer: MACRO
+	; iy = this
+	Write_IY:
+		ld (0),a
+	bufferPosition: equ $ - 2
+		inc (iy + Writer.bufferPosition)
+		ret nz
+		jp Writer_Write_IY.Continue
+
 	bufferStart:
 		dw 0
 	bufferSize:
 		dw 0
 	bufferEnd:
-		dw 0
-	bufferPosition:
 		dw 0
 	flusher:
 		dw System_ThrowException
@@ -77,30 +83,27 @@ NextBlock:
 
 ; a = value
 ; iy = this
-; Modifies: hl
+; Modifies: none
 Writer_Write_IY: PROC
-	ld l,(iy + Writer.bufferPosition)
-	ld h,(iy + Writer.bufferPosition + 1)
-	ld (hl),a
-	inc l
-	ld (iy + Writer.bufferPosition),l
-	ret nz
-	inc h
-	ld l,a
-	ld a,(iy + Writer.bufferEnd + 1)
-	cp h
-	ld a,l
+	jp iy
+Continue:
+	push af
+	ld a,(iy + Writer.bufferPosition + 1)
+	inc a
+	cp (iy + Writer.bufferEnd + 1)
 	call z,NextBlock
-	ld (iy + Writer.bufferPosition + 1),h
+	ld (iy + Writer.bufferPosition + 1),a
+	pop af
 	ret
 NextBlock:
-	ld (iy + Writer.bufferPosition + 1),h
-	push af
+	ld (iy + Writer.bufferPosition + 1),a
+	push hl
 	push iy
 	ex (sp),ix
 	call Writer_FinishBlock
 	pop ix
-	pop af
+	pop hl
+	ld a,(iy + Writer.bufferPosition + 1)
 	ret
 	ENDP
 
