@@ -6,15 +6,6 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
-	ProcessLiteralLength:
-		exx
-		jp 0
-	literalLengthRoot: equ $ - 2
-	ProcessDistance:
-		ex de,hl
-		exx
-		jp 0
-	distanceRoot: equ $ - 2
 	_size:
 	ENDM
 
@@ -192,17 +183,9 @@ Inflate_InflateFixedCompressed:
 	call FixedAlphabets_Construct
 	call FixedAlphabets_GetRoots
 	ex (sp),ix
-	ld (ix + Inflate.literalLengthRoot),l
-	ld (ix + Inflate.literalLengthRoot + 1),h
-	ld (ix + Inflate.distanceRoot),e
-	ld (ix + Inflate.distanceRoot + 1),d
 
 	call Inflate_InflateCompressed
 
-	ld (ix + Inflate.literalLengthRoot),0
-	ld (ix + Inflate.literalLengthRoot + 1),0
-	ld (ix + Inflate.distanceRoot),0
-	ld (ix + Inflate.distanceRoot + 1),0
 	ex (sp),ix
 	call FixedAlphabets_Destruct
 	call FixedAlphabets_class.Delete
@@ -219,60 +202,42 @@ Inflate_InflateDynamicCompressed:
 	call DynamicAlphabets_Construct
 	call DynamicAlphabets_GetRoots
 	ex (sp),ix
-	ld (ix + Inflate.literalLengthRoot),l
-	ld (ix + Inflate.literalLengthRoot + 1),h
-	ld (ix + Inflate.distanceRoot),e
-	ld (ix + Inflate.distanceRoot + 1),d
 
 	call Inflate_InflateCompressed
 
-	ld (ix + Inflate.literalLengthRoot),0
-	ld (ix + Inflate.literalLengthRoot + 1),0
-	ld (ix + Inflate.distanceRoot),0
-	ld (ix + Inflate.distanceRoot + 1),0
 	ex (sp),ix
 	call DynamicAlphabets_Destruct
 	call DynamicAlphabets_class.Delete
 	pop ix
 	ret
 
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = this
 Inflate_InflateCompressed:
 	push ix
-	exx
-	ld hl,Inflate.ProcessDistance
-	ld c,ixl
-	ld b,ixh
-	add hl,bc
-	ex de,hl
-	ld hl,Inflate.ProcessLiteralLength
-	ld c,ixl
-	ld b,ixh
-	add hl,bc
-	exx
-	ld e,(ix + Inflate.writer)
-	ld d,(ix + Inflate.writer + 1)
-	ld iyl,e
-	ld iyh,d
-	ld e,(ix + Inflate.reader)
-	ld d,(ix + Inflate.reader + 1)
-	ld ixl,e
-	ld ixh,d
+	ld c,(ix + Inflate.writer)
+	ld b,(ix + Inflate.writer + 1)
+	ld iyl,c
+	ld iyh,b
+	ld c,(ix + Inflate.reader)
+	ld b,(ix + Inflate.reader + 1)
+	ld ixl,c
+	ld ixh,b
 	call Inflate_DecodeLiteralLength
 	pop ix
 	ret
 
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_DecodeLiteralLength:
-	exx
 	jp hl
 
 ; Literal/length alphabet symbols 0-255
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_WriteLiteral: REPT 256, ?value
@@ -281,132 +246,163 @@ Inflate_WriteLiteral: REPT 256, ?value
 	ENDM
 
 ; a = value
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_WriteAndNext:
+	exx
 	call Writer_Write_IY
+	exx
 	jp Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbol 256
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_EndBlock:
 	ret
 
 ; Literal/length alphabet symbols 257-285
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl = literal/length alphabet root
+; de = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_CopyLength.0:
+	exx
 	ld bc,3
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.1:
+	exx
 	ld bc,4
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.2:
+	exx
 	ld bc,5
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.3:
+	exx
 	ld bc,6
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.4:
+	exx
 	ld bc,7
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.5:
+	exx
 	ld bc,8
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.6:
+	exx
 	ld bc,9
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.7:
+	exx
 	ld bc,10
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.8:
+	exx
 	ld a,1
 	ld bc,11
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.9:
+	exx
 	ld a,1
 	ld bc,13
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.10:
+	exx
 	ld a,1
 	ld bc,15
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.11:
+	exx
 	ld a,1
 	ld bc,17
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.12:
+	exx
 	ld a,2
 	ld bc,19
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.13:
+	exx
 	ld a,2
 	ld bc,23
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.14:
+	exx
 	ld a,2
 	ld bc,27
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.15:
+	exx
 	ld a,2
 	ld bc,31
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.16:
+	exx
 	ld a,3
 	ld bc,35
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.17:
+	exx
 	ld a,3
 	ld bc,43
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.18:
+	exx
 	ld a,3
 	ld bc,51
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.19:
+	exx
 	ld a,3
 	ld bc,59
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.20:
+	exx
 	ld a,4
 	ld bc,67
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.21:
+	exx
 	ld a,4
 	ld bc,83
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.22:
+	exx
 	ld a,4
 	ld bc,99
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.23:
+	exx
 	ld a,4
 	ld bc,115
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.24:
+	exx
 	ld a,5
 	ld bc,131
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.25:
+	exx
 	ld a,5
 	ld bc,163
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.26:
+	exx
 	ld a,5
 	ld bc,195
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.27:
+	exx
 	ld a,5
 	ld bc,227
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.28:
+	exx
 	ld bc,258
 	jp Inflate_DecodeDistance
 
@@ -440,123 +436,153 @@ Inflate_DecodeDistance:
 	jp hl
 
 ; Distance alphabet symbols 0-29
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; de' = literal/length alphabet root
+; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_CopyDistance.0:
+	exx
 	ld de,1
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.1:
+	exx
 	ld de,2
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.2:
+	exx
 	ld de,3
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.3:
+	exx
 	ld de,4
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.4:
+	exx
 	ld a,1
 	ld de,5
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.5:
+	exx
 	ld a,1
 	ld de,7
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.6:
+	exx
 	ld a,2
 	ld de,9
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.7:
+	exx
 	ld a,2
 	ld de,13
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.8:
+	exx
 	ld a,3
 	ld de,17
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.9:
+	exx
 	ld a,3
 	ld de,25
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.10:
+	exx
 	ld a,4
 	ld de,33
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.11:
+	exx
 	ld a,4
 	ld de,49
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.12:
+	exx
 	ld a,5
 	ld de,65
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.13:
+	exx
 	ld a,5
 	ld de,97
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.14:
+	exx
 	ld a,6
 	ld de,129
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.15:
+	exx
 	ld a,6
 	ld de,193
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.16:
+	exx
 	ld a,7
 	ld de,257
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.17:
+	exx
 	ld a,7
 	ld de,385
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.18:
+	exx
 	ld a,8
 	ld de,513
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.19:
+	exx
 	ld a,8
 	ld de,769
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.20:
+	exx
 	ld a,9
 	ld de,1025
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.21:
+	exx
 	ld a,9
 	ld de,1537
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.22:
+	exx
 	ld a,10
 	ld de,2049
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.23:
+	exx
 	ld a,10
 	ld de,3073
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.24:
+	exx
 	ld a,11
 	ld de,4097
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.25:
+	exx
 	ld a,11
 	ld de,6145
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.26:
+	exx
 	ld a,12
 	ld de,8193
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.27:
+	exx
 	ld a,12
 	ld de,12289
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.28:
+	exx
 	ld a,13
 	ld de,16385
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.29:
+	exx
 	ld a,13
 	ld de,24577
 	jp Inflate_ReadExtraDistanceBits
@@ -564,8 +590,8 @@ Inflate_CopyDistance.29:
 ; a = bits
 ; bc = length (preserved)
 ; de = offset
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; de' = literal/length alphabet root
+; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
 ; de <- value
@@ -578,12 +604,14 @@ Inflate_ReadExtraDistanceBits:
 
 ; bc = length
 ; de = distance
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; de' = literal/length alphabet root
+; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_CopyAndNext:
 	call Writer_Copy_IY
+	exx
+	ex de,hl
 	jp Inflate_DecodeLiteralLength
 
 ;
