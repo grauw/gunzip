@@ -49,6 +49,8 @@ FileWriter_Destruct:
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileWriter_WriteToFile:
+	ld c,_CONST  ; allow ctrl-c
+	call BDOS
 	ld b,(ix + FileWriter.fileHandle)
 	ld e,(ix + FileWriter.super.bufferStart)
 	ld d,(ix + FileWriter.super.bufferStart + 1)

@@ -48,6 +48,8 @@ FileReader_Destruct:
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileReader_ReadFromFile: PROC
+	ld c,_CONST  ; allow ctrl-c
+	call BDOS
 	ld b,(ix + FileReader.fileHandle)
 	ld e,(ix + FileReader.super.bufferStart)
 	ld d,(ix + FileReader.super.bufferStart + 1)
