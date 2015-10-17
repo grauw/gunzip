@@ -26,10 +26,6 @@ FileReader_Construct:
 	call BDOS
 	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
-	ld l,(ix + FileReader.super.bufferStart)
-	ld h,(ix + FileReader.super.bufferStart + 1)
-	ld (ix + FileReader.super.bufferPosition),l
-	ld (ix + FileReader.super.bufferPosition + 1),h
 	ld (ix + FileReader.super.filler),FileReader_ReadFromFile & 0FFH
 	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile >> 8
 	call FileReader_ReadFromFile
