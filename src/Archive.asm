@@ -108,16 +108,6 @@ Archive_Read:
 	pop ix
 	ret
 
-; bx = bytes to skip
-; ix = this
-; Modifies: hl
-Archive_Skip:
-	push ix
-	call Archive_GetReader
-	call Reader_Skip
-	pop ix
-	ret
-
 ; ix = this
 Archive_Extract:
 	call Archive_ReadHeader
@@ -219,7 +209,10 @@ Archive_SkipExtra:
 	ld c,a
 	call Archive_Read
 	ld b,a
-	call Archive_Skip
+	push ix
+	call Archive_GetReader
+	call Reader_Skip
+	pop ix
 	ret
 
 ; ix = this
