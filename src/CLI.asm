@@ -6,7 +6,7 @@ CLI: MACRO
 		dw 0
 	outputPath:
 		dw 0
-	checksum:
+	quiet:
 		db 0
 	buffer:
 		ds 255
@@ -72,12 +72,12 @@ CLI_ParseOption: PROC
 	inc de
 	ld a,(de)
 	and 11011111B  ; upper-case
-	cp "C"
-	jr z,OptionChecksum
+	cp "Q"
+	jr z,OptionQuiet
 	ld hl,CLI_unknownOptionError
 	jp Application_TerminateWithError
-OptionChecksum:
-	ld (ix + CLI.checksum),-1
+OptionQuiet:
+	ld (ix + CLI.quiet),-1
 	inc de
 	jp Next
 Next:

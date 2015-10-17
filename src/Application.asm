@@ -18,9 +18,6 @@ Application_Main:
 
 	call Application_CheckStack
 
-	ld hl,Application_welcome
-	call System_Print
-
 	ld ix,Heap_main
 	call Heap_Construct
 
@@ -85,6 +82,7 @@ Application_GetCLI:
 ; ix = this
 Application_EnterMainLoop:
 	call Application_ParseCLI
+	call Application_PrintWelcome
 	call Application_Inflate
 	ret
 
@@ -116,17 +114,7 @@ Application_Inflate:
 
 ; ix = this
 Application_InflateToFile:
-	ld hl,Application_inflatingFile
-	call System_Print
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	pop ix
-	call System_Print
-	ld hl,Application_dotDotDot
-	call System_Print
-
+	call Application_PrintInflating
 	call Application_CreateFileReader
 	push de
 	call Application_CreateFileWriter
@@ -156,17 +144,7 @@ Application_InflateToFile:
 
 ; ix = this
 Application_InflateTest:
-	ld hl,Application_testingFile
-	call System_Print
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	pop ix
-	call System_Print
-	ld hl,Application_dotDotDot
-	call System_Print
-
+	call Application_PrintTesting
 	call Application_CreateFileReader
 	push de
 	call Application_CreateNullWriter
@@ -191,6 +169,57 @@ Application_InflateTest:
 	ld ixh,d
 	call FileReader_Destruct
 	call FileReader_class.Delete
+	pop ix
+	ret
+
+; ix = this
+Application_PrintWelcome:
+	call Application_IsQuiet
+	ret nz
+	ld hl,Application_welcome
+	call System_Print
+	ret
+
+; ix = this
+Application_PrintInflating:
+	call Application_IsQuiet
+	ret nz
+	ld hl,Application_inflatingFile
+	call System_Print
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	pop ix
+	call System_Print
+	ld hl,Application_dotDotDot
+	call System_Print
+	ret
+
+; ix = this
+Application_PrintTesting:
+	call Application_IsQuiet
+	ret nz
+	ld hl,Application_testingFile
+	call System_Print
+	push ix
+	call Application_GetCLI
+	ld l,(ix + CLI.archivePath)
+	ld h,(ix + CLI.archivePath + 1)
+	pop ix
+	call System_Print
+	ld hl,Application_dotDotDot
+	call System_Print
+	ret
+
+; ix = this
+; f <- nz: quiet
+Application_IsQuiet:
+	push ix
+	push de
+	call Application_GetCLI
+	bit 0,(ix + CLI.quiet)
+	pop de
 	pop ix
 	ret
 
@@ -286,7 +315,7 @@ Application_usageInstructions:
 	db "Usage: gunzip [options] <archive.gz> <outputfile>",13,10
 	db 13,10
 	db "Options:",13,10
-	db "  /t  Test the checksum after inflating.",13,10
+	db "  /q  Quiet mode, suppress messages.",13,10
 	db 13,10
 	db "If no output file is specified, the archive will be tested.",13,10,0
 

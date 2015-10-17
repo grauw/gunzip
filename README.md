@@ -34,11 +34,10 @@ Usage:
 
 Options:
 
-  * `/t` Test the checksum after deflating.
+  * `/q` Quiet mode, suppress messages.
     
-    The gzip format includes a checksum, however by default this is not checked
-    for performance reasons. Specify this option to perform the file integrity
-    check after deflation.
+    Suppresses the output of informational and warning messages.
+    Error messages, however, are always output.
 
 If no output file is specified, the archive will be tested.
 
