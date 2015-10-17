@@ -248,7 +248,8 @@ Application_CreateNullWriter:
 Application_CheckStack:
 	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
 	add hl,sp
-	call nc,System_ThrowException
+	ld hl,Application_insufficientTPAError
+	call nc,Application_TerminateWithError
 	ret
 
 ; a <- DOS error code
@@ -289,6 +290,9 @@ Application_dotDotDot:
 
 Application_dos2RequiredError:
 	db "MSX-DOS 2 is required.",13,10,0
+
+Application_insufficientTPAError:
+	db "Insufficient TPA space.",13,10,0
 
 Application_usageInstructions:
 	db "Usage: gunzip [options] <archive.gz> <outputfile>",13,10
