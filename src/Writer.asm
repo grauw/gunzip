@@ -104,29 +104,6 @@ NextBlock:
 	ret
 	ENDP
 
-; ix = this
-; hl <- buffer position
-; Modifies: af
-Writer_FinishBlock:
-	ld a,(ix + Writer.bufferPosition)
-	cp (ix + Writer.bufferEnd)
-	call nz,System_ThrowException
-	ld a,(ix + Writer.bufferPosition + 1)
-	cp (ix + Writer.bufferEnd + 1)
-	call nz,System_ThrowException
-	push bc
-	push de
-	call Writer_IncreaseCount
-	call Writer_UpdateCRC32
-	call Writer_FlushBuffer
-	pop de
-	pop bc
-	ld l,(ix + Writer.bufferStart)
-	ld h,(ix + Writer.bufferStart + 1)
-	ld (ix + Writer.bufferPosition),l
-	ld (ix + Writer.bufferPosition + 1),h
-	ret
-
 ; bc = byte count
 ; de = distance
 ; iy = this
@@ -180,6 +157,29 @@ IncreaseMSB:
 	pop ix
 	ret
 	ENDP
+
+; ix = this
+; hl <- buffer position
+; Modifies: af
+Writer_FinishBlock:
+	ld a,(ix + Writer.bufferPosition)
+	cp (ix + Writer.bufferEnd)
+	call nz,System_ThrowException
+	ld a,(ix + Writer.bufferPosition + 1)
+	cp (ix + Writer.bufferEnd + 1)
+	call nz,System_ThrowException
+	push bc
+	push de
+	call Writer_IncreaseCount
+	call Writer_UpdateCRC32
+	call Writer_FlushBuffer
+	pop de
+	pop bc
+	ld l,(ix + Writer.bufferStart)
+	ld h,(ix + Writer.bufferStart + 1)
+	ld (ix + Writer.bufferPosition),l
+	ld (ix + Writer.bufferPosition + 1),h
+	ret
 
 ; ix = this
 ; Modifies: af, bc, de, hl
