@@ -417,12 +417,11 @@ Inflate_ReadExtraLengthBits:
 	push bc
 	ld b,a
 	call Reader_ReadBits
+	pop bc
+	add a,c
 	ld c,a
-	ld b,0
-	pop hl
-	add hl,bc
-	ld c,l
-	ld b,h
+	jr nc,Inflate_DecodeDistance
+	inc b
 	jp Inflate_DecodeDistance
 
 ; bc = length
