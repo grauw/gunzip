@@ -198,6 +198,11 @@ GET_P3:   equ 2DH
 .COPY:    equ 082H
 .OVDEST:  equ 081H
 
+DOS_Terminate:
+	ld b,1
+	ld c,_TERM
+	jp BDOS
+
 ; f <- c: not DOS 2
 DOS_IsDOS2:
 	xor a

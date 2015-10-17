@@ -327,7 +327,7 @@ System_ThrowException:
 	ENDIF
 	pop de
 	call System_PrintExceptionMessage
-	jp System_Stop
+	jp DOS_Terminate
 
 ; hl = message
 System_ThrowExceptionWithMessage:
@@ -339,7 +339,7 @@ System_ThrowExceptionWithMessage:
 	call System_PrintExceptionMessage
 	pop hl
 	call System_PrintLn
-	jp System_Stop
+	jp DOS_Terminate
 
 ; de = address
 System_PrintExceptionMessage:
