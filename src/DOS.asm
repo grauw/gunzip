@@ -198,9 +198,52 @@ GET_P3:   equ 2DH
 .COPY:    equ 082H
 .OVDEST:  equ 081H
 
+DOS_ConsoleStatus:
+	ld c,_CONST
+	jp BDOS
+
+DOS_OpenFileHandle:
+	ld c,_OPEN
+	jp BDOS
+
+DOS_CreateFileHandle:
+	ld c,_CREATE
+	jp BDOS
+
+DOS_CloseFileHandle:
+	ld c,_CLOSE
+	jp BDOS
+
+DOS_ReadFromFileHandle:
+	ld c,_READ
+	jp BDOS
+
+DOS_WriteToFileHandle:
+	ld c,_WRITE
+	jp BDOS
+
+DOS_ParsePathname:
+	ld c,_PARSE
+	jp BDOS
+
 DOS_Terminate:
 	ld b,1
+	jp DOS_TerminateWithErrorCode
+
+DOS_TerminateWithErrorCode:
 	ld c,_TERM
+	jp BDOS
+
+DOS_DefineAbortExitRoutine:
+	ld c,_DEFAB
+	jp BDOS
+
+DOS_ExplainErrorCode:
+	ld c,_EXPLAIN
+	jp BDOS
+
+DOS_GetEnvironmentItem:
+	ld c,_GENV
 	jp BDOS
 
 ; f <- c: not DOS 2

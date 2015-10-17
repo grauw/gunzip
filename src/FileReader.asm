@@ -22,8 +22,7 @@ FileReader_Construct:
 	call Reader_Construct
 	pop de
 	ld a,00000001B  ; read only
-	ld c,_OPEN
-	call BDOS
+	call DOS_OpenFileHandle
 	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
 	ld (ix + FileReader.super.filler),FileReader_ReadFromFile & 0FFH
@@ -37,8 +36,7 @@ FileReader_Construct:
 ; ix <- this
 FileReader_Destruct:
 	ld b,(ix + FileReader.fileHandle)
-	ld c,_CLOSE
-	call BDOS
+	call DOS_CloseFileHandle
 	call Application_CheckDOSError
 	call Reader_Destruct
 	ret
@@ -46,8 +44,7 @@ FileReader_Destruct:
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileReader_ReadFromFile: PROC
-	ld c,_CONST  ; allow ctrl-c
-	call BDOS
+	call DOS_ConsoleStatus  ; allow ctrl-c
 	ld b,(ix + FileReader.fileHandle)
 	ld e,(ix + FileReader.super.bufferStart)
 	ld d,(ix + FileReader.super.bufferStart + 1)
@@ -55,8 +52,7 @@ FileReader_ReadFromFile: PROC
 	ld h,(ix + FileReader.super.bufferEnd + 1)
 	and a
 	sbc hl,de
-	ld c,_READ
-	call BDOS
+	call DOS_ReadFromFileHandle
 	cp .EOF
 	jp z,EndOfFile
 	call Application_CheckDOSError

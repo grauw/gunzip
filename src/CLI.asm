@@ -23,8 +23,7 @@ CLI_Construct:
 	call CLI_GetBuffer
 	ld hl,CLI_parametersEnvName
 	ld b,255
-	ld c,_GENV
-	call BDOS
+	call DOS_GetEnvironmentItem
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -100,8 +99,7 @@ CLI_ParsePath: PROC
 	ld (ix + CLI.archivePath),e
 	ld (ix + CLI.archivePath + 1),d
 Continue:
-	ld c,_PARSE
-	call BDOS
+	call DOS_ParsePathname
 	ld a,(de)
 	and a
 	ret z

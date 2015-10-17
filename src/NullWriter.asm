@@ -30,6 +30,5 @@ NullWriter_Destruct:
 
 ; ix = this
 NullWriter_Flush:
-	ld c,_CONST  ; allow ctrl-c
-	call BDOS
+	call DOS_ConsoleStatus  ; allow ctrl-c
 	ret

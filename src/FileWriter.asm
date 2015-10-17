@@ -23,8 +23,7 @@ FileWriter_Construct:
 	pop de
 	ld a,00000010B  ; write only
 	ld b,0
-	ld c,_CREATE
-	call BDOS
+	call DOS_CreateFileHandle
 	call Application_CheckDOSError
 	ld (ix + FileWriter.fileHandle),b
 	ld (ix + FileWriter.super.flusher),FileWriter_WriteToFile & 0FFH
@@ -38,8 +37,7 @@ FileWriter_Construct:
 FileWriter_Destruct:
 	call FileWriter_WriteToFile
 	ld b,(ix + FileWriter.fileHandle)
-	ld c,_CLOSE
-	call BDOS
+	call DOS_CloseFileHandle
 	call Application_CheckDOSError
 	call Writer_Destruct
 	ret
@@ -47,8 +45,7 @@ FileWriter_Destruct:
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileWriter_WriteToFile:
-	ld c,_CONST  ; allow ctrl-c
-	call BDOS
+	call DOS_ConsoleStatus  ; allow ctrl-c
 	ld b,(ix + FileWriter.fileHandle)
 	ld e,(ix + FileWriter.super.bufferStart)
 	ld d,(ix + FileWriter.super.bufferStart + 1)
@@ -56,7 +53,6 @@ FileWriter_WriteToFile:
 	ld h,(ix + FileWriter.super.bufferPosition + 1)
 	and a
 	sbc hl,de
-	ld c,_WRITE
-	call BDOS
+	call DOS_WriteToFileHandle
 	call Application_CheckDOSError
 	ret
