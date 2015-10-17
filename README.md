@@ -6,20 +6,22 @@ Copyright 2015 Laurens Holst
 Project information
 -------------------
 
+Extracts files compressed with the gzip (.gz) format.
+
 Author: Laurens Holst <laurens.nospam@grauw.nl>  
 Site: <https://bitbucket.org/grauw/gunzip>  
+Downloads: <https://bitbucket.org/grauw/gunzip/downloads>  
 Issues: <https://bitbucket.org/grauw/gunzip/issues>  
+Support: <http://www.msx.org/forum/msx-talk/software/gunzip-msx>  
 License: Simplified BSD License
-
-Extracts files compressed with the gzip (.gz) format.
 
 
 System Requirements
 -------------------
 
   * MSX, MSX2, MSX2+ or MSX turboR
-  * 16kB video RAM
-  * 128kB main RAM
+  * 16K video RAM
+  * 64K main RAM
   * MSX-DOS 2
 
 
@@ -40,11 +42,6 @@ Options:
     Error messages, however, are always output.
 
 If no output file is specified, the archive will be tested.
-
-To configure Multi Mente to extract gz files, add the following line to
-MMRET.DAT:
-
-    .GZ     GUNZIP $T
 
 
 Development information
@@ -73,3 +70,6 @@ invoke the `make run` command.
 Note that the [glass](https://bitbucket.org/grauw/glass) assembler which is
 embedded in the project requires [Java 7](http://java.com/getjava). To check
 your Java version, invoke the `java -version` command.
+
+Additionally, [Node.js](https://nodejs.org/) is required. Download it from their
+website or install it through your favourite package manager.
