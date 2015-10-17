@@ -2,13 +2,19 @@
 ; Memory buffer reader
 ;
 Reader: MACRO
+	; ix = this
+	Read:
+		ld a,(0)
+	bufferPosition: equ $ - 2
+		inc (ix + Reader.bufferPosition)
+		ret nz
+		jp Reader_Read.Continue
+
 	bufferStart:
 		dw 0
 	bufferSize:
 		dw 0
 	bufferEnd:
-		dw 0
-	bufferPosition:
 		dw 0
 	filler:
 		dw System_ThrowException
@@ -51,31 +57,27 @@ Reader_Destruct:
 
 ; ix = this
 ; a <- value
-; Modifies: hl
+; Modifies: none
 Reader_Read: PROC
-	ld l,(ix + Reader.bufferPosition)
-	ld h,(ix + Reader.bufferPosition + 1)
-	ld a,(hl)
-	inc l
-	ld (ix + Reader.bufferPosition),l
-	ret nz
-	inc h
-	ld l,a
-	ld a,(ix + Reader.bufferEnd + 1)
-	cp h
-	ld a,l
+	jp ix
+Continue:
+	push af
+	ld a,(ix + Reader.bufferPosition + 1)
+	inc a
+	cp (ix + Reader.bufferEnd + 1)
 	call z,NextBlock
-	ld (ix + Reader.bufferPosition + 1),h
+	ld (ix + Reader.bufferPosition + 1),a
+	pop af
 	ret
 NextBlock:
-	push af
 	push bc
 	push de
+	push hl
 	call Reader_FillBuffer
+	pop hl
 	pop de
 	pop bc
-	pop af
-	ld h,(ix + Reader.bufferStart + 1)
+	ld a,(ix + Reader.bufferStart + 1)
 	ret
 	ENDP
 
@@ -88,7 +90,7 @@ Reader_FillBuffer:
 
 ; bc = nr of bytes to skip
 ; ix = this
-; Modifies: hl, a
+; Modifies: bc, a
 Reader_Skip:
 	call Reader_Read
 	dec bc
@@ -105,14 +107,12 @@ Reader_ReadBit:
 	dec (ix + Reader.bitCounter)
 	ret nz
 	push bc
-	push hl
 	ld c,a
 	call Reader_Read
 	rra
 	ld (ix + Reader.byte),a
 	ld (ix + Reader.bitCounter),8
 	ld a,c
-	pop hl
 	pop bc
 	ret
 
@@ -135,6 +135,7 @@ Reader_FinishReadBitInline:
 ; b <- current byte (shifts)
 ; c <- bits left + 1
 ; f <- c: bit
+; Modifies: none
 Reader_ReadBitInline: MACRO
 	dec c
 	call z,Reader_ReadBitInline_NextByte
@@ -144,20 +145,19 @@ Reader_ReadBitInline: MACRO
 ; b <- current byte (shifts)
 ; c <- bits left
 ; f <- c: bit
+; Modifies: none
 Reader_ReadBitInline_NextByte:
-	push hl
 	ld c,a
 	call Reader_Read
 	ld b,a
 	ld a,c
 	ld c,8
-	pop hl
 	ret
 
 ; bc = inline bit reader state
 ; a <- value
 ; bc <- inline bit reader state
-; Modifies: af
+; Modifies: none
 Reader_ReadBitsInline_1:
 	xor a
 	Reader_ReadBitInline

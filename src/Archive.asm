@@ -100,7 +100,7 @@ Archive_GetInflate:
 
 ; ix = this
 ; a <- value
-; Modifies: hl
+; Modifies: de
 Archive_Read:
 	push ix
 	call Archive_GetReader

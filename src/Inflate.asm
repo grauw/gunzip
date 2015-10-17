@@ -63,7 +63,7 @@ Inflate_GetWriter:
 
 ; ix = this
 ; a <- value
-; Modifies: hl, de
+; Modifies: de
 Inflate_Read:
 	push ix
 	call Inflate_GetReader
@@ -73,7 +73,7 @@ Inflate_Read:
 
 ; ix = this
 ; de <- value
-; Modifies: hl, de, a
+; Modifies: af
 Inflate_ReadWord:
 	push ix
 	call Inflate_GetReader
