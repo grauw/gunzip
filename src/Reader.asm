@@ -166,7 +166,7 @@ Reader_ReadBitsInline: PROC
 Loop:
 	Reader_ReadBitInline
 	jr nc,Zero
-	or e
+	add a,e
 Zero:
 	rlc e
 	dec d
@@ -185,7 +185,7 @@ Reader_ReadBits: PROC
 Loop:
 	call Reader_ReadBit
 	jr nc,Zero
-	or c
+	add a,c
 Zero:
 	rlc c
 	djnz Loop
