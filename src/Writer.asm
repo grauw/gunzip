@@ -98,10 +98,7 @@ Continue:
 NextBlock:
 	ld (iy + Writer.bufferPosition + 1),a
 	push hl
-	push iy
-	ex (sp),ix
-	call Writer_FinishBlock
-	pop ix
+	call Writer_FinishBlock_IY
 	pop hl
 	ld a,(iy + Writer.bufferPosition + 1)
 	ret
@@ -154,10 +151,7 @@ IncreaseMSB:
 	ret nz
 	ld (iy + Writer.bufferPosition),l
 	ld (iy + Writer.bufferPosition + 1),h
-	push iy
-	ex (sp),ix
-	call Writer_FinishBlock
-	pop ix
+	call Writer_FinishBlock_IY
 	ret
 	ENDP
 
@@ -182,6 +176,16 @@ Writer_FinishBlock:
 	ld h,(ix + Writer.bufferStart + 1)
 	ld (ix + Writer.bufferPosition),l
 	ld (ix + Writer.bufferPosition + 1),h
+	ret
+
+; iy = this
+; hl <- buffer position
+; Modifies: af
+Writer_FinishBlock_IY:
+	push iy
+	ex (sp),ix
+	call Writer_FinishBlock
+	pop ix
 	ret
 
 ; ix = this
