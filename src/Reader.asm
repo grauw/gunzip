@@ -113,6 +113,66 @@ Reader_ReadBit:
 	pop bc
 	ret
 
+; b <- current byte (shifts)
+; c <- bits left + 1
+Reader_PrepareReadBitInline:
+	ld b,(ix + Reader.byte)
+	ld c,(ix + Reader.bitCounter)
+	ret
+
+; b <- current byte (shifts)
+; c <- bits left + 1
+Reader_FinishReadBitInline:
+	ld (ix + Reader.byte),b
+	ld (ix + Reader.bitCounter),c
+	ret
+
+; b = current byte (shifts)
+; c = bits left + 1
+; b <- current byte (shifts)
+; c <- bits left + 1
+; f <- c: bit
+Reader_ReadBitInline: MACRO
+	dec c
+	call z,Reader_ReadBitInline_NextByte
+	rr b
+	ENDM
+
+; b <- current byte (shifts)
+; c <- bits left
+; f <- c: bit
+Reader_ReadBitInline_NextByte:
+	push hl
+	ld c,a
+	call Reader_Read
+	ld b,a
+	ld a,c
+	ld c,8
+	pop hl
+	ret
+
+; a = nr of bits to read (1-8)
+; bc = inline bit reader state
+; a <- value
+; bc <- inline bit reader state
+; Modifies: af
+Reader_ReadBitsInline: PROC
+	push de
+	ld d,a
+	ld e,1
+	xor a
+Loop:
+	Reader_ReadBitInline
+	jr nc,Zero
+	or e
+Zero:
+	rlc e
+	dec d
+	jp nz,Loop
+	pop de
+	ret
+	ENDP
+
 ; b = nr of bits to read (1-8)
 ; ix = this
 ; a <- value
@@ -140,25 +200,6 @@ Reader_ReadBits_IY:
 	call Reader_ReadBits
 	pop ix
 	ret
-
-; b = nr of bits to read (1-16)
-; de = base value
-; ix = this
-; de <- value
-; Modifies: af, bc, de, hl
-Reader_ReadAndAddBits: PROC
-	ld hl,1
-Loop:
-	call Reader_ReadBit
-	jr nc,Zero
-	ex de,hl
-	add hl,de
-	ex de,hl
-Zero:
-	add hl,hl
-	djnz Loop
-	ret
-	ENDP
 
 ; ix = this
 Reader_Align:

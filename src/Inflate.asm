@@ -224,10 +224,13 @@ Inflate_InflateCompressed:
 	ld b,(ix + Inflate.reader + 1)
 	ld ixl,c
 	ld ixh,b
+	call Reader_PrepareReadBitInline
 	call Inflate_DecodeLiteralLength
+	call Reader_FinishReadBitInline
 	pop ix
 	ret
 
+; bc = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -236,6 +239,7 @@ Inflate_DecodeLiteralLength:
 	jp hl
 
 ; Literal/length alphabet symbols 0-255
+; bc = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -246,6 +250,7 @@ Inflate_WriteLiteral: REPT 256, ?value
 	ENDM
 
 ; a = value
+; bc = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -257,6 +262,7 @@ Inflate_WriteAndNext:
 	jp Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbol 256
+; bc = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -265,6 +271,7 @@ Inflate_EndBlock:
 	ret
 
 ; Literal/length alphabet symbols 257-285
+; bc = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -408,16 +415,16 @@ Inflate_CopyLength.28:
 
 ; a = bits
 ; bc = length offset
+; bc' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
 ; iy = writer
 ; bc <- value
 Inflate_ReadExtraLengthBits:
-	push bc
-	ld b,a
-	call Reader_ReadBits
-	pop bc
+	exx
+	call Reader_ReadBitsInline
+	exx
 	add a,c
 	ld c,a
 	jr nc,Inflate_DecodeDistance
@@ -425,6 +432,7 @@ Inflate_ReadExtraLengthBits:
 	jp Inflate_DecodeDistance
 
 ; bc = length
+; bc' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -435,6 +443,7 @@ Inflate_DecodeDistance:
 	jp hl
 
 ; Distance alphabet symbols 0-29
+; bc = inline bit reader state
 ; de = literal/length alphabet root
 ; hl = distance alphabet root
 ; ix = reader
@@ -537,72 +546,106 @@ Inflate_CopyDistance.19:
 	jp Inflate_ReadExtraDistanceBits
 Inflate_CopyDistance.20:
 	exx
-	ld a,9
+	ld a,9 - 8
 	ld de,1025
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.21:
 	exx
-	ld a,9
+	ld a,9 - 8
 	ld de,1537
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.22:
 	exx
-	ld a,10
+	ld a,10 - 8
 	ld de,2049
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.23:
 	exx
-	ld a,10
+	ld a,10 - 8
 	ld de,3073
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.24:
 	exx
-	ld a,11
+	ld a,11 - 8
 	ld de,4097
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.25:
 	exx
-	ld a,11
+	ld a,11 - 8
 	ld de,6145
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.26:
 	exx
-	ld a,12
+	ld a,12 - 8
 	ld de,8193
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.27:
 	exx
-	ld a,12
+	ld a,12 - 8
 	ld de,12289
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.28:
 	exx
-	ld a,13
+	ld a,13 - 8
 	ld de,16385
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 Inflate_CopyDistance.29:
 	exx
-	ld a,13
+	ld a,13 - 8
 	ld de,24577
-	jp Inflate_ReadExtraDistanceBits
+	jp Inflate_ReadExtraDistanceBitsPlus8
 
 ; a = bits
 ; bc = length (preserved)
 ; de = distance offset
+; bc' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
 ; de <- value
 Inflate_ReadExtraDistanceBits:
-	push bc
-	ld b,a
-	call Reader_ReadAndAddBits
-	pop bc
+	exx
+	call Reader_ReadBitsInline
+	exx
+	add a,e
+	ld e,a
+	jr nc,Inflate_CopyAndNext
+	inc d
 	jp Inflate_CopyAndNext
+
+; a = bits - 8
+; bc = length (preserved)
+; de = distance offset
+; bc' = inline bit reader state
+; de' = literal/length alphabet root
+; hl' = distance alphabet root
+; ix = reader
+; iy = writer
+; de <- value
+Inflate_ReadExtraDistanceBitsPlus8: PROC
+	ex af,af'
+	exx
+	ld a,8
+	call Reader_ReadBitsInline
+	exx
+	add a,e
+	ld e,a
+	jr nc,RemainingBits
+	inc d
+RemainingBits:
+	ex af,af'
+	exx
+	call Reader_ReadBitsInline
+	exx
+	add a,d
+	ld d,a
+	jp Inflate_CopyAndNext
+	ENDP
 
 ; bc = length
 ; de = distance
+; bc' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader

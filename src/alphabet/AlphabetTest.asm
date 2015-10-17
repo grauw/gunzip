@@ -59,7 +59,8 @@ AlphabetTest_TestTreeBuilding: PROC
 	call Reader_Construct
 	pop iy
 
-	ld b,7
+	call Reader_PrepareReadBitInline
+	ld d,7
 	ld hl,AlphabetTest_expectedSymbols
 Loop:
 	push hl
@@ -68,7 +69,9 @@ Loop:
 	cp (hl)
 	call nz,System_ThrowException
 	inc hl
-	djnz Loop
+	dec d
+	jr nz,Loop
+	call Reader_FinishReadBitInline
 
 	push iy
 	call Reader_Destruct
