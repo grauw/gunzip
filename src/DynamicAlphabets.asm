@@ -223,7 +223,6 @@ DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths:
 	push ix
 	call DynamicAlphabets_GetHeaderCodeAlphabet
 	call Alphabet_GetRoot
-	ex de,hl
 	push ix
 	ex (sp),iy
 	pop ix
@@ -232,7 +231,7 @@ DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths:
 	ret
 
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths:
@@ -240,29 +239,28 @@ DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths:
 
 ; a = value
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_WriteAndNext:
-	ld (de),a
-	inc de
+	inc hl
 	djnz DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
 	dec c
 	jr nz,DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
 	ret
 
 ; a = fill value
-; l = repeat count
+; e = repeat count
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_FillAndNext_Loop:
-	dec l
+	dec e
 	jr z,DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
 DynamicAlphabets_FillAndNext:
-	ld (de),a
-	inc de
+	ld (hl),a
+	inc hl
 	djnz DynamicAlphabets_FillAndNext_Loop
 	dec c
 	jr nz,DynamicAlphabets_FillAndNext_Loop
@@ -270,17 +268,17 @@ DynamicAlphabets_FillAndNext:
 
 ; Header code alphabet symbols 0-15
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_WriteLength: REPT 16, ?value
-	ld a,?value
+	ld (hl),?value
 	jp DynamicAlphabets_WriteAndNext
 	ENDM
 
 ; Header code alphabet symbols 16
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_Copy:
@@ -289,15 +287,15 @@ DynamicAlphabets_Copy:
 	call Reader_ReadBits
 	pop bc
 	add a,3
-	ld l,a
-	dec de
-	ld a,(de)
-	inc de
+	ld e,a
+	dec hl
+	ld a,(hl)
+	inc hl
 	jp DynamicAlphabets_FillAndNext
 
 ; Header code alphabet symbols 17
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_FillZero_3:
@@ -306,13 +304,13 @@ DynamicAlphabets_FillZero_3:
 	call Reader_ReadBits
 	pop bc
 	add a,3
-	ld l,a
+	ld e,a
 	xor a
 	jp DynamicAlphabets_FillAndNext
 
 ; Header code alphabet symbols 18
 ; bc = loop counter for nested 8-bit loop
-; de = literal/length/distance code lengths position
+; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_FillZero_11:
@@ -321,7 +319,7 @@ DynamicAlphabets_FillZero_11:
 	call Reader_ReadBits
 	pop bc
 	add a,11
-	ld l,a
+	ld e,a
 	xor a
 	jp DynamicAlphabets_FillAndNext
 
