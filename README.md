@@ -11,7 +11,7 @@ Site: <https://bitbucket.org/grauw/gunzip>
 Issues: <https://bitbucket.org/grauw/gunzip/issues>  
 License: Simplified BSD License
 
-Extracts files compressed with the gzip (gz, deflate) format.
+Extracts files compressed with the gzip (.gz) format.
 
 
 System Requirements
@@ -30,7 +30,7 @@ Run gunzip from MSX-DOS 2, specifying the gzipped file on the command line.
 
 Usage:
 
-    gunzip [options] <file.gz>
+    gunzip [options] <archive.gz> <outputfile>
 
 Options:
 
@@ -39,6 +39,8 @@ Options:
     The gzip format includes a checksum, however by default this is not checked
     for performance reasons. Specify this option to perform the file integrity
     check after deflation.
+
+If no output file is specified, the archive will be tested.
 
 To configure Multi Mente to extract gz files, add the following line to
 MMRET.DAT:

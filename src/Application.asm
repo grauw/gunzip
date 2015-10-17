@@ -291,10 +291,12 @@ Application_dos2RequiredError:
 	db "MSX-DOS 2 is required.",13,10,0
 
 Application_usageInstructions:
-	db "Usage: gunzip [options] <file.gz> <outputfile>",13,10
+	db "Usage: gunzip [options] <archive.gz> <outputfile>",13,10
 	db 13,10
 	db "Options:",13,10
-	db "  /t  Test the checksum after inflating.",13,10,0
+	db "  /t  Test the checksum after inflating.",13,10
+	db 13,10
+	db "If no output file is specified, the archive will be tested.",13,10,0
 
 	SECTION RAM
 
