@@ -264,16 +264,12 @@ Application_TerminateWithDOSError:
 	ld hl,Application_explainBuffer
 	call System_Print
 	call System_PrintCrLf
-	ld b,1
-	ld c,_TERM
-	call BDOS
+	jp DOS_Terminate
 
 ; hl <- message
 Application_TerminateWithError:
 	call System_Print
-	ld b,1
-	ld c,_TERM
-	call BDOS
+	jp DOS_Terminate
 
 ;
 Application_welcome:
