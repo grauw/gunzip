@@ -435,8 +435,8 @@ Inflate_DecodeDistance:
 	jp hl
 
 ; Distance alphabet symbols 0-29
-; de' = literal/length alphabet root
-; hl' = distance alphabet root
+; de = literal/length alphabet root
+; hl = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_CopyDistance.0:
@@ -588,7 +588,7 @@ Inflate_CopyDistance.29:
 
 ; a = bits
 ; bc = length (preserved)
-; de = offset
+; de = distance offset
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
