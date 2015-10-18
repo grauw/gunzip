@@ -611,7 +611,7 @@ Inflate_CopyDistance.29:
 Inflate_CopyAndNext_SetDistance:
 	add a,e
 	ld e,a
-	jr nc,Inflate_CopyAndNext
+	jp nc,Inflate_CopyAndNext
 	inc d
 	jp Inflate_CopyAndNext
 
@@ -630,7 +630,7 @@ Inflate_CopyAndNext_SetDistanceWord:
 	ex af,af'
 	add a,e
 	ld e,a
-	jr nc,Inflate_CopyAndNext
+	jp nc,Inflate_CopyAndNext
 	inc d
 	jp Inflate_CopyAndNext
 
