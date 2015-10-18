@@ -254,17 +254,15 @@ DynamicAlphabets_WriteAndNext:
 	ret
 
 ; a = fill value
-; a' = repeat count
+; b = repeat count
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
 ; iy = header code alphabet root
 DynamicAlphabets_FillAndNext_Loop:
-	ex af,af'
-	dec a
+	dec b
 	jr z,DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
-	ex af,af'
 DynamicAlphabets_FillAndNext:
 	ld (hl),a
 	inc hl
@@ -294,7 +292,7 @@ DynamicAlphabets_WriteLength: REPT 16, ?value
 DynamicAlphabets_Copy:
 	call Reader_ReadBitsInline_2
 	add a,3
-	ex af,af'
+	ld b,a
 	dec hl
 	ld a,(hl)
 	inc hl
@@ -309,7 +307,7 @@ DynamicAlphabets_Copy:
 DynamicAlphabets_FillZero_3:
 	call Reader_ReadBitsInline_3
 	add a,3
-	ex af,af'
+	ld b,a
 	xor a
 	jp DynamicAlphabets_FillAndNext
 
@@ -322,7 +320,7 @@ DynamicAlphabets_FillZero_3:
 DynamicAlphabets_FillZero_11:
 	call Reader_ReadBitsInline_7
 	add a,11
-	ex af,af'
+	ld b,a
 	xor a
 	jp DynamicAlphabets_FillAndNext
 
