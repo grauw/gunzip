@@ -175,13 +175,8 @@ Reader_ReadBitsInline_2:
 	Reader_ReadBitInline
 	rra
 	Reader_ReadBitInline
-	rra
-	rra
-	rra
-	rra
-	rra
-	rra
-	rra
+	rla
+	rla
 	ret
 
 Reader_ReadBitsInline_3:
@@ -191,12 +186,9 @@ Reader_ReadBitsInline_3:
 	Reader_ReadBitInline
 	rra
 	Reader_ReadBitInline
-	rra
-	rra
-	rra
-	rra
-	rra
-	rra
+	rla
+	rla
+	rla
 	ret
 
 Reader_ReadBitsInline_4:
@@ -208,11 +200,10 @@ Reader_ReadBitsInline_4:
 	Reader_ReadBitInline
 	rra
 	Reader_ReadBitInline
-	rra
-	rra
-	rra
-	rra
-	rra
+	rla
+	rla
+	rla
+	rla
 	ret
 
 Reader_ReadBitsInline_5:
