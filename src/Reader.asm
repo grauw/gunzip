@@ -129,41 +129,41 @@ Reader_ReadBit:
 	pop bc
 	ret
 
-; b <- inline bit reader state
+; c <- inline bit reader state
 Reader_PrepareReadBitInline:
-	ld b,(ix + Reader.bits)
+	ld c,(ix + Reader.bits)
 	ret
 
-; b = inline bit reader state
+; c = inline bit reader state
 Reader_FinishReadBitInline:
-	ld (ix + Reader.bits),b
+	ld (ix + Reader.bits),c
 	ret
 
-; b = inline bit reader state
-; b <- inline bit reader state
+; c = inline bit reader state
+; c <- inline bit reader state
 ; f <- c: bit
-; Modifies: c
+; Modifies: b
 Reader_ReadBitInline: MACRO
-	srl b
+	srl c
 	call z,Reader_ReadBitInline_NextByte  ; if sentinel bit is shifted out
 	ENDM
 
-; b <- inline bit reader state
+; c <- inline bit reader state
 ; f <- c: bit
-; Modifies: c
+; Modifies: b
 Reader_ReadBitInline_NextByte:
-	ld c,a
+	ld b,a
 	call Reader_Read
 	scf  ; set sentinel bit
 	rra
-	ld b,a
-	ld a,c
+	ld c,a
+	ld a,b
 	ret
 
-; b = inline bit reader state
+; c = inline bit reader state
 ; a <- value
-; b <- inline bit reader state
-; Modifies: c
+; c <- inline bit reader state
+; Modifies: b
 Reader_ReadBitsInline_1:
 	xor a
 	Reader_ReadBitInline

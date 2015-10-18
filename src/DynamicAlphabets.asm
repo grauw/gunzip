@@ -232,7 +232,7 @@ DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths:
 	pop ix
 	ret
 
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -240,7 +240,7 @@ DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths:
 DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths:
 	jp iy
 
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -255,7 +255,7 @@ DynamicAlphabets_WriteAndNext:
 
 ; a = fill value
 ; a' = repeat count
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -275,7 +275,7 @@ DynamicAlphabets_FillAndNext:
 	ret
 
 ; Header code alphabet symbols 0-15
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -286,7 +286,7 @@ DynamicAlphabets_WriteLength: REPT 16, ?value
 	ENDM
 
 ; Header code alphabet symbols 16
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -301,7 +301,7 @@ DynamicAlphabets_Copy:
 	jp DynamicAlphabets_FillAndNext
 
 ; Header code alphabet symbols 17
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader
@@ -314,7 +314,7 @@ DynamicAlphabets_FillZero_3:
 	jp DynamicAlphabets_FillAndNext
 
 ; Header code alphabet symbols 18
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
 ; ix = reader

@@ -237,7 +237,7 @@ Inflate_InflateCompressed:
 	pop ix
 	ret
 
-; b = inline bit reader state
+; c = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -246,7 +246,7 @@ Inflate_DecodeLiteralLength:
 	jp hl
 
 ; Literal/length alphabet symbols 0-255
-; b = inline bit reader state
+; c = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -257,7 +257,7 @@ Inflate_WriteLiteral: REPT 256, ?value
 	ENDM
 
 ; a = value
-; b = inline bit reader state
+; c = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -267,7 +267,7 @@ Inflate_WriteAndNext:
 	jp hl  ; jp Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbol 256
-; b = inline bit reader state
+; c = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -276,7 +276,7 @@ Inflate_EndBlock:
 	ret
 
 ; Literal/length alphabet symbols 257-285
-; b = inline bit reader state
+; c = inline bit reader state
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = reader
@@ -420,7 +420,7 @@ Inflate_CopyLength.28:
 
 ; a = additional length
 ; bc = length
-; b' = inline bit reader state
+; c' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -433,7 +433,7 @@ Inflate_ReadExtraLengthBits:
 	jp Inflate_DecodeDistance
 
 ; bc = length
-; b' = inline bit reader state
+; c' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
@@ -444,7 +444,7 @@ Inflate_DecodeDistance:
 	jp hl
 
 ; Distance alphabet symbols 0-29
-; b = inline bit reader state
+; c = inline bit reader state
 ; de = literal/length alphabet root
 ; hl = distance alphabet root
 ; ix = reader
@@ -619,7 +619,7 @@ Inflate_CopyDistance.29:
 ; a = additional distance
 ; bc = length
 ; de = distance
-; b' = inline bit reader state
+; c' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
@@ -635,7 +635,7 @@ Inflate_ReadExtraDistanceBits:
 ; a' = additional distance LSB
 ; bc = length
 ; de = distance
-; b' = inline bit reader state
+; c' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
@@ -652,7 +652,7 @@ Inflate_ReadExtraDistanceBitsPlus8:
 
 ; bc = length
 ; de = distance
-; b' = inline bit reader state
+; c' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root
 ; ix = reader
