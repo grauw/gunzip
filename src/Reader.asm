@@ -20,7 +20,7 @@ Reader: MACRO
 		dw Reader_MarkEndOfData
 	endOfData:
 		db 0
-	byte:
+	bits:
 		db 0
 	_size:
 	ENDM
@@ -117,26 +117,26 @@ Reader_Skip:
 ; f <- c: bit
 ; Modifies: none
 Reader_ReadBit:
-	srl (ix + Reader.byte)
+	srl (ix + Reader.bits)
 	ret nz  ; return if sentinel bit is still present
 	push bc
 	ld c,a
 	call Reader_Read
 	scf  ; set sentinel bit
 	rra
-	ld (ix + Reader.byte),a
+	ld (ix + Reader.bits),a
 	ld a,c
 	pop bc
 	ret
 
 ; b <- inline bit reader state
 Reader_PrepareReadBitInline:
-	ld b,(ix + Reader.byte)
+	ld b,(ix + Reader.bits)
 	ret
 
 ; b = inline bit reader state
 Reader_FinishReadBitInline:
-	ld (ix + Reader.byte),b
+	ld (ix + Reader.bits),b
 	ret
 
 ; b = inline bit reader state
@@ -318,7 +318,7 @@ Reader_ReadBits_IY:
 
 ; ix = this
 Reader_Align:
-	ld (ix + Reader.byte),0
+	ld (ix + Reader.bits),0
 	ret
 
 ;
