@@ -315,121 +315,104 @@ Inflate_CopyLength.7:
 	jp Inflate_DecodeDistance
 Inflate_CopyLength.8:
 	call Reader_ReadBitsInline_1
-	exx
-	ld bc,11
+	add a,11
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.9:
 	call Reader_ReadBitsInline_1
-	exx
-	ld bc,13
+	add a,13
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.10:
 	call Reader_ReadBitsInline_1
-	exx
-	ld bc,15
+	add a,15
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.11:
 	call Reader_ReadBitsInline_1
-	exx
-	ld bc,17
+	add a,17
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.12:
 	call Reader_ReadBitsInline_2
-	exx
-	ld bc,19
+	add a,19
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.13:
 	call Reader_ReadBitsInline_2
-	exx
-	ld bc,23
+	add a,23
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.14:
 	call Reader_ReadBitsInline_2
-	exx
-	ld bc,27
+	add a,27
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.15:
 	call Reader_ReadBitsInline_2
-	exx
-	ld bc,31
+	add a,31
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.16:
 	call Reader_ReadBitsInline_3
-	exx
-	ld bc,35
+	add a,35
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.17:
 	call Reader_ReadBitsInline_3
-	exx
-	ld bc,43
+	add a,43
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.18:
 	call Reader_ReadBitsInline_3
-	exx
-	ld bc,51
+	add a,51
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.19:
 	call Reader_ReadBitsInline_3
-	exx
-	ld bc,59
+	add a,59
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.20:
 	call Reader_ReadBitsInline_4
-	exx
-	ld bc,67
+	add a,67
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.21:
 	call Reader_ReadBitsInline_4
-	exx
-	ld bc,83
+	add a,83
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.22:
 	call Reader_ReadBitsInline_4
-	exx
-	ld bc,99
+	add a,99
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.23:
 	call Reader_ReadBitsInline_4
-	exx
-	ld bc,115
+	add a,115
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.24:
 	call Reader_ReadBitsInline_5
-	exx
-	ld bc,131
+	add a,131
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.25:
 	call Reader_ReadBitsInline_5
-	exx
-	ld bc,163
+	add a,163
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.26:
 	call Reader_ReadBitsInline_5
-	exx
-	ld bc,195
+	add a,195
 	jp Inflate_ReadExtraLengthBits
 Inflate_CopyLength.27:
 	call Reader_ReadBitsInline_5
+	add a,227
 	exx
-	ld bc,227
-	jp Inflate_ReadExtraLengthBits
+	ld c,a
+	ld b,0
+	jp nc,Inflate_DecodeDistance
+	inc b
+	jp Inflate_DecodeDistance
 Inflate_CopyLength.28:
 	exx
 	ld bc,258
 	jp Inflate_DecodeDistance
 
-; a = additional length
-; bc = length
+; a = length
 ; c' = inline bit reader state
 ; hl' = literal/length alphabet root
 ; de' = distance alphabet root
 ; ix = reader
 ; iy = writer
 Inflate_ReadExtraLengthBits:
-	add a,c
+	exx
 	ld c,a
-	jr nc,Inflate_DecodeDistance
-	inc b
+	ld b,0
 	jp Inflate_DecodeDistance
 
 ; bc = length
@@ -445,6 +428,7 @@ Inflate_DecodeDistance:
 
 ; Distance alphabet symbols 0-29
 ; c = inline bit reader state
+; bc = length
 ; de = literal/length alphabet root
 ; hl = distance alphabet root
 ; ix = reader
