@@ -1,7 +1,7 @@
 ;
 ; Huffman tree node
 ;
-Branch_ID: equ 0DH  ; First byte of a branch object, for ID purposes
+Branch_ID: equ 0CBH  ; First byte of a branch object, for ID purposes
 
 Branch: MACRO
 	; ix = reader

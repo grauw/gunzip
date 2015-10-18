@@ -22,8 +22,6 @@ Reader: MACRO
 		db 0
 	byte:
 		db 0
-	bitCounter:
-		db 1
 	_size:
 	ENDM
 
@@ -119,61 +117,53 @@ Reader_Skip:
 ; f <- c: bit
 ; Modifies: none
 Reader_ReadBit:
-	rr (ix + Reader.byte)
-	dec (ix + Reader.bitCounter)
-	ret nz
+	srl (ix + Reader.byte)
+	ret nz  ; return if sentinel bit is still present
 	push bc
 	ld c,a
 	call Reader_Read
+	scf  ; set sentinel bit
 	rra
 	ld (ix + Reader.byte),a
-	ld (ix + Reader.bitCounter),8
 	ld a,c
 	pop bc
 	ret
 
-; b <- current byte (shifts)
-; c <- bits left + 1
+; b <- inline bit reader state
 Reader_PrepareReadBitInline:
 	ld b,(ix + Reader.byte)
-	ld c,(ix + Reader.bitCounter)
 	ret
 
-; b <- current byte (shifts)
-; c <- bits left + 1
+; b = inline bit reader state
 Reader_FinishReadBitInline:
 	ld (ix + Reader.byte),b
-	ld (ix + Reader.bitCounter),c
 	ret
 
-; b = current byte (shifts)
-; c = bits left + 1
-; b <- current byte (shifts)
-; c <- bits left + 1
+; b = inline bit reader state
+; b <- inline bit reader state
 ; f <- c: bit
-; Modifies: none
+; Modifies: c
 Reader_ReadBitInline: MACRO
-	dec c
-	call z,Reader_ReadBitInline_NextByte
-	rr b
+	srl b
+	call z,Reader_ReadBitInline_NextByte  ; if sentinel bit is shifted out
 	ENDM
 
-; b <- current byte (shifts)
-; c <- bits left
+; b <- inline bit reader state
 ; f <- c: bit
-; Modifies: none
+; Modifies: c
 Reader_ReadBitInline_NextByte:
 	ld c,a
 	call Reader_Read
+	scf  ; set sentinel bit
+	rra
 	ld b,a
 	ld a,c
-	ld c,8
 	ret
 
-; bc = inline bit reader state
+; b = inline bit reader state
 ; a <- value
-; bc <- inline bit reader state
-; Modifies: none
+; b <- inline bit reader state
+; Modifies: c
 Reader_ReadBitsInline_1:
 	xor a
 	Reader_ReadBitInline
@@ -328,7 +318,7 @@ Reader_ReadBits_IY:
 
 ; ix = this
 Reader_Align:
-	ld (ix + Reader.bitCounter),1
+	ld (ix + Reader.byte),0
 	ret
 
 ;
