@@ -2,6 +2,7 @@
 ; Memory buffer writer
 ;
 Writer: MACRO
+	; a = value
 	; iy = this
 	Write_IY:
 		ld (0),a

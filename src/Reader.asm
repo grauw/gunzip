@@ -3,6 +3,7 @@
 ;
 Reader: MACRO
 	; ix = this
+	; a <- value
 	Read:
 		ld a,(0)
 	bufferPosition: equ $ - 2
