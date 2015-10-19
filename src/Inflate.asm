@@ -62,73 +62,16 @@ Inflate_GetWriter:
 	ret
 
 ; ix = this
-; a <- value
-; Modifies: de
-Inflate_Read:
-	push ix
-	call Inflate_GetReader
-	call Reader_Read
-	pop ix
-	ret
-
-; ix = this
-; de <- value
-; Modifies: af
-Inflate_ReadWord:
-	push ix
-	call Inflate_GetReader
-	call Reader_Read
-	ld e,a
-	call Reader_Read
-	ld d,a
-	pop ix
-	ret
-
-; ix = this
-; f <- c: bit
-; Modifies: de
-Inflate_ReadBit:
+Inflate_Inflate:
 	push ix
 	call Inflate_GetReader
 	call Reader_ReadBit
-	pop ix
-	ret
-
-; b = nr of bits to read (1-8)
-; ix = this
-; a = value
-; Modifies: af, bc, de
-Inflate_ReadBits:
-	push ix
-	call Inflate_GetReader
+	pop hl
+	push af
+	push hl
+	ld b,2
 	call Reader_ReadBits
 	pop ix
-	ret
-
-; ix = this
-Inflate_Align:
-	push ix
-	call Inflate_GetReader
-	call Reader_Align
-	pop ix
-	ret
-
-; a = value
-; ix = this
-; Modifies: af, hl
-Inflate_Write:
-	push ix
-	call Inflate_GetWriter
-	call Writer_Write
-	pop ix
-	ret
-
-; ix = this
-Inflate_Inflate:
-	call Inflate_ReadBit
-	push af
-	ld b,2
-	call Inflate_ReadBits
 	call Inflate_InflateBlock
 	pop af
 	jp nc,Inflate_Inflate
@@ -147,17 +90,22 @@ Inflate_InflateBlock:
 
 ; ix = this
 Inflate_InflateUncompressed: PROC
-	call Inflate_Align
-	call Inflate_ReadWord
-	push de
-	push de
-	call Inflate_ReadWord
-	pop hl
+	push ix
+	call Inflate_GetReader
+	call Reader_Align
+	call Reader_Read
+	ld e,a
+	call Reader_Read
+	ld d,a
+	call Reader_Read
+	ld l,a
+	call Reader_Read
+	ld h,a
+	pop ix
 	scf
 	adc hl,de
 	ld hl,Inflate_invalidLengthError
 	jp nz,Application_TerminateWithError
-	pop de
 	ld a,d
 	or e
 	ret z
