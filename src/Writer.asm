@@ -148,49 +148,95 @@ SlowPathPop:
 ; iy = this
 ; Modifies: af, bc, de, hl
 Writer_Copy_Slow_IY: PROC
-	ld a,c  ; transform 16-bit bc counter to two 8-bit counters b and c
-	dec bc
-	inc b
-	ld c,b
-	ld b,a
-	xor a
-	ld l,a
-	ld h,a
-	sbc hl,de
-	ex de,hl
 	ld l,(iy + Writer.bufferPosition)
 	ld h,(iy + Writer.bufferPosition + 1)
-Loop:
-	push hl
-	add hl,de
+	and a
+	sbc hl,de
 	ld a,h
-	jr nc,Wrap
+	jr c,Wrap
 	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
 WrapContinue:
-	ld a,(hl)
-	pop hl
-	ld (hl),a
-	inc l
-	call z,IncreaseMSB
-	djnz Loop
-	dec c
-	jp nz,Loop
-	ld (iy + Writer.bufferPosition),l
-	ld (iy + Writer.bufferPosition + 1),h
-	ret
+	ld e,l
+	ld d,h
+	add hl,bc
+	jr c,Split
+	ld a,h
+	cp (iy + Writer.bufferEnd + 1)
+	jp c,Writer_WriteBlock_IY
+	jp Split
 Wrap:
 	add a,(iy + Writer.bufferSize + 1)
 	ld h,a
 	jp WrapContinue
-IncreaseMSB:
-	inc h
-	ld a,(iy + Writer.bufferEnd + 1)
-	cp h
-	ret nz
-	ld (iy + Writer.bufferPosition),l
-	ld (iy + Writer.bufferPosition + 1),h
+; hl = end address
+Split:
+	push bc
+	ld c,(iy + Writer.bufferEnd)
+	ld b,(iy + Writer.bufferEnd + 1)
+	and a
+	sbc hl,bc  ; hl = bytes past end
+	ex (sp),hl
+	pop bc
+	push bc
+	sbc hl,bc  ; hl = bytes until end
+	ld c,l
+	ld b,h
+	call Writer_WriteBlock_IY
+	pop bc
+	ld l,(iy + Writer.bufferStart)
+	ld h,(iy + Writer.bufferStart + 1)
+	ld a,b
+	or c
+	jp nz,WrapContinue
+	ret
+	ENDP
+
+; bc = byte count
+; de = source
+; iy = this
+; Modifies: af, bc, de, hl
+Writer_WriteBlock_IY: PROC
+	ld l,(iy + Writer.bufferPosition)
+	ld h,(iy + Writer.bufferPosition + 1)
+	add hl,bc
+	jr c,Split
+	ld a,h
+	cp (iy + Writer.bufferEnd + 1)
+	jr nc,Split
+	and a
+	sbc hl,bc
+	ex de,hl
+	ldir
+	ld (iy + Writer.bufferPosition),e
+	ld (iy + Writer.bufferPosition + 1),d
+	ret
+; hl = end address
+Split:
+	push bc
+	ld c,(iy + Writer.bufferEnd)
+	ld b,(iy + Writer.bufferEnd + 1)
+	and a
+	sbc hl,bc  ; hl = bytes past end
+	ld c,l
+	ld b,h
+	ex (sp),hl
+	sbc hl,bc  ; hl = bytes until end
+	ld c,l
+	ld b,h
+	ex de,hl
+	ld e,(iy + Writer.bufferPosition)
+	ld d,(iy + Writer.bufferPosition + 1)
+	ldir
+	ld (iy + Writer.bufferPosition),e
+	ld (iy + Writer.bufferPosition + 1),d
+	push hl
 	call Writer_FinishBlock_IY
+	pop de
+	pop bc
+	ld a,b
+	or c
+	jp nz,Writer_WriteBlock_IY
 	ret
 	ENDP
 
