@@ -112,10 +112,6 @@ NextBlock:
 Writer_Copy_IY: PROC
 	ld l,(iy + Writer.bufferPosition)
 	ld h,(iy + Writer.bufferPosition + 1)
-	ld a,h
-	add a,2  ; is there a 512 byte margin without wrapping?
-	cp (iy + Writer.bufferEnd + 1)
-	jr nc,Writer_Copy_Slow_IY
 	push hl
 	and a
 	sbc hl,de
@@ -124,10 +120,13 @@ Writer_Copy_IY: PROC
 	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
 WrapContinue:
-	add a,2  ; is there a 512 byte margin without wrapping?
-	cp (iy + Writer.bufferEnd + 1)
-	jr nc,SlowPathPop
 	pop de
+	ld a,(iy + Writer.bufferEnd + 1)
+	sub 3
+	cp h  ; does the source have a 512 byte margin without wrapping?
+	jr c,Writer_Copy_Slow_IY
+	cp d  ; does the destination a 512 byte margin without wrapping?
+	jr c,Writer_Copy_Slow_IY
 	ldi
 	ldi
 	ldir
@@ -138,25 +137,14 @@ Wrap:
 	add a,(iy + Writer.bufferSize + 1)
 	ld h,a
 	jp WrapContinue
-SlowPathPop:
-	pop hl
-	jp Writer_Copy_Slow_IY
 	ENDP
 
 ; bc = byte count
-; de = distance
+; hl = buffer source
+; de = buffer destination
 ; iy = this
 ; Modifies: af, bc, de, hl
 Writer_Copy_Slow_IY: PROC
-	ld l,(iy + Writer.bufferPosition)
-	ld h,(iy + Writer.bufferPosition + 1)
-	and a
-	sbc hl,de
-	ld a,h
-	jr c,Wrap
-	cp (iy + Writer.bufferStart + 1)
-	jr c,Wrap
-WrapContinue:
 	ld e,l
 	ld d,h
 	add hl,bc
@@ -164,11 +152,6 @@ WrapContinue:
 	ld a,h
 	cp (iy + Writer.bufferEnd + 1)
 	jp c,Writer_WriteBlock_IY
-	jp Split
-Wrap:
-	add a,(iy + Writer.bufferSize + 1)
-	ld h,a
-	jp WrapContinue
 ; hl = end address
 Split:
 	push bc
@@ -188,7 +171,7 @@ Split:
 	ld h,(iy + Writer.bufferStart + 1)
 	ld a,b
 	or c
-	jp nz,WrapContinue
+	jp nz,Writer_Copy_Slow_IY
 	ret
 	ENDP
 
