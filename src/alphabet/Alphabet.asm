@@ -1,16 +1,13 @@
 ;
 ; Huffman alphabet builder
 ;
-; Allocate the whole damn thing on stack...?
-; So we can destroy it easily without fragmenting the heap.
-;
 Alphabet_MAX_CODELENGTH: equ 16
 
 Alphabet: MACRO
 	root:
 		dw 0
 	codeLengthCounts:
-		ds Alphabet_MAX_CODELENGTH, 0  ; allocate on stack?
+		ds Alphabet_MAX_CODELENGTH, 0
 	nextCodes:
 		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
