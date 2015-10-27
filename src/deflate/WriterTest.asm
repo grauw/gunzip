@@ -11,6 +11,8 @@ WriterTest_TestCount: PROC
 	ld bc,256
 	call NullWriter_class.New
 	call NullWriter_Construct
+	push ix
+	pop iy
 
 	call Writer_GetCount
 	ld a,l
@@ -21,7 +23,7 @@ WriterTest_TestCount: PROC
 
 	ld b,58
 Loop1:
-	call Writer_Write
+	call Writer_Write_IY
 	djnz Loop1
 	call Writer_GetCount
 	ld bc,58
@@ -34,7 +36,7 @@ Loop1:
 
 	ld b,200
 Loop2:
-	call Writer_Write
+	call Writer_Write_IY
 	djnz Loop2
 	call Writer_GetCount
 	ld bc,258
@@ -55,6 +57,8 @@ WriterTest_TestCRC32: PROC
 	ld bc,256
 	call NullWriter_class.New
 	call NullWriter_Construct
+	push ix
+	pop iy
 
 	call Writer_GetCRC32
 	ld a,l
@@ -67,7 +71,7 @@ WriterTest_TestCRC32: PROC
 	ld b,58
 Loop1:
 	ld a,b
-	call Writer_Write
+	call Writer_Write_IY
 	djnz Loop1
 	call Writer_GetCRC32
 	ld bc,07364H
@@ -83,7 +87,7 @@ Loop1:
 	ld b,200
 Loop2:
 	ld a,b
-	call Writer_Write
+	call Writer_Write_IY
 	djnz Loop2
 	call Writer_GetCRC32
 	ld bc,04E96H

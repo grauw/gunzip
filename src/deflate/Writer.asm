@@ -57,32 +57,6 @@ Writer_Destruct:
 	ret
 
 ; a = value
-; ix = this
-; Modifies: hl
-Writer_Write: PROC
-	ld l,(ix + Writer.bufferPosition)
-	ld h,(ix + Writer.bufferPosition + 1)
-	ld (hl),a
-	inc l
-	ld (ix + Writer.bufferPosition),l
-	ret nz
-	inc h
-	ld l,a
-	ld a,(ix + Writer.bufferEnd + 1)
-	cp h
-	ld a,l
-	call z,NextBlock
-	ld (ix + Writer.bufferPosition + 1),h
-	ret
-NextBlock:
-	push af
-	ld (ix + Writer.bufferPosition + 1),h
-	call Writer_FinishBlock
-	pop af
-	ret
-	ENDP
-
-; a = value
 ; iy = this
 ; Modifies: none
 Writer_Write_IY: PROC
