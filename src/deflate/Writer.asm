@@ -106,14 +106,14 @@ NextBlock:
 	ENDP
 
 ; bc = byte count (range 3-258)
-; de = distance
+; de = distance - 1
 ; iy = this
 ; Modifies: af, bc, de, hl
 Writer_Copy_IY: PROC
 	ld l,(iy + Writer.bufferPosition)
 	ld h,(iy + Writer.bufferPosition + 1)
 	push hl
-	and a
+	scf
 	sbc hl,de
 	ld a,h
 	jr c,Wrap
