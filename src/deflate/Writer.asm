@@ -3,12 +3,16 @@
 ;
 Writer: MACRO
 	; a = value
+	; hl = return address
 	; iy = this
 	Write_IY:
 		ld (0),a
 	bufferPosition: equ $ - 2
 		inc (iy + Writer.bufferPosition)
-		ret nz
+		jr z,Write_IY_Continue  ; unlikely
+		jp hl
+	Write_IY_Continue:
+		push hl
 		jp Writer_Write_IY.Continue
 
 	bufferStart:
@@ -58,8 +62,16 @@ Writer_Destruct:
 
 ; a = value
 ; iy = this
-; Modifies: none
+; Modifies: hl
+Writer_WriteInline_JumpHL_IY: MACRO
+	jp iy
+	ENDM
+
+; a = value
+; iy = this
+; Modifies: hl
 Writer_Write_IY: PROC
+	pop hl
 	jp iy
 Continue:
 	push af
