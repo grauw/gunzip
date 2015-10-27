@@ -143,7 +143,7 @@ Reader_FinishReadBitInline:
 ; c = inline bit reader state
 ; c <- inline bit reader state
 ; f <- c: bit
-; Modifies: b
+; Modifies: a
 Reader_ReadBitInline: MACRO
 	srl c
 	call z,Reader_ReadBitInline_NextByte  ; if sentinel bit is shifted out
@@ -151,8 +151,27 @@ Reader_ReadBitInline: MACRO
 
 ; c <- inline bit reader state
 ; f <- c: bit
-; Modifies: b
+; Modifies: a
 Reader_ReadBitInline_NextByte:
+	call Reader_Read
+	scf  ; set sentinel bit
+	rra
+	ld c,a
+	ret
+
+; c = inline bit reader state
+; c <- inline bit reader state
+; f <- c: bit
+; Modifies: b
+Reader_ReadBitInline_B: MACRO
+	srl c
+	call z,Reader_ReadBitInline_B_NextByte  ; if sentinel bit is shifted out
+	ENDM
+
+; c <- inline bit reader state
+; f <- c: bit
+; Modifies: b
+Reader_ReadBitInline_B_NextByte:
 	ld b,a
 	call Reader_Read
 	scf  ; set sentinel bit
@@ -167,26 +186,26 @@ Reader_ReadBitInline_NextByte:
 ; Modifies: b
 Reader_ReadBitsInline_1:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rla
 	ret
 
 Reader_ReadBitsInline_2:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rla
 	rla
 	ret
 
 Reader_ReadBitsInline_3:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rla
 	rla
 	rla
@@ -194,13 +213,13 @@ Reader_ReadBitsInline_3:
 
 Reader_ReadBitsInline_4:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rla
 	rla
 	rla
@@ -209,15 +228,15 @@ Reader_ReadBitsInline_4:
 
 Reader_ReadBitsInline_5:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
 	rra
 	rra
@@ -226,17 +245,17 @@ Reader_ReadBitsInline_5:
 
 Reader_ReadBitsInline_6:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
 	rra
 	rra
@@ -244,39 +263,39 @@ Reader_ReadBitsInline_6:
 
 Reader_ReadBitsInline_7:
 	xor a
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
 	rra
 	ret
 
 Reader_ReadBitsInline_8:
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
-	Reader_ReadBitInline
+	Reader_ReadBitInline_B
 	rra
 	ret
 
