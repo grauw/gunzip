@@ -363,8 +363,7 @@ Loop:
 	xor b
 	ld c,a
 	inc h
-	ld a,(hl)
-	ld b,a
+	ld b,(hl)
 	exx
 	djnz Loop
 	dec c
