@@ -1,7 +1,7 @@
 ;
 ; Huffman alphabet builder
 ;
-Alphabet_MAX_CODELENGTH: equ 16
+Alphabet_MAX_CODELENGTH: equ 15
 
 Alphabet: MACRO
 	root:
