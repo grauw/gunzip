@@ -18,7 +18,7 @@ AlphabetTest_TestCodeBuilding:
 	add hl,de
 	ex de,hl
 	ld hl,AlphabetTest_expectedCodeLengthCounts
-	ld bc,Alphabet_MAX_CODELENGTH
+	ld bc,Alphabet_MAX_CODELENGTH * 2
 	call AlphabetTest_AssertArrayEquals
 
 	call Alphabet_CalculateNextCodes
@@ -36,7 +36,8 @@ AlphabetTest_TestCodeBuilding:
 	ret
 
 AlphabetTest_expectedCodeLengthCounts:
-	db 0, 0, 0, 0, 0, 0, 24, 152, 112, 0, 0, 0, 0, 0, 0, 0
+	db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 152, 0
+	db 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 AlphabetTest_expectedNextCodes:
 	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0

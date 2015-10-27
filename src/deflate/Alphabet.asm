@@ -7,7 +7,7 @@ Alphabet: MACRO
 	root:
 		dw 0
 	codeLengthCounts:
-		ds Alphabet_MAX_CODELENGTH, 0
+		ds Alphabet_MAX_CODELENGTH * 2, 0
 	nextCodes:
 		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
@@ -97,17 +97,22 @@ Loop:
 ; a = code length (must not be 0)
 ; ix = this
 ; Modifies: af, de
-Alphabet_CountCodeLength:
+Alphabet_CountCodeLength: PROC
 	cp Alphabet_MAX_CODELENGTH + 1
 	call nc,System_ThrowException
 	push ix
+	add a,a
 	ld e,a
 	ld d,0
 	add ix,de
-	inc (ix + Alphabet.codeLengthCounts - 1)
-	call z,System_ThrowException
+	inc (ix + Alphabet.codeLengthCounts - 2)
+	call z,Overflow
 	pop ix
 	ret
+Overflow:
+	inc (ix + Alphabet.codeLengthCounts - 2 + 1)
+	ret
+	ENDP
 
 ; ix = this
 Alphabet_CalculateNextCodes: PROC
@@ -122,7 +127,8 @@ Loop:
 	inc iy
 	inc iy
 	ld e,(ix + Alphabet.codeLengthCounts)
-	ld d,0
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	inc ix
 	inc ix
 	add hl,de
 	add hl,hl
