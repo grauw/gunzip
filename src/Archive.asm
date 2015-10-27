@@ -262,14 +262,13 @@ Archive_VerifyCRC32:
 	call Archive_GetWriter
 	call Writer_GetCRC32
 	pop ix
-	ld c,(ix + Archive.crc32)
-	ld b,(ix + Archive.crc32 + 1)
+	ld l,(ix + Archive.crc32)
+	ld h,(ix + Archive.crc32 + 1)
 	scf
-	adc hl,bc
+	adc hl,de
 	ret nz
-	ex de,hl
-	ld c,(ix + Archive.crc32 + 2)
-	ld b,(ix + Archive.crc32 + 3)
+	ld l,(ix + Archive.crc32 + 2)
+	ld h,(ix + Archive.crc32 + 3)
 	scf
 	adc hl,bc
 	ret

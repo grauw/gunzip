@@ -61,10 +61,10 @@ WriterTest_TestCRC32: PROC
 	pop iy
 
 	call Writer_GetCRC32
-	ld a,l
-	and h
-	and e
+	ld a,e
 	and d
+	and c
+	and b
 	inc a
 	call nz,System_ThrowException
 
@@ -74,12 +74,11 @@ Loop1:
 	call Writer_Write_IY
 	djnz Loop1
 	call Writer_GetCRC32
-	ld bc,07364H
+	ld hl,07364H
 	scf
-	adc hl,bc
+	adc hl,de
 	call nz,System_ThrowException
-	ex de,hl
-	ld bc,0DAA8H
+	ld hl,0DAA8H
 	scf
 	adc hl,bc
 	call nz,System_ThrowException
@@ -90,12 +89,11 @@ Loop2:
 	call Writer_Write_IY
 	djnz Loop2
 	call Writer_GetCRC32
-	ld bc,04E96H
+	ld hl,04E96H
 	scf
-	adc hl,bc
+	adc hl,de
 	call nz,System_ThrowException
-	ex de,hl
-	ld bc,02DA9H
+	ld hl,02DA9H
 	scf
 	adc hl,bc
 	call nz,System_ThrowException

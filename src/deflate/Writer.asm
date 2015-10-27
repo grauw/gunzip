@@ -284,15 +284,15 @@ Writer_UpdateCRC32:
 	ld c,(ix + Writer.bufferSize)
 	ld b,(ix + Writer.bufferSize + 1)
 	exx
-	ld l,(ix + Writer.crc32)
-	ld h,(ix + Writer.crc32 + 1)
-	ld e,(ix + Writer.crc32 + 2)
-	ld d,(ix + Writer.crc32 + 3)
+	ld e,(ix + Writer.crc32)
+	ld d,(ix + Writer.crc32 + 1)
+	ld c,(ix + Writer.crc32 + 2)
+	ld b,(ix + Writer.crc32 + 3)
 	call Writer_CalculateCRC32
-	ld (ix + Writer.crc32),l
-	ld (ix + Writer.crc32 + 1),h
-	ld (ix + Writer.crc32 + 2),e
-	ld (ix + Writer.crc32 + 3),d
+	ld (ix + Writer.crc32),e
+	ld (ix + Writer.crc32 + 1),d
+	ld (ix + Writer.crc32 + 2),c
+	ld (ix + Writer.crc32 + 3),b
 	exx
 	pop hl
 	pop bc
@@ -300,7 +300,7 @@ Writer_UpdateCRC32:
 	ret
 
 ; ix = this
-; dehl <- crc32
+; bcde <- crc32
 ; Modifies: af, bc, de, hl
 Writer_GetCRC32:
 	exx
@@ -320,10 +320,10 @@ Writer_GetCRC32:
 	ld h,b
 	ld b,a
 	exx
-	ld l,(ix + Writer.crc32)
-	ld h,(ix + Writer.crc32 + 1)
-	ld e,(ix + Writer.crc32 + 2)
-	ld d,(ix + Writer.crc32 + 3)
+	ld e,(ix + Writer.crc32)
+	ld d,(ix + Writer.crc32 + 1)
+	ld c,(ix + Writer.crc32 + 2)
+	ld b,(ix + Writer.crc32 + 3)
 	call nz,Writer_CalculateCRC32
 	exx
 	pop hl
@@ -333,9 +333,9 @@ Writer_GetCRC32:
 
 ; bc' = byte count
 ; hl' = read address
-; dehl = current crc
+; bcde = current crc
 ; ix = this
-; dehl <- updated crc
+; bcde <- updated crc
 ; Modifies: af, bc, de, hl, bc', hl'
 Writer_CalculateCRC32: PROC
 	exx
@@ -348,23 +348,23 @@ Loop:
 	ld a,(hl)
 	inc hl
 	exx
-	xor l
-	ld c,a
-	ld b,CRC32Table >> 8
-	ld a,(bc)
-	xor h
-	ld l,a
-	inc b
-	ld a,(bc)
 	xor e
-	ld h,a
-	inc b
-	ld a,(bc)
+	ld l,a
+	ld h,CRC32Table >> 8
+	ld a,(hl)
 	xor d
 	ld e,a
-	inc b
-	ld a,(bc)
+	inc h
+	ld a,(hl)
+	xor c
 	ld d,a
+	inc h
+	ld a,(hl)
+	xor b
+	ld c,a
+	inc h
+	ld a,(hl)
+	ld b,a
 	exx
 	djnz Loop
 	dec c
