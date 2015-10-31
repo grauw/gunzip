@@ -217,20 +217,28 @@ Alphabet_BuildTree: PROC
 	ld c,b
 	ld b,a
 Loop:
-	push bc
 	ld a,(de)
 	inc de
+	and a
+	jr z,Skip
+	push bc
 	push de
 	ld e,(hl)
 	inc hl
 	ld d,(hl)
 	inc hl
 	push hl
-	and a
-	call nz,Alphabet_AddTreeNode
+	call Alphabet_AddTreeNode
 	pop hl
 	pop de
 	pop bc
+	djnz Loop
+	dec c
+	jr nz,Loop
+	ret
+Skip:
+	inc hl
+	inc hl
 	djnz Loop
 	dec c
 	jr nz,Loop
