@@ -53,8 +53,7 @@ System_Print_Done:
 System_PrintLn:
 	push hl
 	call System_Print
-	ld hl,System_crlf
-	call System_Print
+	call System_PrintCrLf
 	pop hl
 	ret
 
@@ -351,8 +350,7 @@ System_PrintExceptionMessage:
 	dec hl
 	dec hl
 	call System_PrintHexHL
-	ld hl,System_crlf
-	call System_Print
+	call System_PrintCrLf
 	ret
 
 ;
