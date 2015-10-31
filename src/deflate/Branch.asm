@@ -61,10 +61,12 @@ One:
 	ENDP
 
 ; b = bit length
+; de = symbol callback
 ; hl = code (left aligned)
-; iy = symbol callback
 ; ix = this
 Branch_Build: PROC
+	push de
+NextBit:
 	add hl,hl
 	jp c,One
 Zero:
@@ -74,8 +76,7 @@ Zero:
 	or e
 	djnz ZeroRecurse
 	call nz,System_ThrowException
-	ld e,iyl
-	ld d,iyh
+	pop de
 	ld (ix + Branch.zero),e
 	ld (ix + Branch.zero + 1),d
 	ret
@@ -93,7 +94,7 @@ ZeroExists:
 	call nz,System_ThrowException
 	ld ixl,e
 	ld ixh,d
-	jp Branch_Build
+	jp NextBit
 One:
 	ld e,(ix + Branch.one)
 	ld d,(ix + Branch.one + 1)
@@ -101,8 +102,7 @@ One:
 	or e
 	djnz OneRecurse
 	call nz,System_ThrowException
-	ld e,iyl
-	ld d,iyh
+	pop de
 	ld (ix + Branch.one),e
 	ld (ix + Branch.one + 1),d
 	ret
@@ -120,5 +120,5 @@ OneExists:
 	call nz,System_ThrowException
 	ld ixl,e
 	ld ixh,d
-	jp Branch_Build
+	jp NextBit
 	ENDP

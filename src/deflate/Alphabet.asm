@@ -174,14 +174,11 @@ Loop:
 ; de = symbol callback
 ; ix = this
 Alphabet_AddTreeNode: PROC
-	ld iyl,e
-	ld iyh,d
-	ld b,a
-	add a,a
-	ld e,a
-	ld d,0
+	ld c,a
+	ld b,0
+	sla c
 	push ix
-	add ix,de
+	add ix,bc
 	ld l,(ix + Alphabet.nextCodes - 2)
 	ld h,(ix + Alphabet.nextCodes - 1)
 	inc hl
@@ -189,6 +186,7 @@ Alphabet_AddTreeNode: PROC
 	ld (ix + Alphabet.nextCodes - 1),h
 	dec hl
 	pop ix
+	ld b,a
 	ld a,16
 	sub b
 PreShiftLoop:
@@ -196,7 +194,10 @@ PreShiftLoop:
 	dec a
 	jp nz,PreShiftLoop
 	push ix
-	call Alphabet_GetRoot
+	ld a,(ix + Alphabet.root)
+	ld c,(ix + Alphabet.root + 1)
+	ld ixl,a
+	ld ixh,c
 	call Branch_Build
 	pop ix
 	ret
