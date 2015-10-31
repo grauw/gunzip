@@ -84,7 +84,7 @@ Alphabet_Process_IY:
 ; bc = code length table length
 ; hl = code length table
 ; ix = this
-Alphabet_CountCodeLengths:
+Alphabet_CountCodeLengths: PROC
 	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
 	dec bc
 	inc b
@@ -99,6 +99,7 @@ Loop:
 	dec c
 	jr nz,Loop
 	ret
+	ENDP
 
 ; a = code length (must not be 0)
 ; ix = this
