@@ -14,7 +14,7 @@ Application_template: Application
 Application_Main:
 	call DOS_IsDOS2
 	ld hl,Application_dos2RequiredError
-	call c,Application_TerminateWithError
+	jp c,Application_TerminateWithError
 
 	call Application_CheckStack
 
@@ -96,7 +96,7 @@ Application_ParseCLI:
 	ld a,l
 	or h
 	ld hl,Application_usageInstructions
-	call z,Application_TerminateWithError
+	jp z,Application_TerminateWithError
 	pop ix
 	ret
 
@@ -271,7 +271,7 @@ Application_CheckStack:
 	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
 	add hl,sp
 	ld hl,Application_insufficientTPAError
-	call nc,Application_TerminateWithError
+	jp nc,Application_TerminateWithError
 	ret
 
 ; a <- DOS error code

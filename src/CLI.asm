@@ -111,7 +111,7 @@ OutputPath:
 	ld a,(ix + CLI.outputPath)
 	or (ix + CLI.outputPath + 1)
 	ld hl,CLI_multiplePathsError
-	call nz,Application_TerminateWithError
+	jp nz,Application_TerminateWithError
 	ld (ix + CLI.outputPath),e
 	ld (ix + CLI.outputPath + 1),d
 	jp Continue
