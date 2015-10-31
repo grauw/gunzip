@@ -1,6 +1,8 @@
 ;
 ; Command-line interface parser
 ;
+CLI_BUFFER_SIZE: equ 255
+
 CLI: MACRO
 	archivePath:
 		dw 0
@@ -9,7 +11,7 @@ CLI: MACRO
 	quiet:
 		db 0
 	buffer:
-		ds 255
+		dw 0
 	_size:
 	ENDM
 
@@ -20,7 +22,13 @@ CLI_template: CLI
 ; ix <- this
 ; de <- this
 CLI_Construct:
-	call CLI_GetBuffer
+	push ix
+	ld bc,CLI_BUFFER_SIZE
+	ld ix,Heap_main
+	call Heap_Allocate
+	pop ix
+	ld (ix + CLI.buffer),e
+	ld (ix + CLI.buffer + 1),d
 	ld hl,CLI_parametersEnvName
 	ld b,255
 	call DOS_GetEnvironmentItem
@@ -31,23 +39,19 @@ CLI_Construct:
 ; ix = this
 ; ix <- this
 CLI_Destruct:
-	ret
-
-; ix = this
-; de <- buffer
-; Modifies: bc
-CLI_GetBuffer:
 	push ix
-	pop de
-	ld bc,CLI.buffer
-	ex de,hl
-	add hl,bc
-	ex de,hl
+	ld e,(ix + CLI.buffer)
+	ld d,(ix + CLI.buffer + 1)
+	ld bc,CLI_BUFFER_SIZE
+	ld ix,Heap_main
+	call Heap_Free
+	pop ix
 	ret
 
 ; ix = this
 CLI_Parse: PROC
-	call CLI_GetBuffer
+	ld e,(ix + CLI.buffer)
+	ld d,(ix + CLI.buffer + 1)
 Loop:
 	ld a,(de)
 	and a
