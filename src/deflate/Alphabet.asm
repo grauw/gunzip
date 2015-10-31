@@ -190,12 +190,10 @@ Alphabet_AddTreeNode: PROC
 	pop ix
 	ld a,16
 	sub b
-	jr z,NoPreShift
 PreShiftLoop:
 	add hl,hl
 	dec a
 	jp nz,PreShiftLoop
-NoPreShift:
 	push ix
 	call Alphabet_GetRoot
 	call Branch_Build
