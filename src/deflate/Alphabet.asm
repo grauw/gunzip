@@ -170,8 +170,9 @@ Loop:
 	ret
 	ENDP
 
-; a = code length (> 0)
+; a = code length (1-15)
 ; de = symbol callback
+; ix = this
 Alphabet_AddTreeNode: PROC
 	ld iyl,e
 	ld iyh,d
