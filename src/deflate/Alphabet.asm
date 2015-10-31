@@ -6,6 +6,12 @@ Alphabet_MAX_CODELENGTH: equ 15
 Alphabet: MACRO
 	root:
 		dw 0
+	treeSize:
+		dw 0
+	treePosition:
+		dw 0
+	treeEnd:
+		dw 0
 	codeLengthCounts:
 		ds Alphabet_MAX_CODELENGTH * 2, 0
 	nextCodes:
@@ -23,21 +29,18 @@ Alphabet_template: Alphabet
 ; ix <- this
 ; de <- this
 Alphabet_Construct:
-	push bc
-	push de
 	push hl
+	push de
+	push bc
 	ex de,hl
 	call Alphabet_CountCodeLengths
 	call Alphabet_CalculateNextCodes
-	push ix
-	call Branch_class.New
-	call Branch_Construct
-	pop ix
-	ld (ix + Alphabet.root),e
-	ld (ix + Alphabet.root + 1),d
-	pop hl
-	pop de
 	pop bc
+	push bc
+	call Alphabet_AllocateTreeBuffer
+	pop bc
+	pop de
+	pop hl
 	call Alphabet_BuildTree
 	ld e,ixl
 	ld d,ixh
@@ -46,10 +49,13 @@ Alphabet_Construct:
 ; ix = this
 ; ix <- this
 Alphabet_Destruct:
+	ld e,(ix + Alphabet.root)
+	ld d,(ix + Alphabet.root + 1)
+	ld c,(ix + Alphabet.treeSize)
+	ld b,(ix + Alphabet.treeSize + 1)
 	push ix
-	call Alphabet_GetRoot
-	call Branch_Destruct
-	call Branch_class.Delete
+	ld ix,Heap_main
+	call Heap_Free
 	pop ix
 	ret
 
@@ -139,6 +145,67 @@ Loop:
 	ret
 	ENDP
 
+; bc = code length count (> 0)
+; Modifies: af, bc, de, hl
+Alphabet_AllocateTreeBuffer:
+	call Alphabet_CalculateTreeBufferSize
+	ld (ix + Alphabet.treeSize),l
+	ld (ix + Alphabet.treeSize + 1),h
+	push hl
+	ld c,l
+	ld b,h
+	push ix
+	ld ix,Heap_main
+	call Heap_Allocate
+	pop ix
+	ld (ix + Alphabet.root),e
+	ld (ix + Alphabet.root + 1),d
+	ld (ix + Alphabet.treePosition),e
+	ld (ix + Alphabet.treePosition + 1),d
+	pop hl
+	add hl,de
+	ld (ix + Alphabet.treeEnd),l
+	ld (ix + Alphabet.treeEnd + 1),h
+	call Alphabet_AddBranch
+	ret
+
+; bc = code length count
+; hl <- buffer size
+; Modifies: af
+Alphabet_CalculateTreeBufferSize: PROC
+	ld a,Branch._size
+	ld hl,0
+Loop:
+	add hl,bc
+	dec a
+	jp nz,Loop
+	ret
+	ENDP
+
+; ix = this
+; de <- branch
+; Modifies: f, bc, hl
+Alphabet_AddBranch:
+	push bc
+	ld e,(ix + Alphabet.treePosition)
+	ld d,(ix + Alphabet.treePosition + 1)
+	push de
+	push hl
+	ld hl,Branch_template
+	ld bc,Branch._size
+	ldir
+	ld (ix + Alphabet.treePosition),e
+	ld (ix + Alphabet.treePosition + 1),d
+	ld l,(ix + Alphabet.treeEnd)
+	ld h,(ix + Alphabet.treeEnd + 1)
+	and a
+	sbc hl,de
+	call c,System_ThrowException
+	pop hl
+	pop de
+	pop bc
+	ret
+
 ; bc = code length table length
 ; de = code length table
 ; hl = symbol handler table
@@ -193,12 +260,69 @@ PreShiftLoop:
 	add hl,hl
 	dec a
 	jp nz,PreShiftLoop
-	push ix
 	ld a,(ix + Alphabet.root)
-	ld c,(ix + Alphabet.root + 1)
-	ld ixl,a
-	ld ixh,c
-	call Branch_Build
-	pop ix
+	ld iyl,a
+	ld a,(ix + Alphabet.root + 1)
+	ld iyh,a
+	call Alphabet_Build
 	ret
+	ENDP
+
+; b = bit length
+; de = symbol callback
+; hl = code (left aligned)
+; iy = current branch
+; ix = this
+; Modifies: af, b, de, hl, iy
+Alphabet_Build: PROC
+	push de
+NextBit:
+	add hl,hl
+	jp c,One
+Zero:
+	ld e,(iy + Branch.zero)
+	ld d,(iy + Branch.zero + 1)
+	ld a,d
+	or e
+	djnz ZeroRecurse
+	call nz,System_ThrowException
+	pop de
+	ld (iy + Branch.zero),e
+	ld (iy + Branch.zero + 1),d
+	ret
+ZeroRecurse:
+	jr nz,ZeroExists
+	call Alphabet_AddBranch
+	ld (iy + Branch.zero),e
+	ld (iy + Branch.zero + 1),d
+ZeroExists:
+	ld a,(de)
+	cp Branch_ID
+	call nz,System_ThrowException
+	ld iyl,e
+	ld iyh,d
+	jp NextBit
+One:
+	ld e,(iy + Branch.one)
+	ld d,(iy + Branch.one + 1)
+	ld a,d
+	or e
+	djnz OneRecurse
+	call nz,System_ThrowException
+	pop de
+	ld (iy + Branch.one),e
+	ld (iy + Branch.one + 1),d
+	ret
+OneRecurse:
+	jr nz,OneExists
+	call Alphabet_AddBranch
+	ld (iy + Branch.one),e
+	ld (iy + Branch.one + 1),d
+OneExists:
+	ld a,(de)
+	cp Branch_ID
+	call nz,System_ThrowException
+	ld iyl,e
+	ld iyh,d
+	jp NextBit
 	ENDP
