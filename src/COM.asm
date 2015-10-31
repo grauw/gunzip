@@ -1,7 +1,5 @@
 ;
-; Application
-;
-; gzip file decompressor
+; Gzip file decompressor
 ;
 
 	INCLUDE "Macros.asm"
