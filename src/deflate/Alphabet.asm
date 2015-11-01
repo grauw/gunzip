@@ -45,6 +45,7 @@ Alphabet_Construct:
 	pop de
 	pop hl
 	call Alphabet_BuildTree
+	call Alphabet_TrapEmptyTree
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -83,6 +84,15 @@ Alphabet_Process_IY:
 	ld l,(iy + Alphabet.root)
 	ld h,(iy + Alphabet.root + 1)
 	jp hl
+
+; ix = this
+Alphabet_TrapEmptyTree:
+	ld a,(ix + Alphabet.root)
+	or (ix + Alphabet.root + 1)
+	ret nz
+	ld (ix + Alphabet.root),System_ThrowException & 0FFH
+	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
+	ret
 
 ; bc = code length table length
 ; hl = code length table
