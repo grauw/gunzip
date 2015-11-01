@@ -534,7 +534,7 @@ Inflate_CopyAndNext_SetSmallDistance:
 	exx
 	ld e,a
 	ld d,0
-	jp Inflate_CopyAndNext
+	Inflate_CopyAndNext
 
 ; a = distance - 1 MSB
 ; a' = distance - 1 LSB
@@ -549,7 +549,7 @@ Inflate_CopyAndNext_SetBigDistance:
 	ld d,a
 	ex af,af'
 	ld e,a
-	jp Inflate_CopyAndNext
+	Inflate_CopyAndNext
 
 ; bc = length
 ; de = distance - 1
@@ -558,11 +558,13 @@ Inflate_CopyAndNext_SetBigDistance:
 ; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
-Inflate_CopyAndNext:
+Inflate_CopyAndNext: MACRO
 	call Writer_Copy_IY
 	exx
 	ex de,hl
 	Inflate_DecodeLiteralLength
+	ENDM
+	Inflate_CopyAndNext
 
 ;
 Inflate_literalLengthSymbols:
