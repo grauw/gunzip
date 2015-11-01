@@ -269,10 +269,6 @@ PreShiftLoop:
 	add hl,hl
 	dec a
 	jp nz,PreShiftLoop
-	ld a,(ix + Alphabet.root)
-	ld iyl,a
-	ld a,(ix + Alphabet.root + 1)
-	ld iyh,a
 	call Alphabet_Build
 	ret
 	ENDP
@@ -280,11 +276,14 @@ PreShiftLoop:
 ; b = bit length
 ; de = symbol callback
 ; hl = code (left aligned)
-; iy = current branch
 ; ix = this
 ; Modifies: af, b, de, hl, iy
 Alphabet_Build: PROC
 	push de
+	ld e,(ix + Alphabet.root)
+	ld d,(ix + Alphabet.root + 1)
+	ld iyl,e
+	ld iyh,d
 NextBit:
 	add hl,hl
 	jp c,One
