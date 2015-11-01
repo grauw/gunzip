@@ -186,6 +186,7 @@ Alphabet_AllocateTreeBuffer:
 ; hl <- buffer size
 ; Modifies: af
 Alphabet_CalculateTreeBufferSize: PROC
+	dec bc
 	ld a,Branch._size + Alphabet_LEAF_SIZE
 	ld hl,0
 Loop:
