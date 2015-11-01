@@ -77,17 +77,15 @@ Continue:
 	push af
 	ld a,(iy + Writer.bufferPosition + 1)
 	inc a
+	ld (iy + Writer.bufferPosition + 1),a
 	cp (iy + Writer.bufferEnd + 1)
 	call z,NextBlock
-	ld (iy + Writer.bufferPosition + 1),a
 	pop af
 	ret
 NextBlock:
-	ld (iy + Writer.bufferPosition + 1),a
 	push hl
 	call Writer_FinishBlock_IY
 	pop hl
-	ld a,(iy + Writer.bufferPosition + 1)
 	ret
 	ENDP
 
