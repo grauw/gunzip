@@ -129,14 +129,10 @@ Application_InflateToFile:
 
 	call Archive_Destruct
 	call Archive_class.Delete
-	pop de
-	ld ixl,e
-	ld ixh,d
+	pop ix
 	call FileWriter_Destruct
 	call FileWriter_class.Delete
-	pop de
-	ld ixl,e
-	ld ixh,d
+	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete
 	pop ix
@@ -159,14 +155,10 @@ Application_InflateTest:
 
 	call Archive_Destruct
 	call Archive_class.Delete
-	pop de
-	ld ixl,e
-	ld ixh,d
+	pop ix
 	call NullWriter_Destruct
 	call NullWriter_class.Delete
-	pop de
-	ld ixl,e
-	ld ixh,d
+	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete
 	pop ix
