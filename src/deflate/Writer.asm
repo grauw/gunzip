@@ -314,17 +314,14 @@ Writer_GetCRC32:
 	push hl
 	ld l,(ix + Writer.bufferPosition)
 	ld h,(ix + Writer.bufferPosition + 1)
-	ld c,(ix + Writer.bufferStart)
-	ld b,(ix + Writer.bufferStart + 1)
+	ld e,(ix + Writer.bufferStart)
+	ld d,(ix + Writer.bufferStart + 1)
 	and a
-	sbc hl,bc
+	sbc hl,de
 	call c,System_ThrowException
-	ld a,l
-	ld l,c
-	ld c,a
-	ld a,h
-	ld h,b
-	ld b,a
+	ld c,l
+	ld b,h
+	ex de,hl
 	exx
 	ld e,(ix + Writer.crc32)
 	ld d,(ix + Writer.crc32 + 1)
