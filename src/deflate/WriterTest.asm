@@ -25,6 +25,7 @@ WriterTest_TestCount: PROC
 Loop1:
 	call Writer_Write_IY
 	djnz Loop1
+	call Writer_FinishBlock
 	call Writer_GetCount
 	ld hl,-58
 	and a
@@ -38,6 +39,7 @@ Loop1:
 Loop2:
 	call Writer_Write_IY
 	djnz Loop2
+	call Writer_FinishBlock
 	call Writer_GetCount
 	ld hl,-258
 	and a
@@ -73,6 +75,7 @@ Loop1:
 	ld a,b
 	call Writer_Write_IY
 	djnz Loop1
+	call Writer_FinishBlock
 	call Writer_GetCRC32
 	ld hl,07364H
 	scf
@@ -88,6 +91,7 @@ Loop2:
 	ld a,b
 	call Writer_Write_IY
 	djnz Loop2
+	call Writer_FinishBlock
 	call Writer_GetCRC32
 	ld hl,04E96H
 	scf

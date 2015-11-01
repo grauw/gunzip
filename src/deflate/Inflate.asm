@@ -75,6 +75,10 @@ Inflate_Inflate:
 	call Inflate_InflateBlock
 	pop af
 	jp nc,Inflate_Inflate
+	push ix
+	call Archive_GetWriter
+	call Writer_FinishBlock
+	pop ix
 	ret
 
 ; a = block type

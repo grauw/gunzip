@@ -35,24 +35,21 @@ FileWriter_Construct:
 ; ix = this
 ; ix <- this
 FileWriter_Destruct:
-	call FileWriter_WriteToFile
 	ld b,(ix + FileWriter.fileHandle)
 	call DOS_CloseFileHandle
 	call Application_CheckDOSError
 	call Writer_Destruct
 	ret
 
+; bc = byte count
+; de = buffer start
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileWriter_WriteToFile:
+	push bc
 	call DOS_ConsoleStatus  ; allow ctrl-c
+	pop hl
 	ld b,(ix + FileWriter.fileHandle)
-	ld e,(ix + FileWriter.super.bufferStart)
-	ld d,(ix + FileWriter.super.bufferStart + 1)
-	ld l,(ix + FileWriter.super.bufferPosition)
-	ld h,(ix + FileWriter.super.bufferPosition + 1)
-	and a
-	sbc hl,de
 	call DOS_WriteToFileHandle
 	call Application_CheckDOSError
 	ret

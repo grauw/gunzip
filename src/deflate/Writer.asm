@@ -206,19 +206,32 @@ Split:
 ; ix = this
 ; hl <- buffer position
 ; Modifies: af
-Writer_FinishBlock:
-	ld a,(ix + Writer.bufferPosition)
-	cp (ix + Writer.bufferEnd)
-	call nz,System_ThrowException
-	ld a,(ix + Writer.bufferPosition + 1)
-	cp (ix + Writer.bufferEnd + 1)
-	call nz,System_ThrowException
+Writer_FinishBlock: PROC
 	push bc
 	push de
 	push hl
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
+	ld e,(ix + Writer.bufferStart)
+	ld d,(ix + Writer.bufferStart + 1)
+	and a
+	sbc hl,de
+	call c,System_ThrowException
+	jr z,Empty
+	ld c,l
+	ld b,h
+	push bc
+	push de
 	call Writer_IncreaseCount
+	pop de
+	pop bc
+	push bc
+	push de
 	call Writer_UpdateCRC32
+	pop de
+	pop bc
 	call Writer_FlushBuffer
+Empty:
 	pop hl
 	pop de
 	pop bc
@@ -227,6 +240,7 @@ Writer_FinishBlock:
 	ld a,(ix + Writer.bufferStart + 1)
 	ld (ix + Writer.bufferPosition + 1),a
 	ret
+	ENDP
 
 ; iy = this
 ; hl <- buffer position
@@ -245,13 +259,12 @@ Writer_FlushBuffer:
 	ld h,(ix + Writer.flusher + 1)
 	jp hl
 
+; bc = byte count
 ; ix = this
 ; Modifies: hl, bc
 Writer_IncreaseCount:
 	ld l,(ix + Writer.count)
 	ld h,(ix + Writer.count + 1)
-	ld c,(ix + Writer.bufferSize)
-	ld b,(ix + Writer.bufferSize + 1)
 	add hl,bc
 	ld (ix + Writer.count),l
 	ld (ix + Writer.count + 1),h
@@ -264,34 +277,22 @@ Writer_IncreaseCount:
 ; ix = this
 ; bcde <- count bytes written
 Writer_GetCount:
-	ld l,(ix + Writer.bufferPosition)
-	ld h,(ix + Writer.bufferPosition + 1)
-	ld c,(ix + Writer.bufferStart)
-	ld b,(ix + Writer.bufferStart + 1)
-	and a
-	sbc hl,bc
-	call c,System_ThrowException
 	ld e,(ix + Writer.count)
 	ld d,(ix + Writer.count + 1)
 	ld c,(ix + Writer.count + 2)
 	ld b,(ix + Writer.count + 3)
-	add hl,de
-	ex de,hl
-	ret nc
-	inc bc
 	ret
 
+; bc = byte count
+; de = buffer start
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_UpdateCRC32:
+	ex de,hl
 	exx
 	push bc
+	push de
 	push hl
-	ld l,(ix + Writer.bufferStart)
-	ld h,(ix + Writer.bufferStart + 1)
-	ld c,(ix + Writer.bufferSize)
-	ld b,(ix + Writer.bufferSize + 1)
-	exx
 	ld e,(ix + Writer.crc32)
 	ld d,(ix + Writer.crc32 + 1)
 	ld c,(ix + Writer.crc32 + 2)
@@ -301,8 +302,8 @@ Writer_UpdateCRC32:
 	ld (ix + Writer.crc32 + 1),d
 	ld (ix + Writer.crc32 + 2),c
 	ld (ix + Writer.crc32 + 3),b
-	exx
 	pop hl
+	pop de
 	pop bc
 	exx
 	ret
@@ -311,29 +312,10 @@ Writer_UpdateCRC32:
 ; bcde <- crc32
 ; Modifies: af, bc, de, hl
 Writer_GetCRC32:
-	exx
-	push bc
-	push hl
-	ld l,(ix + Writer.bufferPosition)
-	ld h,(ix + Writer.bufferPosition + 1)
-	ld e,(ix + Writer.bufferStart)
-	ld d,(ix + Writer.bufferStart + 1)
-	and a
-	sbc hl,de
-	call c,System_ThrowException
-	ld c,l
-	ld b,h
-	ex de,hl
-	exx
 	ld e,(ix + Writer.crc32)
 	ld d,(ix + Writer.crc32 + 1)
 	ld c,(ix + Writer.crc32 + 2)
 	ld b,(ix + Writer.crc32 + 3)
-	call nz,Writer_CalculateCRC32
-	exx
-	pop hl
-	pop bc
-	exx
 	ret
 
 ; bc' = byte count
