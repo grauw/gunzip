@@ -222,6 +222,8 @@ Writer_FinishBlock:
 	pop hl
 	pop de
 	pop bc
+	ld a,(ix + Writer.bufferStart)
+	ld (ix + Writer.bufferPosition),a
 	ld a,(ix + Writer.bufferStart + 1)
 	ld (ix + Writer.bufferPosition + 1),a
 	ret

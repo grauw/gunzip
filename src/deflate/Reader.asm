@@ -90,6 +90,8 @@ Reader_FinishBlock: PROC
 	pop hl
 	pop de
 	pop bc
+	ld a,(ix + Reader.bufferStart)
+	ld (ix + Reader.bufferPosition),a
 	ld a,(ix + Reader.bufferStart + 1)
 	ld (ix + Reader.bufferPosition + 1),a
 	bit 0,(ix + Reader.endOfData)
