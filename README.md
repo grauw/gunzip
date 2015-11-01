@@ -41,6 +41,11 @@ Options:
     Suppresses the output of informational and warning messages.
     Error messages, however, are always output.
 
+  * `/q` Fast, no checksum validation.
+    
+    Disables checksum validation which increases inflation speed.
+    Use at your own risk.
+
 If no output file is specified, the archive will be tested.
 
 

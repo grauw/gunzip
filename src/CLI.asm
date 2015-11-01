@@ -10,6 +10,8 @@ CLI: MACRO
 		dw 0
 	quiet:
 		db 0
+	fast:
+		db 0
 	buffer:
 		dw 0
 	_size:
@@ -78,10 +80,16 @@ CLI_ParseOption: PROC
 	and 11011111B  ; upper-case
 	cp "Q"
 	jr z,OptionQuiet
+	cp "F"
+	jr z,OptionFast
 	ld hl,CLI_unknownOptionError
 	jp Application_TerminateWithError
 OptionQuiet:
 	ld (ix + CLI.quiet),-1
+	inc de
+	jp Next
+OptionFast:
+	ld (ix + CLI.fast),-1
 	inc de
 	jp Next
 Next:

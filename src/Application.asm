@@ -238,23 +238,36 @@ Application_CreateFileWriter:
 	call Application_GetCLI
 	ld e,(ix + CLI.outputPath)
 	ld d,(ix + CLI.outputPath + 1)
+	ld a,(ix + CLI.fast)
 	pop ix
 	ld hl,OBUFFER
 	ld bc,OBUFFER_SIZE
 	push ix
+	push af
 	call FileWriter_class.New
 	call FileWriter_Construct
+	pop af
+	cpl
+	ld (ix + FileWriter.super.crc32Enabled),a
 	pop ix
 	ret
 
 ; ix = this
 ; de <- file writer
 Application_CreateNullWriter:
+	push ix
+	call Application_GetCLI
+	ld a,(ix + CLI.fast)
+	pop ix
 	ld hl,OBUFFER
 	ld bc,OBUFFER_SIZE
 	push ix
+	push af
 	call NullWriter_class.New
 	call NullWriter_Construct
+	pop af
+	cpl
+	ld (ix + NullWriter.super.crc32Enabled),a
 	pop ix
 	ret
 
@@ -308,6 +321,7 @@ Application_usageInstructions:
 	db 13,10
 	db "Options:",13,10
 	db "  /q  Quiet, suppress messages.",13,10
+	db "  /f  Fast, no checksum validation.",13,10
 	db 13,10
 	db "If no output file is specified, the archive will be tested.",13,10,0
 

@@ -27,6 +27,8 @@ Writer: MACRO
 		dd 0
 	crc32:
 		dd 0FFFFFFFFH
+	crc32Enabled:
+		db 1
 	_size:
 	ENDM
 
@@ -288,6 +290,8 @@ Writer_GetCount:
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_UpdateCRC32:
+	bit 0,(ix + Writer.crc32Enabled)
+	ret z
 	ex de,hl
 	exx
 	push bc
@@ -310,8 +314,10 @@ Writer_UpdateCRC32:
 
 ; ix = this
 ; bcde <- crc32
+; f <- z: checksum validation disabled
 ; Modifies: af, bc, de, hl
 Writer_GetCRC32:
+	bit 0,(ix + Writer.crc32Enabled)
 	ld e,(ix + Writer.crc32)
 	ld d,(ix + Writer.crc32 + 1)
 	ld c,(ix + Writer.crc32 + 2)
