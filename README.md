@@ -36,7 +36,7 @@ Usage:
 
 Options:
 
-  * `/q` Quiet mode, suppress messages.
+  * `/q` Quiet, suppress messages.
     
     Suppresses the output of informational and warning messages.
     Error messages, however, are always output.

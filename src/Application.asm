@@ -307,7 +307,7 @@ Application_usageInstructions:
 	db "Usage: gunzip [options] <archive.gz> <outputfile>",13,10
 	db 13,10
 	db "Options:",13,10
-	db "  /q  Quiet mode, suppress messages.",13,10
+	db "  /q  Quiet, suppress messages.",13,10
 	db 13,10
 	db "If no output file is specified, the archive will be tested.",13,10,0
 
