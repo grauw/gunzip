@@ -51,11 +51,11 @@ AlphabetTest_TestTreeBuilding: PROC
 
 	push ix
 	ld hl,AlphabetTest_testCodes
-	ld de,IBUFFER
+	ld de,READBUFFER
 	ld bc,AlphabetTest_testCodes_size
 	ldir
-	ld hl,IBUFFER
-	ld bc,IBUFFER_SIZE
+	ld hl,READBUFFER
+	ld bc,READBUFFER_SIZE
 	call Reader_class.New
 	call Reader_Construct
 	pop iy

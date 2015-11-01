@@ -7,7 +7,7 @@ WriterTest_Test:
 	ret
 
 WriterTest_TestCount: PROC
-	ld hl,OBUFFER
+	ld hl,WRITEBUFFER
 	ld bc,256
 	call NullWriter_class.New
 	call NullWriter_Construct
@@ -55,7 +55,7 @@ Loop2:
 	ENDP
 
 WriterTest_TestCRC32: PROC
-	ld hl,OBUFFER
+	ld hl,WRITEBUFFER
 	ld bc,256
 	call NullWriter_class.New
 	call NullWriter_Construct

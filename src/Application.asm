@@ -223,8 +223,8 @@ Application_CreateFileReader:
 	ld e,(ix + CLI.archivePath)
 	ld d,(ix + CLI.archivePath + 1)
 	pop ix
-	ld hl,IBUFFER
-	ld bc,IBUFFER_SIZE
+	ld hl,READBUFFER
+	ld bc,READBUFFER_SIZE
 	push ix
 	call FileReader_class.New
 	call FileReader_Construct
@@ -240,8 +240,8 @@ Application_CreateFileWriter:
 	ld d,(ix + CLI.outputPath + 1)
 	ld a,(ix + CLI.fast)
 	pop ix
-	ld hl,OBUFFER
-	ld bc,OBUFFER_SIZE
+	ld hl,WRITEBUFFER
+	ld bc,WRITEBUFFER_SIZE
 	push ix
 	push af
 	call FileWriter_class.New
@@ -259,8 +259,8 @@ Application_CreateNullWriter:
 	call Application_GetCLI
 	ld a,(ix + CLI.fast)
 	pop ix
-	ld hl,OBUFFER
-	ld bc,OBUFFER_SIZE
+	ld hl,WRITEBUFFER
+	ld bc,WRITEBUFFER_SIZE
 	push ix
 	push af
 	call NullWriter_class.New
