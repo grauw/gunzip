@@ -79,13 +79,8 @@ Continue:
 	inc a
 	ld (iy + Writer.bufferPosition + 1),a
 	cp (iy + Writer.bufferEnd + 1)
-	call z,NextBlock
+	call z,Writer_FinishBlock_IY
 	pop af
-	ret
-NextBlock:
-	push hl
-	call Writer_FinishBlock_IY
-	pop hl
 	ret
 	ENDP
 
@@ -197,9 +192,10 @@ Split:
 	ldir
 	ld (iy + Writer.bufferPosition),e
 	ld (iy + Writer.bufferPosition + 1),d
-	push hl
 	call Writer_FinishBlock_IY
-	pop de
+	ex de,hl
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
 	pop bc
 	ld a,b
 	or c
@@ -219,15 +215,15 @@ Writer_FinishBlock:
 	call nz,System_ThrowException
 	push bc
 	push de
+	push hl
 	call Writer_IncreaseCount
 	call Writer_UpdateCRC32
 	call Writer_FlushBuffer
+	pop hl
 	pop de
 	pop bc
-	ld l,(ix + Writer.bufferStart)
-	ld h,(ix + Writer.bufferStart + 1)
-	ld (ix + Writer.bufferPosition),l
-	ld (ix + Writer.bufferPosition + 1),h
+	ld a,(ix + Writer.bufferStart + 1)
+	ld (ix + Writer.bufferPosition + 1),a
 	ret
 
 ; iy = this
