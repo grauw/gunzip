@@ -195,7 +195,7 @@ Inflate_DecodeLiteralLengthInline: MACRO
 	ENDM
 
 Inflate_DecodeLiteralLength:
-	Inflate_DecodeLiteralLength
+	Inflate_DecodeLiteralLengthInline
 
 ; Literal/length alphabet symbols 0-255
 ; c = inline bit reader state
