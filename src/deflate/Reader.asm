@@ -65,12 +65,21 @@ Continue:
 	push af
 	ld a,(ix + Reader.bufferPosition + 1)
 	inc a
-	cp (ix + Reader.bufferEnd + 1)
-	call z,NextBlock
 	ld (ix + Reader.bufferPosition + 1),a
+	cp (ix + Reader.bufferEnd + 1)
+	call z,Reader_FinishBlock
 	pop af
 	ret
-NextBlock:
+	ENDP
+
+; ix = this
+Reader_FinishBlock: PROC
+	ld a,(ix + Reader.bufferPosition)
+	cp (ix + Reader.bufferEnd)
+	call nz,System_ThrowException
+	ld a,(ix + Reader.bufferPosition + 1)
+	cp (ix + Reader.bufferEnd + 1)
+	call nz,System_ThrowException
 	push bc
 	push de
 	push hl
@@ -81,13 +90,15 @@ NextBlock:
 	pop hl
 	pop de
 	pop bc
-	bit 0,(ix + Reader.endOfData)
 	ld a,(ix + Reader.bufferStart + 1)
+	ld (ix + Reader.bufferPosition + 1),a
+	bit 0,(ix + Reader.endOfData)
 	ret z
 TrapNextRead:
 	ld (ix + Reader.bufferPosition),0FFH
 	ld a,(ix + Reader.bufferEnd + 1)
 	dec a
+	ld (ix + Reader.bufferPosition + 1),a
 	ret
 	ENDP
 
