@@ -245,16 +245,16 @@ Archive_VerifyISIZE:
 	call Archive_GetWriter
 	call Writer_GetCount
 	pop ix
-	ld a,l
+	ld a,e
 	cp (ix + Archive.isize)
 	ret nz
-	ld a,h
+	ld a,d
 	cp (ix + Archive.isize + 1)
 	ret nz
-	ld a,e
+	ld a,c
 	cp (ix + Archive.isize + 2)
 	ret nz
-	ld a,d
+	ld a,b
 	cp (ix + Archive.isize + 3)
 	ret
 

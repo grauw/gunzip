@@ -262,7 +262,7 @@ Writer_IncreaseCount:
 	ret
 
 ; ix = this
-; dehl <- count bytes written
+; bcde <- count bytes written
 Writer_GetCount:
 	ld l,(ix + Writer.bufferPosition)
 	ld h,(ix + Writer.bufferPosition + 1)
@@ -271,13 +271,14 @@ Writer_GetCount:
 	and a
 	sbc hl,bc
 	call c,System_ThrowException
-	ld c,(ix + Writer.count)
-	ld b,(ix + Writer.count + 1)
-	ld e,(ix + Writer.count + 2)
-	ld d,(ix + Writer.count + 3)
-	add hl,bc
+	ld e,(ix + Writer.count)
+	ld d,(ix + Writer.count + 1)
+	ld c,(ix + Writer.count + 2)
+	ld b,(ix + Writer.count + 3)
+	add hl,de
+	ex de,hl
 	ret nc
-	inc de
+	inc bc
 	ret
 
 ; ix = this

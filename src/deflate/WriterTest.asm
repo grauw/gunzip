@@ -15,10 +15,10 @@ WriterTest_TestCount: PROC
 	pop iy
 
 	call Writer_GetCount
-	ld a,l
-	or h
-	or e
+	ld a,e
 	or d
+	or c
+	or b
 	call nz,System_ThrowException
 
 	ld b,58
@@ -26,12 +26,12 @@ Loop1:
 	call Writer_Write_IY
 	djnz Loop1
 	call Writer_GetCount
-	ld bc,58
+	ld hl,-58
 	and a
-	sbc hl,bc
+	adc hl,de
 	call nz,System_ThrowException
-	ld a,e
-	or d
+	ld a,c
+	or b
 	call nz,System_ThrowException
 
 	ld b,200
@@ -39,12 +39,12 @@ Loop2:
 	call Writer_Write_IY
 	djnz Loop2
 	call Writer_GetCount
-	ld bc,258
+	ld hl,-258
 	and a
-	sbc hl,bc
+	adc hl,de
 	call nz,System_ThrowException
-	ld a,e
-	or d
+	ld a,c
+	or b
 	call nz,System_ThrowException
 
 	call NullWriter_Destruct
