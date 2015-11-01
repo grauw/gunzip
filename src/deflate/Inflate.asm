@@ -190,8 +190,10 @@ Inflate_InflateCompressed:
 ; de = distance alphabet root
 ; ix = reader
 ; iy = writer
-Inflate_DecodeLiteralLength:
+Inflate_DecodeLiteralLength: MACRO
 	jp hl
+	ENDM
+	Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbols 0-255
 ; c = inline bit reader state
@@ -560,7 +562,7 @@ Inflate_CopyAndNext:
 	call Writer_Copy_IY
 	exx
 	ex de,hl
-	jp hl  ; jp Inflate_DecodeLiteralLength
+	Inflate_DecodeLiteralLength
 
 ;
 Inflate_literalLengthSymbols:
