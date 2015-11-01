@@ -190,9 +190,11 @@ Inflate_InflateCompressed:
 ; de = distance alphabet root
 ; ix = reader
 ; iy = writer
-Inflate_DecodeLiteralLength: MACRO
+Inflate_DecodeLiteralLengthInline: MACRO
 	jp hl
 	ENDM
+
+Inflate_DecodeLiteralLength:
 	Inflate_DecodeLiteralLength
 
 ; Literal/length alphabet symbols 0-255
@@ -534,7 +536,7 @@ Inflate_CopyAndNext_SetSmallDistance:
 	exx
 	ld e,a
 	ld d,0
-	Inflate_CopyAndNext
+	Inflate_CopyAndNextInline
 
 ; a = distance - 1 MSB
 ; a' = distance - 1 LSB
@@ -549,7 +551,7 @@ Inflate_CopyAndNext_SetBigDistance:
 	ld d,a
 	ex af,af'
 	ld e,a
-	Inflate_CopyAndNext
+	Inflate_CopyAndNextInline
 
 ; bc = length
 ; de = distance - 1
@@ -558,13 +560,15 @@ Inflate_CopyAndNext_SetBigDistance:
 ; hl' = distance alphabet root
 ; ix = reader
 ; iy = writer
-Inflate_CopyAndNext: MACRO
+Inflate_CopyAndNextInline: MACRO
 	call Writer_Copy_IY
 	exx
 	ex de,hl
-	Inflate_DecodeLiteralLength
+	Inflate_DecodeLiteralLengthInline
 	ENDM
-	Inflate_CopyAndNext
+
+Inflate_CopyAndNext:
+	Inflate_CopyAndNextInline
 
 ;
 Inflate_literalLengthSymbols:
