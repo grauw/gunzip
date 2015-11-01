@@ -2,6 +2,7 @@
 ; Huffman alphabet builder
 ;
 Alphabet_MAX_CODELENGTH: equ 15
+Alphabet_LEAF_SIZE: equ 3
 
 Alphabet: MACRO
 	root:
@@ -9,6 +10,8 @@ Alphabet: MACRO
 	treeSize:
 		dw 0
 	treePosition:
+		dw 0
+	treeStart:
 		dw 0
 	treeEnd:
 		dw 0
@@ -49,8 +52,8 @@ Alphabet_Construct:
 ; ix = this
 ; ix <- this
 Alphabet_Destruct:
-	ld e,(ix + Alphabet.root)
-	ld d,(ix + Alphabet.root + 1)
+	ld e,(ix + Alphabet.treeStart)
+	ld d,(ix + Alphabet.treeStart + 1)
 	ld c,(ix + Alphabet.treeSize)
 	ld b,(ix + Alphabet.treeSize + 1)
 	push ix
@@ -159,22 +162,21 @@ Alphabet_AllocateTreeBuffer:
 	ld ix,Heap_main
 	call Heap_Allocate
 	pop ix
-	ld (ix + Alphabet.root),e
-	ld (ix + Alphabet.root + 1),d
+	ld (ix + Alphabet.treeStart),e
+	ld (ix + Alphabet.treeStart + 1),d
 	ld (ix + Alphabet.treePosition),e
 	ld (ix + Alphabet.treePosition + 1),d
 	pop hl
 	add hl,de
 	ld (ix + Alphabet.treeEnd),l
 	ld (ix + Alphabet.treeEnd + 1),h
-	call Alphabet_AddBranch
 	ret
 
 ; bc = code length count
 ; hl <- buffer size
 ; Modifies: af
 Alphabet_CalculateTreeBufferSize: PROC
-	ld a,Branch._size
+	ld a,Branch._size + Alphabet_LEAF_SIZE
 	ld hl,0
 Loop:
 	add hl,bc
@@ -205,6 +207,27 @@ Alphabet_AddBranch:
 	pop hl
 	pop de
 	pop bc
+	ret
+
+; ix = this
+; de = symbol handler
+; Modifies: f, de, hl
+Alphabet_AddLeaf:
+	ld l,(ix + Alphabet.treePosition)
+	ld h,(ix + Alphabet.treePosition + 1)
+	ld (hl),0C3H  ; jp
+	inc hl
+	ld (hl),e
+	inc hl
+	ld (hl),d
+	inc hl
+	ld (ix + Alphabet.treePosition),l
+	ld (ix + Alphabet.treePosition + 1),h
+	ld e,(ix + Alphabet.treeEnd)
+	ld d,(ix + Alphabet.treeEnd + 1)
+	scf
+	sbc hl,de
+	call nc,System_ThrowException
 	ret
 
 ; bc = code length table length
@@ -284,53 +307,83 @@ Alphabet_Build: PROC
 	ld d,(ix + Alphabet.root + 1)
 	ld iyl,e
 	ld iyh,d
-NextBit:
+	ld a,e
+	or d
+	jp nz,Alphabet_Build_FollowPhase
+First:
+	call Alphabet_AddBranch
+	ld (ix + Alphabet.root),e
+	ld (ix + Alphabet.root + 1),d
+	ld iyl,e
+	ld iyh,d
+	jp Alphabet_Build_GeneratePhase
+	ENDP
+
+; First we traverse the tree until we reach an open node.
+; b = bit length
+; (sp) = symbol callback
+; hl = code (left aligned)
+; iy = current branch
+; ix = this
+; Modifies: af, b, de, hl, iy
+Alphabet_Build_FollowPhase: PROC
 	add hl,hl
-	jp c,One
-Zero:
-	ld e,(iy + Branch.zero)
-	ld d,(iy + Branch.zero + 1)
-	ld a,d
-	or e
-	djnz ZeroRecurse
-	call nz,System_ThrowException
-	pop de
-	ld (iy + Branch.zero),e
-	ld (iy + Branch.zero + 1),d
-	ret
-ZeroRecurse:
-	jr nz,ZeroExists
-	call Alphabet_AddBranch
-	ld (iy + Branch.zero),e
-	ld (iy + Branch.zero + 1),d
-ZeroExists:
-	ld a,(de)
-	cp Branch_ID
-	call nz,System_ThrowException
+	sbc a,a
+	and 8
+	xor 0DAH  ; carry ? jp nc : jp c
+	cp (iy + Branch.jump)
+	jr nz,Conditional
+	ld de,Branch._size
+	add iy,de
+	djnz Alphabet_Build_FollowPhase
+	call System_ThrowException
+Conditional:
+	ld e,(iy + Branch.jumpAddress)
+	ld d,(iy + Branch.jumpAddress + 1)
+	ld a,e
+	or d
+	jr z,Generate
 	ld iyl,e
 	ld iyh,d
-	jp NextBit
-One:
-	ld e,(iy + Branch.one)
-	ld d,(iy + Branch.one + 1)
-	ld a,d
-	or e
-	djnz OneRecurse
-	call nz,System_ThrowException
+	djnz Alphabet_Build_FollowPhase
+	call System_ThrowException
+Generate:
+	djnz Branch
+Leaf:
 	pop de
-	ld (iy + Branch.one),e
-	ld (iy + Branch.one + 1),d
+	ld (iy + Branch.jumpAddress),e
+	ld (iy + Branch.jumpAddress + 1),d
 	ret
-OneRecurse:
-	jr nz,OneExists
+Branch:
 	call Alphabet_AddBranch
-	ld (iy + Branch.one),e
-	ld (iy + Branch.one + 1),d
-OneExists:
-	ld a,(de)
-	cp Branch_ID
-	call nz,System_ThrowException
+	ld (iy + Branch.jumpAddress),e
+	ld (iy + Branch.jumpAddress + 1),d
 	ld iyl,e
 	ld iyh,d
-	jp NextBit
+	jp Alphabet_Build_GeneratePhase
+	ENDP
+
+; Then we generate branches until we reach the end.
+; b = bit length
+; (sp) = symbol callback
+; hl = code (left aligned)
+; iy = current branch
+; ix = this
+; Modifies: af, b, de, hl, iy
+Alphabet_Build_GeneratePhase: PROC
+	add hl,hl
+	sbc a,a
+	and 8
+	xor 0DAH  ; carry ? jp nc : jp c
+	ld (iy + Branch.jump),a
+	djnz Branch
+Leaf:
+	pop de
+	call Alphabet_AddLeaf
+	ret
+Branch:
+	call Alphabet_AddBranch
+	ld iyl,e
+	ld iyh,d
+	jp Alphabet_Build_GeneratePhase
 	ENDP
