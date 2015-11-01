@@ -278,7 +278,6 @@ Writer_GetCount:
 	inc de
 	ret
 
-; a = value
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_UpdateCRC32:
