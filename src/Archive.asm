@@ -1,6 +1,9 @@
 ;
 ; Gzip archive
 ;
+Archive_SIGNATURE_1: equ 1FH
+Archive_SIGNATURE_2: equ 8BH
+Archive_DEFLATE_ID: equ 8
 Archive_FTEXT: equ 1 << 0;
 Archive_FHCRC: equ 1 << 1;
 Archive_FEXTRA: equ 1 << 2;
@@ -118,15 +121,15 @@ Archive_Extract:
 ; ix = this
 Archive_ReadHeader:
 	call Archive_Read
-	cp 31  ; gzip signature (1)
+	cp Archive_SIGNATURE_1
 	ld hl,Archive_notGzipError
 	jp nz,Application_TerminateWithError
 	call Archive_Read
-	cp 139  ; gzip signature (1)
+	cp Archive_SIGNATURE_2
 	ld hl,Archive_notGzipError
 	jp nz,Application_TerminateWithError
 	call Archive_Read
-	cp 8  ; deflate compression ID (1)
+	cp Archive_DEFLATE_ID
 	ld hl,Archive_notDeflateError
 	jp nz,Application_TerminateWithError
 
