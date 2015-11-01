@@ -195,51 +195,6 @@ Loop:
 	ret
 	ENDP
 
-; ix = this
-; de <- branch
-; Modifies: f, bc, hl
-Alphabet_AddBranch:
-	push bc
-	ld e,(ix + Alphabet.treePosition)
-	ld d,(ix + Alphabet.treePosition + 1)
-	push de
-	push hl
-	ld hl,Branch_template
-	ld bc,Branch._size
-	ldir
-	ld (ix + Alphabet.treePosition),e
-	ld (ix + Alphabet.treePosition + 1),d
-	ld l,(ix + Alphabet.treeEnd)
-	ld h,(ix + Alphabet.treeEnd + 1)
-	and a
-	sbc hl,de
-	call c,System_ThrowException
-	pop hl
-	pop de
-	pop bc
-	ret
-
-; ix = this
-; de = symbol handler
-; Modifies: f, de, hl
-Alphabet_AddLeaf:
-	ld l,(ix + Alphabet.treePosition)
-	ld h,(ix + Alphabet.treePosition + 1)
-	ld (hl),0C3H  ; jp
-	inc hl
-	ld (hl),e
-	inc hl
-	ld (hl),d
-	inc hl
-	ld (ix + Alphabet.treePosition),l
-	ld (ix + Alphabet.treePosition + 1),h
-	ld e,(ix + Alphabet.treeEnd)
-	ld d,(ix + Alphabet.treeEnd + 1)
-	scf
-	sbc hl,de
-	call nc,System_ThrowException
-	ret
-
 ; bc = code length table length
 ; de = code length table
 ; hl = symbol handler table
@@ -397,3 +352,48 @@ Branch:
 	ld iyh,d
 	jp Alphabet_Build_GeneratePhase
 	ENDP
+
+; ix = this
+; de <- branch
+; Modifies: f, bc, hl
+Alphabet_AddBranch:
+	push bc
+	ld e,(ix + Alphabet.treePosition)
+	ld d,(ix + Alphabet.treePosition + 1)
+	push de
+	push hl
+	ld hl,Branch_template
+	ld bc,Branch._size
+	ldir
+	ld (ix + Alphabet.treePosition),e
+	ld (ix + Alphabet.treePosition + 1),d
+	ld l,(ix + Alphabet.treeEnd)
+	ld h,(ix + Alphabet.treeEnd + 1)
+	and a
+	sbc hl,de
+	call c,System_ThrowException
+	pop hl
+	pop de
+	pop bc
+	ret
+
+; ix = this
+; de = symbol handler
+; Modifies: f, de, hl
+Alphabet_AddLeaf:
+	ld l,(ix + Alphabet.treePosition)
+	ld h,(ix + Alphabet.treePosition + 1)
+	ld (hl),0C3H  ; jp
+	inc hl
+	ld (hl),e
+	inc hl
+	ld (hl),d
+	inc hl
+	ld (ix + Alphabet.treePosition),l
+	ld (ix + Alphabet.treePosition + 1),h
+	ld e,(ix + Alphabet.treeEnd)
+	ld d,(ix + Alphabet.treeEnd + 1)
+	scf
+	sbc hl,de
+	call nc,System_ThrowException
+	ret
