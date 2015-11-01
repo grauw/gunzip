@@ -224,35 +224,35 @@ Inflate_EndBlock:
 Inflate_CopyLength.0:
 	exx
 	ld bc,3
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.1:
 	exx
 	ld bc,4
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.2:
 	exx
 	ld bc,5
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.3:
 	exx
 	ld bc,6
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.4:
 	exx
 	ld bc,7
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.5:
 	exx
 	ld bc,8
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.6:
 	exx
 	ld bc,9
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.7:
 	exx
 	ld bc,10
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.8:
 	call Reader_ReadBitsInline_1
 	add a,11
@@ -332,16 +332,15 @@ Inflate_CopyLength.26:
 Inflate_CopyLength.27:
 	call Reader_ReadBitsInline_5
 	add a,227
+	jp nc,Inflate_DecodeDistance_SetLength
 	exx
 	ld c,a
-	ld b,0
-	jp nc,Inflate_DecodeDistance
-	inc b
-	jp Inflate_DecodeDistance
+	ld b,1
+	Inflate_DecodeDistanceInline
 Inflate_CopyLength.28:
 	exx
 	ld bc,258
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 
 ; a = length
 ; c' = inline bit reader state
@@ -353,7 +352,7 @@ Inflate_DecodeDistance_SetLength:
 	exx
 	ld c,a
 	ld b,0
-	jp Inflate_DecodeDistance
+	Inflate_DecodeDistanceInline
 
 ; bc = length
 ; c' = inline bit reader state
@@ -361,10 +360,11 @@ Inflate_DecodeDistance_SetLength:
 ; de' = distance alphabet root
 ; ix = reader
 ; iy = writer
-Inflate_DecodeDistance:
+Inflate_DecodeDistanceInline: MACRO
 	exx
 	ex de,hl
 	jp hl
+	ENDM
 
 ; Distance alphabet symbols 0-29
 ; c = inline bit reader state
