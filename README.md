@@ -3,6 +3,8 @@ Gunzip
 
 Copyright 2015 Laurens Holst
 
+Thanks go to Wouter Vermaelen and Louthrax for support and contributions.
+
 Project information
 -------------------
 
