@@ -67,8 +67,8 @@ the binary and symbol files into the `bin` directory:
 
     make
 
-Windows users can open the `Makefile` and build by pasting the line in the `all`
-target into the Windows command prompt.
+Windows users can open the `Makefile` and build by pasting the lines in the
+`all` target to the Windows command prompt.
 
 To launch the build in openMSX after building, put a copy of `MSXDOS2.SYS` and
 `COMMAND2.COM` and some GZ files to test with in the `bin` directory, and then
