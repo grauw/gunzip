@@ -4,44 +4,50 @@
 # Start profiling with out (2ch),a, end profiling with out (2dh),a.
 # Run the profile command in the openMSX console to see the result.
 #
-variable profile_time 0
-variable profile_start_time -1
-variable profile_count 0
-variable profile_ignored 0
-debug set_watchpoint write_io 0x2C {} {profile_start}
-debug set_watchpoint write_io 0x2D {} {profile_stop}
-
-proc profile_start {} {
-	variable profile_start_time
-	variable profile_ignored
-	variable profile_out_overhead
-	set out_cycles [expr {"[cpuregs::get_active_cpu]" eq "z80"} ? 12.0 : 5.0]
-	set overhead [expr $out_cycles / 3579545]
-	if {$profile_start_time == -1} {
-		set profile_start_time [expr [machine_info time] + $overhead]
-	} else {
-		set profile_start_time [expr $profile_start_time + $overhead]
-		incr profile_ignored
+namespace eval profile {
+	variable time 0
+	variable start_time -1
+	variable count 0
+	variable ignored 0
+	debug set_watchpoint write_io 0x2C {} {profile::start}
+	debug set_watchpoint write_io 0x2D {} {profile::stop}
+	
+	proc start {} {
+		variable start_time
+		variable ignored
+		variable out_overhead
+		set out_cycles [expr {"[cpuregs::get_active_cpu]" eq "z80"} ? 12.0 : 5.0]
+		set overhead [expr $out_cycles / 3579545]
+		if {$start_time == -1} {
+			set start_time [expr [machine_info time] + $overhead]
+		} else {
+			set start_time [expr $start_time + $overhead]
+			incr ignored
+		}
 	}
-}
-
-proc profile_stop {} {
-	variable profile_time
-	variable profile_start_time
-	variable profile_count
-	variable profile_ignored
-	if {$profile_start_time != -1} {
-		set profile_time [expr [machine_info time] - $profile_start_time + $profile_time]
-		set profile_start_time -1
-		incr profile_count
-	} else {
-		incr profile_ignored
+	
+	proc stop {} {
+		variable time
+		variable start_time
+		variable count
+		variable ignored
+		if {$start_time != -1} {
+			set time [expr [machine_info time] - $start_time + $time]
+			set start_time -1
+			incr count
+		} else {
+			incr ignored
+		}
 	}
+	
+	proc profile {} {
+		variable time
+		variable count
+		variable ignored
+		puts "Time: $time, count: $count, ignored: $ignored"
+	}
+	
+	namespace export profile
 }
 
-proc profile {} {
-	variable profile_time
-	variable profile_count
-	variable profile_ignored
-	puts "Time: $profile_time, count: $profile_count, ignored: $profile_ignored"
-}
+namespace import profile::*
