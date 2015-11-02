@@ -19,6 +19,7 @@ after time 15 "set throttle on"
 # Profiling utility
 #
 # Start profiling with out (2ch),a, end profiling with out (2dh),a.
+# Run the profile command in the openMSX console to see the result.
 #
 variable profile_time 0
 variable profile_start_time -1
