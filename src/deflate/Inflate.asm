@@ -76,7 +76,7 @@ Inflate_Inflate:
 	pop af
 	jp nc,Inflate_Inflate
 	push ix
-	call Archive_GetWriter
+	call Inflate_GetWriter
 	call Writer_FinishBlock
 	pop ix
 	ret
