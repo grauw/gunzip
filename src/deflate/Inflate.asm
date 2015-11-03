@@ -397,51 +397,51 @@ Inflate_CopyDistance.3:
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.4:
 	call Reader_ReadBitsInline_1
-	add a,5 - 1
+	xor ~(5 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.5:
 	call Reader_ReadBitsInline_1
-	add a,7 - 1
+	xor ~(7 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.6:
 	call Reader_ReadBitsInline_2
-	add a,9 - 1
+	xor ~(9 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.7:
 	call Reader_ReadBitsInline_2
-	add a,13 - 1
+	xor ~(13 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.8:
 	call Reader_ReadBitsInline_3
-	add a,17 - 1
+	xor ~(17 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.9:
 	call Reader_ReadBitsInline_3
-	add a,25 - 1
+	xor ~(25 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.10:
 	call Reader_ReadBitsInline_4
-	add a,33 - 1
+	xor ~(33 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.11:
 	call Reader_ReadBitsInline_4
-	add a,49 - 1
+	xor ~(49 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.12:
 	call Reader_ReadBitsInline_5
-	add a,65 - 1
+	xor ~(65 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.13:
 	call Reader_ReadBitsInline_5
-	add a,97 - 1
+	xor ~(97 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.14:
 	call Reader_ReadBitsInline_6
-	add a,129 - 1
+	xor ~(129 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.15:
 	call Reader_ReadBitsInline_6
-	add a,193 - 1
+	xor ~(193 - 1)
 	jp Inflate_CopyAndNext_SetSmallDistance
 Inflate_CopyDistance.16:
 	call Reader_ReadBitsInline_7
@@ -453,8 +453,7 @@ Inflate_CopyDistance.16:
 Inflate_CopyDistance.17:
 	call Reader_ReadBitsInline_7
 	exx
-	add a,385 - 1 & 0FFH
-	cpl
+	xor ~(385 - 1 & 0FFH)
 	ld l,a
 	ld h,~(385 - 1 >> 8)
 	jp Inflate_CopyAndNext
@@ -476,61 +475,61 @@ Inflate_CopyDistance.20:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_1
-	add a,1025 - 1 >> 8
+	xor ~(1025 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.21:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_1
-	add a,1537 - 1 >> 8
+	xor ~(1537 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.22:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_2
-	add a,2049 - 1 >> 8
+	xor ~(2049 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.23:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_2
-	add a,3073 - 1 >> 8
+	xor ~(3073 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.24:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_3
-	add a,4097 - 1 >> 8
+	xor ~(4097 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.25:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_3
-	add a,6145 - 1 >> 8
+	xor ~(6145 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.26:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_4
-	add a,8193 - 1 >> 8
+	xor ~(8193 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.27:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_4
-	add a,12289 - 1 >> 8
+	xor ~(12289 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.28:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_5
-	add a,16385 - 1 >> 8
+	xor ~(16385 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 Inflate_CopyDistance.29:
 	call Reader_ReadBitsInline_8
 	ex af,af'
 	call Reader_ReadBitsInline_5
-	add a,24577 - 1 >> 8
+	xor ~(24577 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 
 ; a = distance - 1
@@ -542,7 +541,6 @@ Inflate_CopyDistance.29:
 ; iy = writer
 Inflate_CopyAndNext_SetSmallDistance:
 	exx
-	cpl
 	ld l,a
 	ld h,~0
 	Inflate_CopyAndNextInline
@@ -557,7 +555,6 @@ Inflate_CopyAndNext_SetSmallDistance:
 ; iy = writer
 Inflate_CopyAndNext_SetBigDistance:
 	exx
-	cpl
 	ld h,a
 	ex af,af'
 	cpl
