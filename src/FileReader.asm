@@ -56,6 +56,7 @@ FileReader_ReadFromFile: PROC
 	cp .EOF
 	jp z,EndOfFile
 	call Application_CheckDOSError
+	call DOS_ConsoleStatus  ; allow ctrl-c
 	ret
 EndOfFile:
 	call Reader_MarkEndOfData

@@ -52,4 +52,5 @@ FileWriter_WriteToFile:
 	ld b,(ix + FileWriter.fileHandle)
 	call DOS_WriteToFileHandle
 	call Application_CheckDOSError
+	call DOS_ConsoleStatus  ; allow ctrl-c
 	ret
