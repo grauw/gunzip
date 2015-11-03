@@ -381,19 +381,19 @@ Inflate_DecodeDistanceInline: MACRO
 ; iy = writer
 Inflate_CopyDistance.0:
 	exx
-	ld de,~(1 - 1)
+	ld hl,~(1 - 1)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.1:
 	exx
-	ld de,~(2 - 1)
+	ld hl,~(2 - 1)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.2:
 	exx
-	ld de,~(3 - 1)
+	ld hl,~(3 - 1)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.3:
 	exx
-	ld de,~(4 - 1)
+	ld hl,~(4 - 1)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.4:
 	call Reader_ReadBitsInline_1
@@ -447,30 +447,30 @@ Inflate_CopyDistance.16:
 	call Reader_ReadBitsInline_7
 	exx
 	cpl
-	ld e,a
-	ld d,~(257 - 1 >> 8)
+	ld l,a
+	ld h,~(257 - 1 >> 8)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.17:
 	call Reader_ReadBitsInline_7
 	exx
 	add a,385 - 1 & 0FFH
 	cpl
-	ld e,a
-	ld d,~(385 - 1 >> 8)
+	ld l,a
+	ld h,~(385 - 1 >> 8)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.18:
 	call Reader_ReadBitsInline_8
 	exx
 	cpl
-	ld e,a
-	ld d,~(513 - 1 >> 8)
+	ld l,a
+	ld h,~(513 - 1 >> 8)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.19:
 	call Reader_ReadBitsInline_8
 	exx
 	cpl
-	ld e,a
-	ld d,~(769 - 1 >> 8)
+	ld l,a
+	ld h,~(769 - 1 >> 8)
 	jp Inflate_CopyAndNext
 Inflate_CopyDistance.20:
 	call Reader_ReadBitsInline_8
@@ -543,8 +543,8 @@ Inflate_CopyDistance.29:
 Inflate_CopyAndNext_SetSmallDistance:
 	exx
 	cpl
-	ld e,a
-	ld d,~0
+	ld l,a
+	ld h,~0
 	Inflate_CopyAndNextInline
 
 ; a = distance - 1 MSB
@@ -558,14 +558,14 @@ Inflate_CopyAndNext_SetSmallDistance:
 Inflate_CopyAndNext_SetBigDistance:
 	exx
 	cpl
-	ld d,a
+	ld h,a
 	ex af,af'
 	cpl
-	ld e,a
+	ld l,a
 	Inflate_CopyAndNextInline
 
 ; bc = length
-; de = -distance
+; hl = -distance
 ; c' = inline bit reader state
 ; de' = literal/length alphabet root
 ; hl' = distance alphabet root

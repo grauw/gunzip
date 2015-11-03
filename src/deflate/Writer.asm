@@ -87,13 +87,12 @@ Continue:
 	ENDP
 
 ; bc = byte count (range 3-258)
-; de = -distance
+; hl = -distance
 ; iy = this
 ; Modifies: af, bc, de, hl
 Writer_Copy_IY: PROC
-	ld l,(iy + Writer.bufferPosition)
-	ld h,(iy + Writer.bufferPosition + 1)
-	ex de,hl
+	ld e,(iy + Writer.bufferPosition)
+	ld d,(iy + Writer.bufferPosition + 1)
 	add hl,de
 	ld a,h
 	jr nc,Wrap
