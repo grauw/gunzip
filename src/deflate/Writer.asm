@@ -21,6 +21,8 @@ Writer: MACRO
 		dw 0
 	bufferEnd:
 		dw 0
+	bufferEndCopyMargin:
+		db 0
 	flusher:
 		dw System_ThrowException
 	count:
@@ -53,6 +55,10 @@ Writer_Construct:
 	add hl,bc
 	ld (ix + Writer.bufferEnd),l
 	ld (ix + Writer.bufferEnd + 1),h
+	dec h
+	dec h
+	dec h
+	ld (ix + Writer.bufferEndCopyMargin),h
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -98,8 +104,7 @@ Writer_Copy_IY: PROC
 	jr nc,Wrap
 	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
-	ld a,(iy + Writer.bufferEnd + 1)
-	sub 3
+	ld a,(iy + Writer.bufferEndCopyMargin)
 WrapContinue:
 	cp d  ; does the destination have a 512 byte margin without wrapping?
 	jr c,Writer_Copy_Slow_IY
@@ -112,8 +117,7 @@ WrapContinue:
 Wrap:
 	add a,(iy + Writer.bufferSize + 1)
 	ld h,a
-	ld a,(iy + Writer.bufferEnd + 1)
-	sub 3
+	ld a,(iy + Writer.bufferEndCopyMargin)
 	cp h  ; does the source have a 512 byte margin without wrapping?
 	jp nc,WrapContinue
 	jp Writer_Copy_Slow_IY
