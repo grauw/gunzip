@@ -101,7 +101,7 @@ Writer_Copy_IY: PROC
 	ld a,(iy + Writer.bufferEnd + 1)
 	sub 3
 WrapContinue:
-	cp d  ; does the destination a 512 byte margin without wrapping?
+	cp d  ; does the destination have a 512 byte margin without wrapping?
 	jr c,Writer_Copy_Slow_IY
 	ldi
 	ldi
