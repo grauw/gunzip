@@ -93,14 +93,13 @@ Continue:
 Writer_Copy_IY: PROC
 	ld l,(iy + Writer.bufferPosition)
 	ld h,(iy + Writer.bufferPosition + 1)
-	push hl
+	ex de,hl
 	add hl,de
 	ld a,h
 	jr nc,Wrap
 	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
 WrapContinue:
-	pop de
 	ld a,(iy + Writer.bufferEnd + 1)
 	sub 3
 	cp h  ; does the source have a 512 byte margin without wrapping?
