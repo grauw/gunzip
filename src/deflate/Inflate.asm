@@ -532,7 +532,7 @@ Inflate_CopyDistance.29:
 	xor ~(24577 - 1 >> 8)
 	jp Inflate_CopyAndNext_SetBigDistance
 
-; a = distance - 1
+; a = -distance
 ; bc = length
 ; c' = inline bit reader state
 ; de' = literal/length alphabet root
@@ -545,7 +545,7 @@ Inflate_CopyAndNext_SetSmallDistance:
 	ld h,~0
 	Inflate_CopyAndNextInline
 
-; a = distance - 1 MSB
+; a = -distance MSB
 ; a' = distance - 1 LSB
 ; bc = length
 ; c' = inline bit reader state
