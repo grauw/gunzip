@@ -98,11 +98,9 @@ Writer_Copy_IY: PROC
 	jr nc,Wrap
 	cp (iy + Writer.bufferStart + 1)
 	jr c,Wrap
-WrapContinue:
 	ld a,(iy + Writer.bufferEnd + 1)
 	sub 3
-	cp h  ; does the source have a 512 byte margin without wrapping?
-	jr c,Writer_Copy_Slow_IY
+WrapContinue:
 	cp d  ; does the destination a 512 byte margin without wrapping?
 	jr c,Writer_Copy_Slow_IY
 	ldi
@@ -114,7 +112,11 @@ WrapContinue:
 Wrap:
 	add a,(iy + Writer.bufferSize + 1)
 	ld h,a
-	jp WrapContinue
+	ld a,(iy + Writer.bufferEnd + 1)
+	sub 3
+	cp h  ; does the source have a 512 byte margin without wrapping?
+	jp nc,WrapContinue
+	jp Writer_Copy_Slow_IY
 	ENDP
 
 ; bc = byte count
