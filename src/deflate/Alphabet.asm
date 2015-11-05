@@ -356,7 +356,7 @@ Branch:
 
 ; ix = this
 ; de <- branch
-; Modifies: f, bc, hl
+; Modifies: f
 Alphabet_AddBranch:
 	push bc
 	ld e,(ix + Alphabet.treePosition)
@@ -380,7 +380,7 @@ Alphabet_AddBranch:
 
 ; ix = this
 ; de = symbol handler
-; Modifies: f, de, hl
+; Modifies: hl
 Alphabet_AddLeaf:
 	ld l,(ix + Alphabet.treePosition)
 	ld h,(ix + Alphabet.treePosition + 1)
