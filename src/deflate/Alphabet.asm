@@ -232,8 +232,20 @@ Skip:
 	djnz Loop
 	dec c
 	jr nz,Loop
+	call Alphabet_CheckTreeBufferOverflow
 	ret
 	ENDP
+
+; ix = this
+Alphabet_CheckTreeBufferOverflow:
+	ld e,(ix + Alphabet.treePosition)
+	ld d,(ix + Alphabet.treePosition + 1)
+	ld l,(ix + Alphabet.treeEnd)
+	ld h,(ix + Alphabet.treeEnd + 1)
+	and a
+	sbc hl,de
+	call c,System_ThrowException
+	ret
 
 ; a = code length (1-15)
 ; de = symbol callback
@@ -368,11 +380,6 @@ Alphabet_AddBranch:
 	ldir
 	ld (ix + Alphabet.treePosition),e
 	ld (ix + Alphabet.treePosition + 1),d
-	ld l,(ix + Alphabet.treeEnd)
-	ld h,(ix + Alphabet.treeEnd + 1)
-	and a
-	sbc hl,de
-	call c,System_ThrowException
 	pop hl
 	pop de
 	pop bc
@@ -392,9 +399,4 @@ Alphabet_AddLeaf:
 	inc hl
 	ld (ix + Alphabet.treePosition),l
 	ld (ix + Alphabet.treePosition + 1),h
-	ld e,(ix + Alphabet.treeEnd)
-	ld d,(ix + Alphabet.treeEnd + 1)
-	scf
-	sbc hl,de
-	call nc,System_ThrowException
 	ret
