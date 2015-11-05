@@ -111,6 +111,7 @@ CLI_ParsePath: PROC
 	ld (ix + CLI.archivePath),e
 	ld (ix + CLI.archivePath + 1),d
 Continue:
+	ld b,0
 	call DOS_ParsePathname
 	ld a,(de)
 	and a
