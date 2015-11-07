@@ -16,8 +16,6 @@ Alphabet: MACRO
 		dw 0
 	treeSize:
 		dw 0
-	treePosition:
-		dw 0
 	treeStart:
 		dw 0
 	treeEnd:
@@ -104,8 +102,6 @@ Alphabet_AllocateTreeBuffer:
 	pop ix
 	ld (ix + Alphabet.treeStart),e
 	ld (ix + Alphabet.treeStart + 1),d
-	ld (ix + Alphabet.treePosition),e
-	ld (ix + Alphabet.treePosition + 1),d
 	pop hl
 	add hl,de
 	ld (ix + Alphabet.treeEnd),l
@@ -130,36 +126,26 @@ Loop:
 Alphabet_BuildTree:
 	call Alphabet_GetFirstSymbol
 	jp c,Alphabet_TrapEmptyTree
-	ld l,(ix + Alphabet.treePosition)
-	ld h,(ix + Alphabet.treePosition + 1)
+	ld l,(ix + Alphabet.treeStart)
+	ld h,(ix + Alphabet.treeStart + 1)
 	ld (ix + Alphabet.root),l
 	ld (ix + Alphabet.root + 1),h
 	call Alphabet_BuildBranch
-	call Alphabet_CheckTreeBufferOverflow
-	ret
-
-; ix = this
-Alphabet_CheckTreeBufferOverflow:
-	ld e,(ix + Alphabet.treePosition)
-	ld d,(ix + Alphabet.treePosition + 1)
-	ld l,(ix + Alphabet.treeEnd)
-	ld h,(ix + Alphabet.treeEnd + 1)
-	and a
+	ld e,(ix + Alphabet.treeEnd)
+	ld d,(ix + Alphabet.treeEnd + 1)
+	scf
 	sbc hl,de
-	call c,System_ThrowException
+	call nc,System_ThrowException
 	ret
 
 ; b = bits left
 ; de = symbol handler
+; hl = tree position
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranch:
 	push iy
-	push de
 	call Alphabet_AddBranch
-	ld iyl,e
-	ld iyh,d
-	pop de
 	call Alphabet_BuildBranchZero
 	call nc,Alphabet_BuildBranchOne
 	pop iy
@@ -167,6 +153,7 @@ Alphabet_BuildBranch:
 
 ; b = bits left
 ; de = symbol handler
+; hl = tree position
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranchZero: PROC
@@ -184,6 +171,7 @@ Branch:
 
 ; b = bits left
 ; de = symbol handler
+; hl = tree position
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranchOne: PROC
@@ -195,8 +183,6 @@ Leaf:
 	inc b
 	ret
 Branch:
-	ld l,(ix + Alphabet.treePosition)
-	ld h,(ix + Alphabet.treePosition + 1)
 	ld (iy + Branch.jumpAddress),l
 	ld (iy + Branch.jumpAddress + 1),h
 	call Alphabet_BuildBranch
@@ -269,36 +255,33 @@ Alphabet_GetFirstSymbol:
 	jp Alphabet_GetNextSymbol
 
 ; ix = this
-; de <- branch
+; hl = tree position
+; hl <- updated tree position
+; iy <- branch
 ; Modifies: f
 Alphabet_AddBranch:
 	push bc
-	ld e,(ix + Alphabet.treePosition)
-	ld d,(ix + Alphabet.treePosition + 1)
 	push de
-	push hl
+	ex de,hl
+	ld iyl,e
+	ld iyh,d
 	ld hl,Branch_template
 	ld bc,Branch._size
 	ldir
-	ld (ix + Alphabet.treePosition),e
-	ld (ix + Alphabet.treePosition + 1),d
-	pop hl
+	ex de,hl
 	pop de
 	pop bc
 	ret
 
 ; ix = this
 ; de = symbol handler
+; hl <- updated tree position
 ; Modifies: hl
 Alphabet_AddLeaf:
-	ld l,(ix + Alphabet.treePosition)
-	ld h,(ix + Alphabet.treePosition + 1)
 	ld (hl),0C3H  ; jp
 	inc hl
 	ld (hl),e
 	inc hl
 	ld (hl),d
 	inc hl
-	ld (ix + Alphabet.treePosition),l
-	ld (ix + Alphabet.treePosition + 1),h
 	ret
