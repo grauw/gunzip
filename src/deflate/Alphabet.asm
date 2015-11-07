@@ -161,7 +161,6 @@ Alphabet_AllocateTreeBuffer:
 Alphabet_CalculateTreeBufferSize: PROC
 	ld c,(ix + Alphabet.codeLengthCount)
 	ld b,(ix + Alphabet.codeLengthCount + 1)
-	dec bc
 	ld a,Branch._size + Alphabet_LEAF_SIZE
 	ld hl,0
 Loop:
