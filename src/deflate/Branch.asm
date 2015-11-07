@@ -6,7 +6,7 @@ Branch: MACRO
 	Process:
 		Reader_ReadBitInline
 	jump:
-		jp c,0
+		jp c,System_ThrowException
 	jumpAddress: equ $ - 2
 	_size:
 	ENDM
