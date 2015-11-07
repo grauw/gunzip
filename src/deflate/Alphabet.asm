@@ -79,15 +79,6 @@ Alphabet_Process:
 Alphabet_Process_IY:
 	jp iy
 
-; ix = this
-Alphabet_TrapEmptyTree:
-	ld a,(ix + Alphabet.root)
-	or (ix + Alphabet.root + 1)
-	ret nz
-	ld (ix + Alphabet.root),System_ThrowException & 0FFH
-	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
-	ret
-
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize
@@ -123,9 +114,9 @@ Loop:
 	ENDP
 
 ; ix = this
-Alphabet_BuildTree:
+Alphabet_BuildTree: PROC
 	call Alphabet_GetFirstSymbol
-	jp c,Alphabet_TrapEmptyTree
+	jp c,TrapEmptyTree
 	ld l,(ix + Alphabet.treeStart)
 	ld h,(ix + Alphabet.treeStart + 1)
 	ld (ix + Alphabet.root),l
@@ -137,6 +128,11 @@ Alphabet_BuildTree:
 	sbc hl,de
 	call nc,System_ThrowException
 	ret
+TrapEmptyTree:
+	ld (ix + Alphabet.root),System_ThrowException & 0FFH
+	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
+	ret
+	ENDP
 
 ; b = bits left
 ; de = symbol handler
