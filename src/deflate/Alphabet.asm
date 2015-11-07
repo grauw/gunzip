@@ -33,6 +33,9 @@ Alphabet_template: Alphabet
 ; ix <- this
 ; de <- this
 Alphabet_Construct:
+	ld a,b
+	or c
+	call z,System_ThrowException
 	push hl
 	push de
 	push bc
