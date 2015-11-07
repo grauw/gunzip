@@ -8,6 +8,12 @@ Alphabet: MACRO
 	Process:
 		jp 0
 	root: equ $ - 2
+	codeLengthCount:
+		dw 0
+	codeLengths:
+		dw 0
+	symbolHandlers:
+		dw 0
 	treeSize:
 		dw 0
 	treePosition:
@@ -36,18 +42,15 @@ Alphabet_Construct:
 	ld a,b
 	or c
 	call z,System_ThrowException
-	push hl
-	push de
-	push bc
-	ex de,hl
+	ld (ix + Alphabet.codeLengthCount),c
+	ld (ix + Alphabet.codeLengthCount + 1),b
+	ld (ix + Alphabet.codeLengths),e
+	ld (ix + Alphabet.codeLengths + 1),d
+	ld (ix + Alphabet.symbolHandlers),l
+	ld (ix + Alphabet.symbolHandlers + 1),h
 	call Alphabet_CountCodeLengths
 	call Alphabet_CalculateNextCodes
-	pop bc
-	push bc
 	call Alphabet_AllocateTreeBuffer
-	pop bc
-	pop de
-	pop hl
 	call Alphabet_BuildTree
 	call Alphabet_TrapEmptyTree
 	ld e,ixl
@@ -94,15 +97,16 @@ Alphabet_TrapEmptyTree:
 	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
 	ret
 
-; bc = code length table length
-; hl = code length table
 ; ix = this
 Alphabet_CountCodeLengths: PROC
-	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
-	dec bc
-	inc b
-	ld c,b
-	ld b,a
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld l,(ix + Alphabet.codeLengths)
+	ld h,(ix + Alphabet.codeLengths + 1)
+	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
+	dec de
+	inc d
+	ld c,d
 Loop:
 	ld a,(hl)
 	inc hl
@@ -159,7 +163,6 @@ Loop:
 	ret
 	ENDP
 
-; bc = code length count (> 0)
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize
@@ -182,10 +185,11 @@ Alphabet_AllocateTreeBuffer:
 	ld (ix + Alphabet.treeEnd + 1),h
 	ret
 
-; bc = code length count
 ; hl <- buffer size
 ; Modifies: af
 Alphabet_CalculateTreeBufferSize: PROC
+	ld c,(ix + Alphabet.codeLengthCount)
+	ld b,(ix + Alphabet.codeLengthCount + 1)
 	dec bc
 	ld a,Branch._size + Alphabet_LEAF_SIZE
 	ld hl,0
@@ -196,16 +200,18 @@ Loop:
 	ret
 	ENDP
 
-; bc = code length table length
-; de = code length table
-; hl = symbol handler table
 ; ix = this
 Alphabet_BuildTree: PROC
-	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
-	dec bc
-	inc b
-	ld c,b
-	ld b,a
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
+	dec de
+	inc d
+	ld c,d
+	ld e,(ix + Alphabet.codeLengths)
+	ld d,(ix + Alphabet.codeLengths + 1)
+	ld l,(ix + Alphabet.symbolHandlers)
+	ld h,(ix + Alphabet.symbolHandlers + 1)
 Loop:
 	ld a,(de)
 	inc de
