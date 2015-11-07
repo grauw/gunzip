@@ -22,8 +22,6 @@ Alphabet: MACRO
 		dw 0
 	treeEnd:
 		dw 0
-	codeLengthCounts:
-		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
 	ENDM
 
@@ -46,7 +44,6 @@ Alphabet_Construct:
 	ld (ix + Alphabet.codeLengths + 1),d
 	ld (ix + Alphabet.symbolHandlers),l
 	ld (ix + Alphabet.symbolHandlers + 1),h
-	call Alphabet_CountCodeLengths
 	call Alphabet_AllocateTreeBuffer
 	call Alphabet_BuildTree
 	ld e,ixl
@@ -92,47 +89,6 @@ Alphabet_TrapEmptyTree:
 	ld (ix + Alphabet.root),System_ThrowException & 0FFH
 	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
 	ret
-
-; ix = this
-Alphabet_CountCodeLengths: PROC
-	ld e,(ix + Alphabet.codeLengthCount)
-	ld d,(ix + Alphabet.codeLengthCount + 1)
-	ld l,(ix + Alphabet.codeLengths)
-	ld h,(ix + Alphabet.codeLengths + 1)
-	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
-	dec de
-	inc d
-	ld c,d
-Loop:
-	ld a,(hl)
-	inc hl
-	and a
-	call nz,Alphabet_CountCodeLength
-	djnz Loop
-	dec c
-	jr nz,Loop
-	ret
-	ENDP
-
-; a = code length (must not be 0)
-; ix = this
-; Modifies: af, de
-Alphabet_CountCodeLength: PROC
-	cp Alphabet_MAX_CODELENGTH + 1
-	call nc,System_ThrowException
-	push ix
-	add a,a
-	ld e,a
-	ld d,0
-	add ix,de
-	inc (ix + Alphabet.codeLengthCounts - 2)
-	call z,Overflow
-	pop ix
-	ret
-Overflow:
-	inc (ix + Alphabet.codeLengthCounts - 2 + 1)
-	ret
-	ENDP
 
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:

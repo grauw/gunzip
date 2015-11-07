@@ -12,14 +12,6 @@ AlphabetTest_TestCodeBuilding:
 	ld de,FixedAlphabets_literalLengthCodeLengths
 	ld hl,Inflate_literalLengthSymbols
 	call Alphabet_Construct
-	ld e,ixl
-	ld d,ixh
-	ld hl,Alphabet.codeLengthCounts
-	add hl,de
-	ex de,hl
-	ld hl,AlphabetTest_expectedCodeLengthCounts
-	ld bc,Alphabet_MAX_CODELENGTH * 2
-	call AlphabetTest_AssertArrayEquals
 
 	call Alphabet_Destruct
 	call Alphabet_class.Delete
