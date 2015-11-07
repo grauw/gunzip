@@ -5,8 +5,9 @@ Alphabet_MAX_CODELENGTH: equ 15
 Alphabet_LEAF_SIZE: equ 3
 
 Alphabet: MACRO
-	root:
-		dw 0
+	Process:
+		jp 0
+	root: equ $ - 2
 	treeSize:
 		dw 0
 	treePosition:
@@ -75,15 +76,11 @@ Alphabet_GetRoot:
 
 ; ix = this
 Alphabet_Process:
-	ld l,(ix + Alphabet.root)
-	ld h,(ix + Alphabet.root + 1)
-	jp hl
+	jp ix
 
 ; iy = this
 Alphabet_Process_IY:
-	ld l,(iy + Alphabet.root)
-	ld h,(iy + Alphabet.root + 1)
-	jp hl
+	jp iy
 
 ; ix = this
 Alphabet_TrapEmptyTree:
