@@ -24,8 +24,6 @@ Alphabet: MACRO
 		dw 0
 	codeLengthCounts:
 		ds Alphabet_MAX_CODELENGTH * 2, 0
-	nextCodes:
-		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
 	ENDM
 
@@ -49,10 +47,8 @@ Alphabet_Construct:
 	ld (ix + Alphabet.symbolHandlers),l
 	ld (ix + Alphabet.symbolHandlers + 1),h
 	call Alphabet_CountCodeLengths
-	call Alphabet_CalculateNextCodes
 	call Alphabet_AllocateTreeBuffer
 	call Alphabet_BuildTree
-	call Alphabet_TrapEmptyTree
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -138,31 +134,6 @@ Overflow:
 	ret
 	ENDP
 
-; ix = this
-Alphabet_CalculateNextCodes: PROC
-	push ix
-	push ix
-	pop iy
-	ld hl,0  ; code
-	ld b,Alphabet_MAX_CODELENGTH - 1
-Loop:
-	ld (iy + Alphabet.nextCodes),l
-	ld (iy + Alphabet.nextCodes + 1),h
-	inc iy
-	inc iy
-	ld e,(ix + Alphabet.codeLengthCounts)
-	ld d,(ix + Alphabet.codeLengthCounts + 1)
-	inc ix
-	inc ix
-	add hl,de
-	add hl,hl
-	djnz Loop
-	ld (iy + Alphabet.nextCodes),l
-	ld (iy + Alphabet.nextCodes + 1),h
-	pop ix
-	ret
-	ENDP
-
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize
@@ -201,46 +172,16 @@ Loop:
 	ENDP
 
 ; ix = this
-Alphabet_BuildTree: PROC
-	ld e,(ix + Alphabet.codeLengthCount)
-	ld d,(ix + Alphabet.codeLengthCount + 1)
-	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
-	dec de
-	inc d
-	ld c,d
-	ld e,(ix + Alphabet.codeLengths)
-	ld d,(ix + Alphabet.codeLengths + 1)
-	ld l,(ix + Alphabet.symbolHandlers)
-	ld h,(ix + Alphabet.symbolHandlers + 1)
-Loop:
-	ld a,(de)
-	inc de
-	and a
-	jr z,Skip
-	push bc
-	push de
-	ld e,(hl)
-	inc hl
-	ld d,(hl)
-	inc hl
-	push hl
-	call Alphabet_AddTreeNode
-	pop hl
-	pop de
-	pop bc
-	djnz Loop
-	dec c
-	jr nz,Loop
-	ret
-Skip:
-	inc hl
-	inc hl
-	djnz Loop
-	dec c
-	jr nz,Loop
+Alphabet_BuildTree:
+	call Alphabet_GetFirstSymbol
+	jp c,Alphabet_TrapEmptyTree
+	ld l,(ix + Alphabet.treePosition)
+	ld h,(ix + Alphabet.treePosition + 1)
+	ld (ix + Alphabet.root),l
+	ld (ix + Alphabet.root + 1),h
+	call Alphabet_BuildBranch
 	call Alphabet_CheckTreeBufferOverflow
 	ret
-	ENDP
 
 ; ix = this
 Alphabet_CheckTreeBufferOverflow:
@@ -253,124 +194,124 @@ Alphabet_CheckTreeBufferOverflow:
 	call c,System_ThrowException
 	ret
 
-; a = code length (1-15)
-; de = symbol callback
+; b = bits left
+; de = symbol handler
+; iy = current branch
 ; ix = this
-Alphabet_AddTreeNode: PROC
-	ld c,a
-	ld b,0
-	sla c
-	push ix
-	add ix,bc
-	ld l,(ix + Alphabet.nextCodes - 2)
-	ld h,(ix + Alphabet.nextCodes - 1)
-	inc hl
-	ld (ix + Alphabet.nextCodes - 2),l
-	ld (ix + Alphabet.nextCodes - 1),h
-	dec hl
-	pop ix
-	ld b,a
-	ld a,16
-	sub b
-PreShiftLoop:
-	add hl,hl
-	dec a
-	jp nz,PreShiftLoop
-	call Alphabet_Build
-	ret
-	ENDP
-
-; b = bit length
-; de = symbol callback
-; hl = code (left aligned)
-; ix = this
-; Modifies: af, b, de, hl, iy
-Alphabet_Build: PROC
+Alphabet_BuildBranch:
+	push iy
 	push de
-	ld e,(ix + Alphabet.root)
-	ld d,(ix + Alphabet.root + 1)
-	ld iyl,e
-	ld iyh,d
-	ld a,e
-	or d
-	jp nz,Alphabet_Build_FollowPhase
-First:
 	call Alphabet_AddBranch
-	ld (ix + Alphabet.root),e
-	ld (ix + Alphabet.root + 1),d
 	ld iyl,e
 	ld iyh,d
-	jp Alphabet_Build_GeneratePhase
-	ENDP
-
-; First we traverse the tree until we reach an open node.
-; b = bit length
-; (sp) = symbol callback
-; hl = code (left aligned)
-; iy = current branch
-; ix = this
-; Modifies: af, b, de, hl, iy
-Alphabet_Build_FollowPhase: PROC
-	add hl,hl
-	sbc a,a
-	and 8
-	xor 0DAH  ; carry ? jp nc : jp c
-	cp (iy + Branch.jump)
-	jr nz,Conditional
-	ld de,Branch._size
-	add iy,de
-	djnz Alphabet_Build_FollowPhase
-	call System_ThrowException
-Conditional:
-	ld e,(iy + Branch.jumpAddress)
-	ld d,(iy + Branch.jumpAddress + 1)
-	ld a,e
-	or d
-	jr z,Generate
-	ld iyl,e
-	ld iyh,d
-	djnz Alphabet_Build_FollowPhase
-	call System_ThrowException
-Generate:
-	djnz Branch
-Leaf:
 	pop de
-	ld (iy + Branch.jumpAddress),e
-	ld (iy + Branch.jumpAddress + 1),d
+	call Alphabet_BuildBranchZero
+	call nc,Alphabet_BuildBranchOne
+	pop iy
 	ret
-Branch:
-	call Alphabet_AddBranch
-	ld (iy + Branch.jumpAddress),e
-	ld (iy + Branch.jumpAddress + 1),d
-	ld iyl,e
-	ld iyh,d
-	jp Alphabet_Build_GeneratePhase
-	ENDP
 
-; Then we generate branches until we reach the end.
-; b = bit length
-; (sp) = symbol callback
-; hl = code (left aligned)
+; b = bits left
+; de = symbol handler
 ; iy = current branch
 ; ix = this
-; Modifies: af, b, de, hl, iy
-Alphabet_Build_GeneratePhase: PROC
-	add hl,hl
-	sbc a,a
-	and 8
-	xor 0DAH  ; carry ? jp nc : jp c
-	ld (iy + Branch.jump),a
+Alphabet_BuildBranchZero: PROC
 	djnz Branch
 Leaf:
-	pop de
 	call Alphabet_AddLeaf
+	call Alphabet_GetNextSymbol
+	inc b
 	ret
 Branch:
-	call Alphabet_AddBranch
-	ld iyl,e
-	ld iyh,d
-	jp Alphabet_Build_GeneratePhase
+	call Alphabet_BuildBranch
+	inc b
+	ret
 	ENDP
+
+; b = bits left
+; de = symbol handler
+; iy = current branch
+; ix = this
+Alphabet_BuildBranchOne: PROC
+	djnz Branch
+Leaf:
+	ld (iy + Branch.jumpAddress),e
+	ld (iy + Branch.jumpAddress + 1),d
+	call Alphabet_GetNextSymbol
+	inc b
+	ret
+Branch:
+	ld l,(ix + Alphabet.treePosition)
+	ld h,(ix + Alphabet.treePosition + 1)
+	ld (iy + Branch.jumpAddress),l
+	ld (iy + Branch.jumpAddress + 1),h
+	call Alphabet_BuildBranch
+	inc b
+	ret
+	ENDP
+
+; b = bits left
+; c = code length
+; bc' = code lengths remaining
+; de' = symbol handler table position
+; hl' = code length table position
+; ix = this
+; b, c, bc', de', hl' <- updated
+; de <- symbol handler
+; f <- c: end reached
+Alphabet_GetNextSymbol: PROC
+NextLengthLoop:
+	ld a,c
+	exx
+Loop:
+	cpi
+	jp po,NextLength
+	inc de
+	inc de
+	jp nz,Loop
+	dec de
+	dec de
+	ld a,(de)
+	inc de
+	exx
+	ld e,a
+	exx
+	ld a,(de)
+	inc de
+	exx
+	ld d,a
+	and a  ; nc
+	ret
+NextLength:
+	ld c,(ix + Alphabet.codeLengthCount)
+	ld b,(ix + Alphabet.codeLengthCount + 1)
+	inc bc
+	ld l,(ix + Alphabet.codeLengths)
+	ld h,(ix + Alphabet.codeLengths + 1)
+	ld e,(ix + Alphabet.symbolHandlers)
+	ld d,(ix + Alphabet.symbolHandlers + 1)
+	exx
+	cp Alphabet_MAX_CODELENGTH
+	scf
+	ret z
+	inc c
+	inc b
+	jp NextLengthLoop
+	ENDP
+
+; ix = this
+; b <- bits left
+; c <- code length
+; de <- symbol handler
+; bc' <- code lengths remaining
+; de' <- symbol handler table position
+; hl' <- code length table position
+; f <- c: end reached
+Alphabet_GetFirstSymbol:
+	ld bc,0
+	exx
+	ld bc,1
+	exx
+	jp Alphabet_GetNextSymbol
 
 ; ix = this
 ; de <- branch

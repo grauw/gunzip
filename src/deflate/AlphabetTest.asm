@@ -21,16 +21,6 @@ AlphabetTest_TestCodeBuilding:
 	ld bc,Alphabet_MAX_CODELENGTH * 2
 	call AlphabetTest_AssertArrayEquals
 
-	call Alphabet_CalculateNextCodes
-	ld e,ixl
-	ld d,ixh
-	ld hl,Alphabet.nextCodes
-	add hl,de
-	ex de,hl
-	ld hl,AlphabetTest_expectedNextCodes
-	ld bc,Alphabet_MAX_CODELENGTH * 2
-	call AlphabetTest_AssertArrayEquals
-
 	call Alphabet_Destruct
 	call Alphabet_class.Delete
 	ret
@@ -38,9 +28,6 @@ AlphabetTest_TestCodeBuilding:
 AlphabetTest_expectedCodeLengthCounts:
 	db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 152, 0
 	db 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
-AlphabetTest_expectedNextCodes:
-	dw 0, 0, 0, 0, 0, 0, 0, 48, 400, 1024, 2048, 4096, 8192, 16384, 32768, 0
 
 AlphabetTest_TestTreeBuilding: PROC
 	call Alphabet_class.New
