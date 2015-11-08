@@ -204,7 +204,7 @@ Alphabet_GetSortedCodeLengthsStart:
 	ex de,hl
 	ld l,(ix + Alphabet.treeEnd)
 	ld h,(ix + Alphabet.treeEnd + 1)
-	scf
+	scf        ; +1 extra for sentinel byte
 	sbc hl,de
 	ret
 
