@@ -116,26 +116,28 @@ Application_Inflate:
 
 ; ix = this
 Application_InflateToFile:
+	push ix
 	call Application_PrintInflating
 	call Application_CreateFileReader
 	push de
 	call Application_ReadOutputSize
-	call Application_CreateFileWriter
-	call Application_PreAllocateOutput
-	pop hl
 	push ix
-	push hl
-	push de
 	call Archive_class.New
 	call Archive_Construct
 
+	ex (sp),ix
+	call Application_CreateFileWriter
+	call Application_PreAllocateOutput
+	pop ix
+	push de
 	call Archive_Extract
 
-	call Archive_Destruct
-	call Archive_class.Delete
-	pop ix
+	ex (sp),ix
 	call FileWriter_Destruct
 	call FileWriter_class.Delete
+	pop ix
+	call Archive_Destruct
+	call Archive_class.Delete
 	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete
@@ -144,24 +146,26 @@ Application_InflateToFile:
 
 ; ix = this
 Application_InflateTest:
+	push ix
 	call Application_PrintTesting
 	call Application_CreateFileReader
 	push de
-	call Application_CreateNullWriter
-	pop hl
 	push ix
-	push hl
-	push de
 	call Archive_class.New
 	call Archive_Construct
 
+	ex (sp),ix
+	call Application_CreateNullWriter
+	pop ix
+	push de
 	call Archive_Extract
 
-	call Archive_Destruct
-	call Archive_class.Delete
-	pop ix
+	ex (sp),ix
 	call NullWriter_Destruct
 	call NullWriter_class.Delete
+	pop ix
+	call Archive_Destruct
+	call Archive_class.Delete
 	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete

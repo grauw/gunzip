@@ -34,20 +34,13 @@ Archive: MACRO
 Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
-; hl = reader
-; de = writer (min 32K)
+; de = reader
 ; ix = this
 ; ix <- this
 ; de <- this
 Archive_Construct:
-	ld (ix + Archive.reader),l
-	ld (ix + Archive.reader + 1),h
-	push ix
-	call Inflate_class.New
-	call Inflate_Construct
-	pop ix
-	ld (ix + Archive.inflate),e
-	ld (ix + Archive.inflate + 1),d
+	ld (ix + Archive.reader),e
+	ld (ix + Archive.reader + 1),d
 	call Archive_ReadHeader
 	ld e,ixl
 	ld d,ixh
@@ -56,11 +49,6 @@ Archive_Construct:
 ; ix = this
 ; ix <- this
 Archive_Destruct:
-	push ix
-	call Archive_GetInflate
-	call Inflate_Destruct
-	call Inflate_class.Delete
-	pop ix
 	ret
 
 ; ix = this
@@ -91,13 +79,6 @@ Archive_Read:
 	call Archive_GetReader
 	call Reader_Read
 	pop ix
-	ret
-
-; ix = this
-Archive_Extract:
-
-	call Archive_Inflate
-	call Archive_Verify
 	ret
 
 ; ix = this
@@ -150,6 +131,30 @@ Archive_ReadHeader:
 	ld a,(ix + Archive.flags)
 	and Archive_FHCRC
 	call nz,Archive_SkipHeaderCRC
+	ret
+
+; de = writer (min 32K)
+; ix = this
+Archive_Extract:
+	ld l,(ix + Archive.reader)
+	ld h,(ix + Archive.reader + 1)
+	push ix
+	call Inflate_class.New
+	call Inflate_Construct
+	pop ix
+	ld (ix + Archive.inflate),e
+	ld (ix + Archive.inflate + 1),d
+
+	call Archive_Inflate
+	call Archive_Verify
+
+	push ix
+	call Archive_GetInflate
+	call Inflate_Destruct
+	call Inflate_class.Delete
+	pop ix
+	ld (ix + Archive.inflate),0
+	ld (ix + Archive.inflate + 1),0
 	ret
 
 ; ix = this
