@@ -53,6 +53,7 @@ Archive_Construct:
 	pop ix
 	ld (ix + Archive.inflate),e
 	ld (ix + Archive.inflate + 1),d
+	call Archive_ReadHeader
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -99,7 +100,6 @@ Archive_Read:
 
 ; ix = this
 Archive_Extract:
-	call Archive_ReadHeader
 	call Archive_Inflate
 	call Archive_Verify
 	ret
