@@ -118,6 +118,7 @@ Loop:
 	ret
 	ENDP
 
+; Generate list of (code length, symbol) pairs, sorted by code length
 ; ix = this
 Alphabet_SortCodeLengths: PROC
 	call Alphabet_InitCodeLengthsTable
@@ -275,7 +276,7 @@ TrapEmptyTree:
 ; b = bits left
 ; c = code length
 ; de = tree position
-; hl = sorted code length-symbols
+; hl = sorted (code length, symbol) list pointer
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranch:
@@ -289,7 +290,7 @@ Alphabet_BuildBranch:
 ; b = bits left
 ; c = code length
 ; de = tree position
-; hl = sorted code length-symbols
+; hl = sorted (code length, symbol) list pointer
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranchZero: PROC
@@ -308,7 +309,7 @@ Branch:
 ; b = bits left
 ; c = code length
 ; de = tree position
-; hl = sorted code length-symbols
+; hl = sorted (code length, symbol) list pointer
 ; iy = current branch
 ; ix = this
 Alphabet_BuildBranchOne: PROC
@@ -333,7 +334,7 @@ Branch:
 
 ; b = bits left
 ; c = code length
-; hl = sorted code length-symbols
+; hl = sorted (code length, symbol) list pointer
 ; ix = this
 ; b, c, hl <- updated
 ; f <- c: end reached
@@ -354,7 +355,7 @@ NextLength:
 ; ix = this
 ; b <- bits left
 ; c <- code length
-; hl <- sorted code length-symbols
+; hl <- sorted (code length, symbol) list pointer
 ; f <- c: end reached
 Alphabet_GetFirstSymbol:
 	ld l,(ix + Alphabet.sortedCodeLengths)
@@ -381,7 +382,7 @@ Alphabet_AddBranch:
 
 ; ix = this
 ; de = tree position
-; hl = sorted code length-symbols
+; hl = sorted (code length, symbol) list pointer
 ; de <- updated tree position
 ; Modifies: hl
 Alphabet_AddLeaf:
