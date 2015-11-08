@@ -20,6 +20,10 @@ Alphabet: MACRO
 		dw 0
 	treeEnd:
 		dw 0
+	sortedCodeLengths:
+		dw 0
+	codeLengthCounts:
+		ds Alphabet_MAX_CODELENGTH * 2, 0
 	_size:
 	ENDM
 
@@ -43,6 +47,7 @@ Alphabet_Construct:
 	ld (ix + Alphabet.symbolHandlers),l
 	ld (ix + Alphabet.symbolHandlers + 1),h
 	call Alphabet_AllocateTreeBuffer
+	call Alphabet_SortCodeLengths
 	call Alphabet_BuildTree
 	ld e,ixl
 	ld d,ixh
@@ -111,6 +116,139 @@ Loop:
 	dec a
 	jp nz,Loop
 	ret
+	ENDP
+
+; ix = this
+Alphabet_SortCodeLengths: PROC
+	call Alphabet_InitCodeLengthsTable
+	exx
+	ld l,(ix + Alphabet.symbolHandlers)
+	ld h,(ix + Alphabet.symbolHandlers + 1)
+	exx
+	ld l,(ix + Alphabet.codeLengths)
+	ld h,(ix + Alphabet.codeLengths + 1)
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
+	dec de
+	inc d
+	ld c,d
+Loop:
+	ld a,(hl)
+	inc hl
+	add a,a
+	jr z,Skip
+	exx
+	ld e,a
+	ld d,0
+	push ix
+	add ix,de
+	ld e,(ix + Alphabet.codeLengthCounts - 2)
+	ld d,(ix + Alphabet.codeLengthCounts - 1)
+	rrca
+	ld (de),a
+	inc de
+	ldi
+	ldi
+	ld (ix + Alphabet.codeLengthCounts - 2),e
+	ld (ix + Alphabet.codeLengthCounts - 1),d
+	pop ix
+	exx
+SkipContinue:
+	djnz Loop
+	dec c
+	jr nz,Loop
+	ret
+Skip:
+	exx
+	inc hl
+	inc hl
+	exx
+	jp SkipContinue
+	ENDP
+
+; ix = this
+Alphabet_InitCodeLengthsTable: PROC
+	call Alphabet_CountCodeLengths
+	call Alphabet_GetSortedCodeLengthsStart
+	ld (ix + Alphabet.sortedCodeLengths),l
+	ld (ix + Alphabet.sortedCodeLengths + 1),h
+	ld b,Alphabet_MAX_CODELENGTH
+	push ix
+Loop:
+	ld e,(ix + Alphabet.codeLengthCounts)
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	ld (ix + Alphabet.codeLengthCounts),l
+	ld (ix + Alphabet.codeLengthCounts + 1),h
+	inc ix
+	inc ix
+	add hl,de
+	add hl,de
+	add hl,de
+	djnz Loop
+	ld (hl),-1
+	pop ix
+	ret
+	ENDP
+
+; ix = this
+; hl <- sorted code lengths start address
+Alphabet_GetSortedCodeLengthsStart:
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld l,e
+	ld h,d
+	add hl,hl
+	add hl,de  ; x3
+	ex de,hl
+	ld l,(ix + Alphabet.treeEnd)
+	ld h,(ix + Alphabet.treeEnd + 1)
+	scf
+	sbc hl,de
+	ret
+
+; ix = this
+Alphabet_CountCodeLengths: PROC
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld l,(ix + Alphabet.codeLengths)
+	ld h,(ix + Alphabet.codeLengths + 1)
+	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
+	dec de
+	inc d
+	ld c,d
+	exx
+	ld e,ixl
+	ld d,ixh
+	ld hl,Alphabet.codeLengthCounts - 2
+	add hl,de
+	ex de,hl
+	exx
+Loop:
+	ld a,(hl)
+	inc hl
+	and a
+	jr z,Skip
+	cp Alphabet_MAX_CODELENGTH + 1
+	call nc,System_ThrowException
+	exx
+	add a,a
+	ld l,a
+	ld h,0
+	add hl,de
+	inc (hl)
+	jr z,Overflow
+OverflowContinue:
+	exx
+Skip:
+	djnz Loop
+	dec c
+	jr nz,Loop
+	ret
+Overflow:
+	inc hl
+	inc (hl)
+	jp OverflowContinue
 	ENDP
 
 ; ix = this
@@ -187,67 +325,51 @@ Branch:
 	ENDP
 
 ; b = bits left
-; c = code length
-; bc' = code lengths remaining
-; de' = symbol handler table position
-; hl' = code length table position
+; c' = code length
+; hl' = sorted code length-symbols
 ; ix = this
-; b, c, bc', de', hl' <- updated
+; b, c', hl' <- updated
 ; de <- symbol handler
 ; f <- c: end reached
 Alphabet_GetNextSymbol: PROC
-NextLengthLoop:
-	ld a,c
 	exx
-Loop:
-	cpi
-	jp po,NextLength
-	inc de
-	inc de
-	jp nz,Loop
-	dec de
-	dec de
-	ld a,(de)
-	inc de
+NextLengthLoop:
+	ld a,(hl)
+	cp c
+	jr nz,NextLength
+	inc hl
+	ld a,(hl)
+	inc hl
 	exx
 	ld e,a
 	exx
-	ld a,(de)
-	inc de
+	ld a,(hl)
+	inc hl
 	exx
 	ld d,a
-	and a  ; nc
 	ret
 NextLength:
-	ld c,(ix + Alphabet.codeLengthCount)
-	ld b,(ix + Alphabet.codeLengthCount + 1)
-	inc bc
-	ld l,(ix + Alphabet.codeLengths)
-	ld h,(ix + Alphabet.codeLengths + 1)
-	ld e,(ix + Alphabet.symbolHandlers)
-	ld d,(ix + Alphabet.symbolHandlers + 1)
 	exx
-	cp Alphabet_MAX_CODELENGTH
-	scf
-	ret z
-	inc c
+	ret m
 	inc b
+	exx
+	inc c
 	jp NextLengthLoop
 	ENDP
 
 ; ix = this
 ; b <- bits left
-; c <- code length
+; c' <- code length
 ; de <- symbol handler
-; bc' <- code lengths remaining
-; de' <- symbol handler table position
-; hl' <- code length table position
+; hl' <- sorted code length-symbols
 ; f <- c: end reached
 Alphabet_GetFirstSymbol:
-	ld bc,0
 	exx
-	ld bc,1
+	ld l,(ix + Alphabet.sortedCodeLengths)
+	ld h,(ix + Alphabet.sortedCodeLengths + 1)
+	ld c,0
 	exx
+	ld b,0
 	jp Alphabet_GetNextSymbol
 
 ; ix = this
