@@ -18,7 +18,7 @@ Reader: MACRO
 	bufferEnd:
 		dw 0
 	filler:
-		dw Reader_MarkEndOfData
+		dw Reader_DefaultFiller
 	endOfData:
 		db 0
 	bits:
@@ -110,6 +110,10 @@ Reader_FillBuffer:
 	ld l,(ix + Reader.filler)
 	ld h,(ix + Reader.filler + 1)
 	jp hl
+
+; ix = this
+Reader_DefaultFiller:
+	ret
 
 ; ix = this
 Reader_MarkEndOfData:

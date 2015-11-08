@@ -24,7 +24,7 @@ Writer: MACRO
 	bufferEndCopyMargin:
 		db 0
 	flusher:
-		dw System_ThrowException
+		dw Writer_DefaultFlusher
 	count:
 		dd 0
 	crc32:
@@ -263,6 +263,10 @@ Writer_FlushBuffer:
 	ld l,(ix + Writer.flusher)
 	ld h,(ix + Writer.flusher + 1)
 	jp hl
+
+; ix = this
+Writer_DefaultFlusher:
+	ret
 
 ; bc = byte count
 ; ix = this
