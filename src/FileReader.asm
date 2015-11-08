@@ -27,7 +27,6 @@ FileReader_Construct:
 	ld (ix + FileReader.fileHandle),b
 	ld (ix + FileReader.super.filler),FileReader_ReadFromFile & 0FFH
 	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile >> 8
-	call FileReader_ReadFromFile
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -43,7 +42,7 @@ FileReader_Destruct:
 
 ; ix = this
 ; Modifies: af, bc, de, hl
-FileReader_ReadFromFile: PROC
+FileReader_ReadFromFile:
 	call DOS_ConsoleStatus  ; allow ctrl-c
 	ld b,(ix + FileReader.fileHandle)
 	ld e,(ix + FileReader.super.bufferStart)
@@ -53,12 +52,6 @@ FileReader_ReadFromFile: PROC
 	and a
 	sbc hl,de
 	call DOS_ReadFromFileHandle
-	cp .EOF
-	jp z,EndOfFile
 	call Application_CheckDOSError
 	call DOS_ConsoleStatus  ; allow ctrl-c
 	ret
-EndOfFile:
-	call Reader_MarkEndOfData
-	ret
-	ENDP

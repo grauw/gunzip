@@ -19,7 +19,7 @@ Reader: MACRO
 		dw 0
 	filler:
 		dw Reader_DefaultFiller
-	endOfData:
+	fillPending:
 		db 0
 	bits:
 		db 0
@@ -42,11 +42,13 @@ Reader_Construct:
 	ld (ix + Reader.bufferStart + 1),h
 	ld (ix + Reader.bufferSize),c
 	ld (ix + Reader.bufferSize + 1),b
-	ld (ix + Reader.bufferPosition),l
-	ld (ix + Reader.bufferPosition + 1),h
 	add hl,bc
 	ld (ix + Reader.bufferEnd),l
 	ld (ix + Reader.bufferEnd + 1),h
+	dec hl  ; trap the next read
+	ld (ix + Reader.bufferPosition),l
+	ld (ix + Reader.bufferPosition + 1),h
+	ld (ix + Reader.fillPending),-1
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -67,13 +69,25 @@ Continue:
 	inc a
 	ld (ix + Reader.bufferPosition + 1),a
 	cp (ix + Reader.bufferEnd + 1)
-	call z,Reader_FinishBlock
+	jr z,FinishBlock
 	pop af
 	ret
+FinishBlock:
+	pop af
+	bit 0,(ix + Reader.fillPending)
+	jr nz,PendingFill
+	ld (ix + Reader.fillPending),-1
+	ld (ix + Reader.bufferPosition),0FFH
+	dec (ix + Reader.bufferPosition + 1)
+	ret
+PendingFill:
+	ld (ix + Reader.fillPending),0
+	call Reader_FinishBlock
+	jp ix
 	ENDP
 
 ; ix = this
-Reader_FinishBlock: PROC
+Reader_FinishBlock:
 	ld a,(ix + Reader.bufferPosition)
 	cp (ix + Reader.bufferEnd)
 	call nz,System_ThrowException
@@ -83,9 +97,6 @@ Reader_FinishBlock: PROC
 	push bc
 	push de
 	push hl
-	bit 0,(ix + Reader.endOfData)
-	ld hl,Reader_endOfDataError
-	call nz,System_ThrowExceptionWithMessage
 	call Reader_FillBuffer
 	pop hl
 	pop de
@@ -94,15 +105,7 @@ Reader_FinishBlock: PROC
 	ld (ix + Reader.bufferPosition),a
 	ld a,(ix + Reader.bufferStart + 1)
 	ld (ix + Reader.bufferPosition + 1),a
-	bit 0,(ix + Reader.endOfData)
-	ret z
-TrapNextRead:
-	ld (ix + Reader.bufferPosition),0FFH
-	ld a,(ix + Reader.bufferEnd + 1)
-	dec a
-	ld (ix + Reader.bufferPosition + 1),a
 	ret
-	ENDP
 
 ; ix = this
 ; Modifies: af, bc, de, hl
@@ -113,11 +116,6 @@ Reader_FillBuffer:
 
 ; ix = this
 Reader_DefaultFiller:
-	ret
-
-; ix = this
-Reader_MarkEndOfData:
-	ld (ix + Reader.endOfData),1
 	ret
 
 ; bc = nr of bytes to skip
@@ -348,7 +346,3 @@ Reader_ReadBits_IY:
 Reader_Align:
 	ld (ix + Reader.bits),0
 	ret
-
-;
-Reader_endOfDataError:
-	db "Premature end of data.",13,10,0
