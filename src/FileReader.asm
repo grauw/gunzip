@@ -44,13 +44,13 @@ FileReader_Destruct:
 ; Modifies: af, bc, de, hl
 FileReader_ReadFromFile:
 	call DOS_ConsoleStatus  ; allow ctrl-c
-	ld b,(ix + FileReader.fileHandle)
 	ld e,(ix + FileReader.super.bufferStart)
 	ld d,(ix + FileReader.super.bufferStart + 1)
 	ld l,(ix + FileReader.super.bufferEnd)
 	ld h,(ix + FileReader.super.bufferEnd + 1)
 	and a
 	sbc hl,de
+	ld b,(ix + FileReader.fileHandle)
 	call DOS_ReadFromFileHandle
 	call Application_CheckDOSError
 	call DOS_ConsoleStatus  ; allow ctrl-c
