@@ -4,6 +4,8 @@
 Application: MACRO
 	cli:
 		dw 0
+	outputSize:
+		dd 0
 	_size:
 	ENDM
 
@@ -117,7 +119,9 @@ Application_InflateToFile:
 	call Application_PrintInflating
 	call Application_CreateFileReader
 	push de
+	call Application_ReadOutputSize
 	call Application_CreateFileWriter
+	call Application_PreAllocateOutput
 	pop hl
 	push ix
 	push hl
@@ -269,6 +273,82 @@ Application_CreateNullWriter:
 	cpl
 	ld (ix + NullWriter.super.crc32Enabled),a
 	pop ix
+	ret
+
+; de = file reader
+; ix = this
+; Modifies: af, bc, hl, iy
+Application_ReadOutputSize:
+	ld iyl,e
+	ld iyh,d
+	push de
+	ld b,(iy + FileReader.fileHandle)
+	call DOS_GetFileHandlePointer
+	call Application_CheckDOSError
+	push de
+	push hl
+	ld a,2
+	ld hl,-4 & 0FFFFH
+	ld de,-4 >> 16
+	ld b,(iy + FileReader.fileHandle)
+	call DOS_MoveFileHandlePointer
+	call Application_CheckDOSError
+	ld e,ixl
+	ld d,ixh
+	ld hl,Application.outputSize
+	add hl,de
+	ex de,hl
+	ld hl,4
+	ld b,(iy + FileReader.fileHandle)
+	call DOS_ReadFromFileHandle
+	call Application_CheckDOSError
+	pop hl
+	pop de
+	ld b,(iy + FileReader.fileHandle)
+	call DOS_SetFileHandlePointer
+	call Application_CheckDOSError
+	pop de
+	ret
+
+; de = file writer
+; ix = this
+; Modifies: af, bc, hl, iy
+Application_PreAllocateOutput:
+	ld iyl,e
+	ld iyh,d
+	ld a,(ix + Application.outputSize + 2)
+	or (ix + Application.outputSize + 3)
+	ret z  ; don’t pre-allocate if < 64K
+	push de
+	ld b,(iy + FileWriter.fileHandle)
+	call DOS_GetFileHandlePointer
+	call Application_CheckDOSError
+	push de
+	push hl
+	ld l,(ix + Application.outputSize)
+	ld h,(ix + Application.outputSize + 1)
+	ld e,(ix + Application.outputSize + 2)
+	ld d,(ix + Application.outputSize + 3)
+	ld bc,1
+	sbc hl,bc
+	dec bc
+	ex de,hl
+	sbc hl,bc
+	ex de,hl
+	ld b,(iy + FileWriter.fileHandle)
+	call DOS_SetFileHandlePointer
+	call Application_CheckDOSError
+	ld de,0  ; don’t care which value we write
+	ld hl,1
+	ld b,(iy + FileWriter.fileHandle)
+	call DOS_WriteToFileHandle
+	call Application_CheckDOSError
+	pop hl
+	pop de
+	ld b,(iy + FileWriter.fileHandle)
+	call DOS_SetFileHandlePointer
+	call Application_CheckDOSError
+	pop de
 	ret
 
 ; Check if the stack is well above the heap

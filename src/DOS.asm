@@ -222,6 +222,28 @@ DOS_WriteToFileHandle:
 	ld c,_WRITE
 	jp BDOS
 
+DOS_MoveFileHandlePointer:
+	ld c,_SEEK
+	jp BDOS
+
+; b = file handle
+; dehl = file pointer
+; a <- error
+DOS_SetFileHandlePointer:
+	ld a,0
+	call DOS_MoveFileHandlePointer
+	ret
+
+; b = file handle
+; a <- error
+; dehl <- file pointer
+DOS_GetFileHandlePointer:
+	ld hl,0
+	ld de,0
+	ld a,1
+	call DOS_MoveFileHandlePointer
+	ret
+
 DOS_ParsePathname:
 	ld c,_PARSE
 	jp BDOS
