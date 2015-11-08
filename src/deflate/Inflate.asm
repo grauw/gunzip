@@ -18,6 +18,11 @@ Inflate_template: Inflate
 ; ix <- this
 ; de <- this
 Inflate_Construct:
+	ld iyl,e  ; check if write buffer is at least 32K
+	ld iyh,d
+	ld a,(iy + Writer.bufferSize + 1)
+	cp 80H
+	call c,System_ThrowException
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
