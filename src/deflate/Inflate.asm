@@ -12,8 +12,8 @@ Inflate: MACRO
 Inflate_class: Class Inflate, Inflate_template, Heap_main
 Inflate_template: Inflate
 
-; hl = file reader
-; de = file writer
+; hl = reader
+; de = writer (min 32K)
 ; ix = this
 ; ix <- this
 ; de <- this
@@ -32,8 +32,8 @@ Inflate_Destruct:
 	ret
 
 ; ix = this
-; de <- file reader
-; ix <- file reader
+; de <- reader
+; ix <- reader
 Inflate_GetReader:
 	ld e,(ix + Inflate.reader)
 	ld d,(ix + Inflate.reader + 1)
@@ -42,8 +42,8 @@ Inflate_GetReader:
 	ret
 
 ; ix = this
-; de <- file reader
-; ix <- file reader
+; de <- reader
+; ix <- reader
 Inflate_GetReaderIY:
 	ld e,(ix + Inflate.reader)
 	ld d,(ix + Inflate.reader + 1)
@@ -52,8 +52,8 @@ Inflate_GetReaderIY:
 	ret
 
 ; ix = this
-; de <- file writer
-; ix <- file writer
+; de <- writer
+; ix <- writer
 Inflate_GetWriter:
 	ld e,(ix + Inflate.writer)
 	ld d,(ix + Inflate.writer + 1)

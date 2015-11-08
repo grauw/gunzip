@@ -34,8 +34,8 @@ Archive: MACRO
 Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
-; hl = buffer reader
-; de = buffer writer (min 32K)
+; hl = reader
+; de = writer (min 32K)
 ; ix = this
 ; ix <- this
 ; de <- this
