@@ -14,8 +14,6 @@ Archive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7;
 Archive: MACRO
 	reader:
 		dw 0
-	writer:
-		dw 0
 	inflate:
 		dw 0
 	flags:
@@ -49,8 +47,6 @@ Archive_Construct:
 	call c,System_ThrowException
 	ld (ix + Archive.reader),l
 	ld (ix + Archive.reader + 1),h
-	ld (ix + Archive.writer),e
-	ld (ix + Archive.writer + 1),d
 	push ix
 	call Inflate_class.New
 	call Inflate_Construct
@@ -77,16 +73,6 @@ Archive_Destruct:
 Archive_GetReader:
 	ld e,(ix + Archive.reader)
 	ld d,(ix + Archive.reader + 1)
-	ld ixl,e
-	ld ixh,d
-	ret
-
-; ix = this
-; de <- file writer
-; ix <- file writer
-Archive_GetWriter:
-	ld e,(ix + Archive.writer)
-	ld d,(ix + Archive.writer + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
@@ -242,7 +228,8 @@ Archive_SkipHeaderCRC:
 ; f <- nz: mismatch
 Archive_VerifyISIZE:
 	push ix
-	call Archive_GetWriter
+	call Archive_GetInflate
+	call Inflate_GetWriter
 	call Writer_GetCount
 	pop ix
 	ld a,e
@@ -262,7 +249,8 @@ Archive_VerifyISIZE:
 ; f <- nz: mismatch
 Archive_VerifyCRC32:
 	push ix
-	call Archive_GetWriter
+	call Archive_GetInflate
+	call Inflate_GetWriter
 	call Writer_GetCRC32
 	pop ix
 	ret z
