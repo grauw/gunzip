@@ -10,9 +10,9 @@ For the complete list of changes please refer to the
   * Performance optimisations: 35% faster
   * Added /f option to skip checksum validation. Use at your own risk!
   * Improved performance on full disks.
-  * Fixed path parsing bug.
   * Reduced memory usage a bit.
   * No empty file generated when header parsing fails.
+  * Fixed path parsing bug.
 
 [1.0] — 2015-10-18
 ------------------
