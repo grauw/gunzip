@@ -13,6 +13,7 @@ Extracts files compressed with the gzip (.gz) format.
 Author: Laurens Holst <laurens.nospam@grauw.nl>  
 Site: <https://bitbucket.org/grauw/gunzip>  
 Downloads: <https://bitbucket.org/grauw/gunzip/downloads>  
+History: <https://bitbucket.org/grauw/gunzip/src/default/CHANGES.md>  
 Issues: <https://bitbucket.org/grauw/gunzip/issues>  
 Support: <http://www.msx.org/forum/msx-talk/software/gunzip-msx>  
 License: Simplified BSD License
