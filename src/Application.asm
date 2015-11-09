@@ -383,7 +383,7 @@ Application_TerminateWithError:
 
 ;
 Application_welcome:
-	db "Gunzip 1.0 by Grauw",13,10,10,0
+	db "Gunzip 1.1 by Grauw",13,10,10,0
 
 Application_inflatingFile:
 	db "Inflating ",0
