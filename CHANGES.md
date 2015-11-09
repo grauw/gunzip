@@ -7,7 +7,7 @@ For the complete list of changes please refer to the
 [1.1] — 2015-11-09
 ------------------
 
-  * Performance optimisations: 35% faster
+  * Performance optimisations: 35% faster.
   * Added /f option to skip checksum validation. Use at your own risk!
   * Improved performance on full disks.
   * Reduced memory usage a bit.
