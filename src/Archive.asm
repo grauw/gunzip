@@ -136,6 +136,15 @@ Archive_ReadHeader:
 ; de = writer (min 32K)
 ; ix = this
 Archive_Extract:
+	call Archive_CreateInflate
+	call Archive_Inflate
+	call Archive_Verify
+	call Archive_DestroyInflate
+	ret
+
+; de = writer (min 32K)
+; ix = this
+Archive_CreateInflate:
 	ld l,(ix + Archive.reader)
 	ld h,(ix + Archive.reader + 1)
 	push ix
@@ -144,10 +153,10 @@ Archive_Extract:
 	pop ix
 	ld (ix + Archive.inflate),e
 	ld (ix + Archive.inflate + 1),d
+	ret
 
-	call Archive_Inflate
-	call Archive_Verify
-
+; ix = this
+Archive_DestroyInflate:
 	push ix
 	call Archive_GetInflate
 	call Inflate_Destruct
