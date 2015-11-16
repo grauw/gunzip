@@ -40,16 +40,14 @@ FileReader_Destruct:
 	call Reader_Destruct
 	ret
 
+; bc = byte count
+; de = buffer start
 ; ix = this
 ; Modifies: af, bc, de, hl
 FileReader_ReadFromFile:
+	push bc
 	call DOS_ConsoleStatus  ; allow ctrl-c
-	ld e,(ix + FileReader.super.bufferStart)
-	ld d,(ix + FileReader.super.bufferStart + 1)
-	ld l,(ix + FileReader.super.bufferEnd)
-	ld h,(ix + FileReader.super.bufferEnd + 1)
-	and a
-	sbc hl,de
+	pop hl
 	ld b,(ix + FileReader.fileHandle)
 	call DOS_ReadFromFileHandle
 	call Application_CheckDOSError
