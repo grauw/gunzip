@@ -16,12 +16,9 @@ CRC32CheckerTest_TestCRC32: PROC
 	call CRC32Checker_class.New
 	call CRC32Checker_Construct
 
-	call CRC32Checker_GetCRC32
-	ld a,e
-	and d
-	and c
-	and b
-	inc a
+	ld de,0
+	ld bc,0
+	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
 	ld b,58
@@ -30,14 +27,9 @@ Loop1:
 	call Writer_Write_IY
 	djnz Loop1
 	call Writer_FinishBlock_IY
-	call CRC32Checker_GetCRC32
-	ld hl,07364H
-	scf
-	adc hl,de
-	call nz,System_ThrowException
-	ld hl,0DAA8H
-	scf
-	adc hl,bc
+	ld de,07364H
+	ld bc,0DAA8H
+	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
 	ld b,200
@@ -46,14 +38,9 @@ Loop2:
 	call Writer_Write_IY
 	djnz Loop2
 	call Writer_FinishBlock_IY
-	call CRC32Checker_GetCRC32
-	ld hl,04E96H
-	scf
-	adc hl,de
-	call nz,System_ThrowException
-	ld hl,02DA9H
-	scf
-	adc hl,bc
+	ld de,04E96H
+	ld bc,02DA9H
+	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
 	call CRC32Checker_Destruct

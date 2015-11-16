@@ -74,14 +74,20 @@ CRC32Checker_UpdateCRC32:
 	pop af
 	ret
 
+; bcde = expected crc32
 ; ix = this
-; bcde <- crc32
+; f <- nz: mismatch
 ; Modifies: af, bc, de, hl
-CRC32Checker_GetCRC32:
-	ld e,(ix + CRC32Checker.crc32)
-	ld d,(ix + CRC32Checker.crc32 + 1)
-	ld c,(ix + CRC32Checker.crc32 + 2)
-	ld b,(ix + CRC32Checker.crc32 + 3)
+CRC32Checker_VerifyCRC32:
+	ld l,(ix + CRC32Checker.crc32)
+	ld h,(ix + CRC32Checker.crc32 + 1)
+	scf
+	adc hl,de
+	ret nz
+	ld l,(ix + CRC32Checker.crc32 + 2)
+	ld h,(ix + CRC32Checker.crc32 + 3)
+	scf
+	adc hl,bc
 	ret
 
 ; bc' = byte count

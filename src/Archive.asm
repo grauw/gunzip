@@ -303,20 +303,14 @@ Archive_VerifyCRC32:
 	ld a,e
 	or d
 	ret z
-	push ix
-	ld ixl,e
-	ld ixh,d
-	call CRC32Checker_GetCRC32
+	push de
+	ld e,(ix + Archive.crc32)
+	ld d,(ix + Archive.crc32 + 1)
+	ld c,(ix + Archive.crc32 + 2)
+	ld b,(ix + Archive.crc32 + 3)
+	ex (sp),ix
+	call CRC32Checker_VerifyCRC32
 	pop ix
-	ld l,(ix + Archive.crc32)
-	ld h,(ix + Archive.crc32 + 1)
-	scf
-	adc hl,de
-	ret nz
-	ld l,(ix + Archive.crc32 + 2)
-	ld h,(ix + Archive.crc32 + 3)
-	scf
-	adc hl,bc
 	ret
 
 ;
