@@ -257,6 +257,7 @@ Writer_FinishBlock_IY:
 	pop ix
 	ret
 
+; The flusher is called with de = buffer start, bc = byte count
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
