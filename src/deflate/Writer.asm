@@ -262,7 +262,7 @@ Writer_DefaultFlusher:
 
 ; bc = byte count
 ; ix = this
-; Modifies: hl, bc
+; Modifies: hl
 Writer_IncreaseCount:
 	ld l,(ix + Writer.count)
 	ld h,(ix + Writer.count + 1)
