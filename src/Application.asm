@@ -104,13 +104,7 @@ Application_ParseCLI:
 
 ; ix = this
 Application_Inflate:
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.outputPath)
-	ld h,(ix + CLI.outputPath + 1)
-	pop ix
-	ld a,l
-	or h
+	call Application_IsTesting
 	jp z,Application_InflateTest
 	jp Application_InflateToFile
 
@@ -221,6 +215,19 @@ Application_IsQuiet:
 	bit 0,(ix + CLI.quiet)
 	pop de
 	pop ix
+	ret
+
+; ix = this
+; f <- z: testing
+; Modifies: de
+Application_IsTesting:
+	push ix
+	call Application_GetCLI
+	ld e,(ix + CLI.outputPath)
+	ld d,(ix + CLI.outputPath + 1)
+	pop ix
+	ld a,e
+	or d
 	ret
 
 ; ix = this
