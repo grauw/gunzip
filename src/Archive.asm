@@ -133,11 +133,32 @@ Archive_ReadHeader:
 	call nz,Archive_SkipHeaderCRC
 	ret
 
+; ix = this
+Archive_ReadFooter:
+	call Archive_Read
+	ld (ix + Archive.crc32),a
+	call Archive_Read
+	ld (ix + Archive.crc32 + 1),a
+	call Archive_Read
+	ld (ix + Archive.crc32 + 2),a
+	call Archive_Read
+	ld (ix + Archive.crc32 + 3),a
+	call Archive_Read
+	ld (ix + Archive.isize),a
+	call Archive_Read
+	ld (ix + Archive.isize + 1),a
+	call Archive_Read
+	ld (ix + Archive.isize + 2),a
+	call Archive_Read
+	ld (ix + Archive.isize + 3),a
+	ret
+
 ; de = writer (min 32K)
 ; ix = this
 Archive_Extract:
 	call Archive_CreateInflate
 	call Archive_Inflate
+	call Archive_ReadFooter
 	call Archive_Verify
 	call Archive_DestroyInflate
 	ret
@@ -176,23 +197,6 @@ Archive_Inflate:
 
 ; ix = this
 Archive_Verify:
-	call Archive_Read
-	ld (ix + Archive.crc32),a
-	call Archive_Read
-	ld (ix + Archive.crc32 + 1),a
-	call Archive_Read
-	ld (ix + Archive.crc32 + 2),a
-	call Archive_Read
-	ld (ix + Archive.crc32 + 3),a
-	call Archive_Read
-	ld (ix + Archive.isize),a
-	call Archive_Read
-	ld (ix + Archive.isize + 1),a
-	call Archive_Read
-	ld (ix + Archive.isize + 2),a
-	call Archive_Read
-	ld (ix + Archive.isize + 3),a
-
 	call Archive_VerifyISIZE
 	ld hl,Archive_isizeMismatchError
 	jp nz,Application_TerminateWithError
