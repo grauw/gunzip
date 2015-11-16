@@ -16,6 +16,8 @@ Archive: MACRO
 		dw 0
 	inflate:
 		dw 0
+	crc32Checker:
+		dw 0
 	flags:
 		db 0
 	mtime:
@@ -153,14 +155,17 @@ Archive_ReadFooter:
 	ld (ix + Archive.isize + 3),a
 	ret
 
+; f = z: enable CRC32 check
 ; de = writer (min 32K)
 ; ix = this
 Archive_Extract:
+	call z,Archive_CreateCRC32Checker
 	call Archive_CreateInflate
 	call Archive_Inflate
 	call Archive_ReadFooter
 	call Archive_Verify
 	call Archive_DestroyInflate
+	call Archive_DestroyCRC32Checker
 	ret
 
 ; de = writer (min 32K)
@@ -185,6 +190,37 @@ Archive_DestroyInflate:
 	pop ix
 	ld (ix + Archive.inflate),0
 	ld (ix + Archive.inflate + 1),0
+	ret
+
+; de = writer (min 32K)
+; ix = this
+Archive_CreateCRC32Checker:
+	push de
+	push ix
+	ld iyl,e
+	ld iyh,d
+	call CRC32Checker_class.New
+	call CRC32Checker_Construct
+	pop ix
+	ld (ix + Archive.crc32Checker),e
+	ld (ix + Archive.crc32Checker + 1),d
+	pop de
+	ret
+
+; de = writer (min 32K)
+; ix = this
+Archive_DestroyCRC32Checker:
+	ld e,(ix + Archive.crc32Checker)
+	ld d,(ix + Archive.crc32Checker + 1)
+	ld a,e
+	or d
+	ret z
+	push ix
+	ld ixl,e
+	ld ixh,d
+	call CRC32Checker_Destruct
+	call CRC32Checker_class.Delete
+	pop ix
 	ret
 
 ; ix = this
@@ -262,12 +298,16 @@ Archive_VerifyISIZE:
 ; ix = this
 ; f <- nz: mismatch
 Archive_VerifyCRC32:
-	push ix
-	call Archive_GetInflate
-	call Inflate_GetWriter
-	call Writer_GetCRC32
-	pop ix
+	ld e,(ix + Archive.crc32Checker)
+	ld d,(ix + Archive.crc32Checker + 1)
+	ld a,e
+	or d
 	ret z
+	push ix
+	ld ixl,e
+	ld ixh,d
+	call CRC32Checker_GetCRC32
+	pop ix
 	ld l,(ix + Archive.crc32)
 	ld h,(ix + Archive.crc32 + 1)
 	scf

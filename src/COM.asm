@@ -48,6 +48,8 @@ COM_Main:
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 	INCLUDE "NullWriter.asm"
+	INCLUDE "CRC32Checker.asm"
+	INCLUDE "CRC32CheckerTest.asm"
 
 	ALIGN 100H
 CRC32Table:

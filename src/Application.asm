@@ -25,6 +25,7 @@ Application_Main:
 
 	call HeapTest_Test
 	call WriterTest_Test
+	call CRC32CheckerTest_Test
 	call AlphabetTest_Test
 
 	call Application_class.New
@@ -120,8 +121,11 @@ Application_InflateToFile:
 	call Archive_Construct
 
 	ex (sp),ix
+	call Application_IsFast
+	push af
 	call Application_CreateFileWriter
 	call Application_PreAllocateOutput
+	pop af
 	pop ix
 	push de
 	call Archive_Extract
@@ -149,7 +153,10 @@ Application_InflateTest:
 	call Archive_Construct
 
 	ex (sp),ix
+	call Application_IsFast
+	push af
 	call Application_CreateNullWriter
+	pop af
 	pop ix
 	push de
 	call Archive_Extract
@@ -218,6 +225,17 @@ Application_IsQuiet:
 	ret
 
 ; ix = this
+; f <- nz: fast
+Application_IsFast:
+	push de
+	push ix
+	call Application_GetCLI
+	bit 0,(ix + CLI.fast)
+	pop ix
+	pop de
+	ret
+
+; ix = this
 ; f <- z: testing
 ; Modifies: de
 Application_IsTesting:
@@ -253,36 +271,23 @@ Application_CreateFileWriter:
 	call Application_GetCLI
 	ld e,(ix + CLI.outputPath)
 	ld d,(ix + CLI.outputPath + 1)
-	ld a,(ix + CLI.fast)
 	pop ix
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
 	push ix
-	push af
 	call FileWriter_class.New
 	call FileWriter_Construct
-	pop af
-	cpl
-	ld (ix + FileWriter.super.crc32Enabled),a
 	pop ix
 	ret
 
 ; ix = this
 ; de <- file writer
 Application_CreateNullWriter:
-	push ix
-	call Application_GetCLI
-	ld a,(ix + CLI.fast)
-	pop ix
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
 	push ix
-	push af
 	call NullWriter_class.New
 	call NullWriter_Construct
-	pop af
-	cpl
-	ld (ix + NullWriter.super.crc32Enabled),a
 	pop ix
 	ret
 

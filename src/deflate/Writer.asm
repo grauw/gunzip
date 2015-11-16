@@ -27,10 +27,6 @@ Writer: MACRO
 		dw Writer_DefaultFlusher
 	count:
 		dd 0
-	crc32:
-		dd 0FFFFFFFFH
-	crc32Enabled:
-		db 1
 	_size:
 	ENDM
 
@@ -230,11 +226,6 @@ Writer_FinishBlock: PROC
 	call Writer_IncreaseCount
 	pop de
 	pop bc
-	push bc
-	push de
-	call Writer_UpdateCRC32
-	pop de
-	pop bc
 	call Writer_FlushBuffer
 Empty:
 	pop hl
@@ -292,83 +283,3 @@ Writer_GetCount:
 	ld c,(ix + Writer.count + 2)
 	ld b,(ix + Writer.count + 3)
 	ret
-
-; bc = byte count
-; de = buffer start
-; ix = this
-; Modifies: af, bc, de, hl
-Writer_UpdateCRC32:
-	bit 0,(ix + Writer.crc32Enabled)
-	ret z
-	ex de,hl
-	exx
-	push bc
-	push de
-	push hl
-	ld e,(ix + Writer.crc32)
-	ld d,(ix + Writer.crc32 + 1)
-	ld c,(ix + Writer.crc32 + 2)
-	ld b,(ix + Writer.crc32 + 3)
-	call Writer_CalculateCRC32
-	ld (ix + Writer.crc32),e
-	ld (ix + Writer.crc32 + 1),d
-	ld (ix + Writer.crc32 + 2),c
-	ld (ix + Writer.crc32 + 3),b
-	pop hl
-	pop de
-	pop bc
-	exx
-	ret
-
-; ix = this
-; bcde <- crc32
-; f <- z: checksum validation disabled
-; Modifies: af, bc, de, hl
-Writer_GetCRC32:
-	bit 0,(ix + Writer.crc32Enabled)
-	ld e,(ix + Writer.crc32)
-	ld d,(ix + Writer.crc32 + 1)
-	ld c,(ix + Writer.crc32 + 2)
-	ld b,(ix + Writer.crc32 + 3)
-	ret
-
-; bc' = byte count
-; hl' = read address
-; bcde = current crc
-; ix = this
-; bcde <- updated crc
-; Modifies: af, bc, de, hl, bc', hl'
-Writer_CalculateCRC32: PROC
-	exx
-	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
-	dec bc
-	inc b
-	ld c,b
-	ld b,a
-Loop:
-	ld a,(hl)
-	inc hl
-	exx
-	xor e
-	ld l,a
-	ld h,CRC32Table >> 8
-	ld a,(hl)
-	xor d
-	ld e,a
-	inc h
-	ld a,(hl)
-	xor c
-	ld d,a
-	inc h
-	ld a,(hl)
-	xor b
-	ld c,a
-	inc h
-	ld b,(hl)
-	exx
-	djnz Loop
-	dec c
-	jp nz,Loop
-	exx
-	ret
-	ENDP
