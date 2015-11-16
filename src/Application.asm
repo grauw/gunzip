@@ -209,12 +209,12 @@ Application_PrintTesting:
 ; ix = this
 ; f <- nz: quiet
 Application_IsQuiet:
-	push ix
 	push de
+	push ix
 	call Application_GetCLI
 	bit 0,(ix + CLI.quiet)
-	pop de
 	pop ix
+	pop de
 	ret
 
 ; ix = this
