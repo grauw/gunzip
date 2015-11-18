@@ -2,14 +2,14 @@
 ; Memory buffer reader
 ;
 Reader: MACRO
-	; ix = this
+	; iy = this
 	; a <- value
-	Read:
+	Read_IY:
 		ld a,(0)
 	bufferPosition: equ $ - 2
-		inc (ix + Reader.bufferPosition)
+		inc (iy + Reader.bufferPosition)
 		ret nz
-		jp Reader_Read.Continue
+		jp Reader_Read_IY.Continue
 
 	bufferStart:
 		dw 0
@@ -61,41 +61,39 @@ Reader_Destruct:
 ; iy = this
 ; a <- value
 ; Modifies: none
-Reader_Read_IY:
-	push iy
-	ex (sp),ix
-	call Reader_Read
-	ex (sp),ix
-	pop iy
-	ret
-
-; ix = this
-; a <- value
-; Modifies: none
-Reader_Read: PROC
-	jp ix
+Reader_Read_IY: PROC
+	jp iy
 Continue:
 	push af
-	ld a,(ix + Reader.bufferPosition + 1)
+	ld a,(iy + Reader.bufferPosition + 1)
 	inc a
-	ld (ix + Reader.bufferPosition + 1),a
-	cp (ix + Reader.bufferEnd + 1)
+	ld (iy + Reader.bufferPosition + 1),a
+	cp (iy + Reader.bufferEnd + 1)
 	jr z,FinishBlock
 	pop af
 	ret
 FinishBlock:
 	pop af
-	bit 0,(ix + Reader.fillPending)
+	bit 0,(iy + Reader.fillPending)
 	jr nz,PendingFill
-	ld (ix + Reader.fillPending),-1
-	ld (ix + Reader.bufferPosition),0FFH
-	dec (ix + Reader.bufferPosition + 1)
+	ld (iy + Reader.fillPending),-1
+	ld (iy + Reader.bufferPosition),0FFH
+	dec (iy + Reader.bufferPosition + 1)
 	ret
 PendingFill:
-	ld (ix + Reader.fillPending),0
-	call Reader_FinishBlock
-	jp ix
+	ld (iy + Reader.fillPending),0
+	call Reader_FinishBlock_IY
+	jp iy
 	ENDP
+
+; iy = this
+Reader_FinishBlock_IY:
+	push iy
+	ex (sp),ix
+	call Reader_FinishBlock
+	ex (sp),ix
+	pop iy
+	ret
 
 ; ix = this
 Reader_FinishBlock:
@@ -167,50 +165,56 @@ Reader_ReadBit_IY:
 	pop bc
 	ret
 
+; iy = this
 ; c <- inline bit reader state
-Reader_PrepareReadBitInline:
-	ld c,(ix + Reader.bits)
+Reader_PrepareReadBitInline_IY:
+	ld c,(iy + Reader.bits)
+	ret
+
+; iy = this
+; c = inline bit reader state
+Reader_FinishReadBitInline_IY:
+	ld (iy + Reader.bits),c
 	ret
 
 ; c = inline bit reader state
-Reader_FinishReadBitInline:
-	ld (ix + Reader.bits),c
-	ret
-
-; c = inline bit reader state
+; iy = this
 ; c <- inline bit reader state
 ; f <- c: bit
 ; Modifies: a
-Reader_ReadBitInline: MACRO
+Reader_ReadBitInline_IY: MACRO
 	srl c
-	call z,Reader_ReadBitInline_NextByte  ; if sentinel bit is shifted out
+	call z,Reader_ReadBitInline_NextByte_IY  ; if sentinel bit is shifted out
 	ENDM
 
+; iy = this
 ; c <- inline bit reader state
 ; f <- c: bit
 ; Modifies: a
-Reader_ReadBitInline_NextByte:
-	call Reader_Read
+Reader_ReadBitInline_NextByte_IY:
+	call Reader_Read_IY
 	scf  ; set sentinel bit
 	rra
 	ld c,a
 	ret
 
+; iy = this
 ; c = inline bit reader state
 ; c <- inline bit reader state
 ; f <- c: bit
 ; Modifies: b
-Reader_ReadBitInline_B: MACRO
+Reader_ReadBitInline_B_IY: MACRO
 	srl c
-	call z,Reader_ReadBitInline_B_NextByte  ; if sentinel bit is shifted out
+	call z,Reader_ReadBitInline_B_NextByte_IY  ; if sentinel bit is shifted out
 	ENDM
 
+; iy = this
 ; c <- inline bit reader state
 ; f <- c: bit
 ; Modifies: b
-Reader_ReadBitInline_B_NextByte:
+Reader_ReadBitInline_B_NextByte_IY:
 	ld b,a
-	call Reader_Read
+	call Reader_Read_IY
 	scf  ; set sentinel bit
 	rra
 	ld c,a
@@ -221,118 +225,118 @@ Reader_ReadBitInline_B_NextByte:
 ; a <- value
 ; c <- inline bit reader state
 ; Modifies: b
-Reader_ReadBitsInline_1:
+Reader_ReadBitsInline_1_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rla
 	ret
 
-Reader_ReadBitsInline_2:
+Reader_ReadBitsInline_2_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
-	rla
-	rla
-	ret
-
-Reader_ReadBitsInline_3:
-	xor a
-	Reader_ReadBitInline_B
-	rra
-	Reader_ReadBitInline_B
-	rra
-	Reader_ReadBitInline_B
-	rla
+	Reader_ReadBitInline_B_IY
 	rla
 	rla
 	ret
 
-Reader_ReadBitsInline_4:
+Reader_ReadBitsInline_3_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
-	rra
-	Reader_ReadBitInline_B
-	rla
+	Reader_ReadBitInline_B_IY
 	rla
 	rla
 	rla
 	ret
 
-Reader_ReadBitsInline_5:
+Reader_ReadBitsInline_4_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
+	rla
+	rla
+	rla
+	rla
+	ret
+
+Reader_ReadBitsInline_5_IY:
+	xor a
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
+	rra
+	Reader_ReadBitInline_B_IY
+	rra
+	Reader_ReadBitInline_B_IY
+	rra
+	Reader_ReadBitInline_B_IY
 	rra
 	rra
 	rra
 	rra
 	ret
 
-Reader_ReadBitsInline_6:
+Reader_ReadBitsInline_6_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
 	rra
 	rra
 	ret
 
-Reader_ReadBitsInline_7:
+Reader_ReadBitsInline_7_IY:
 	xor a
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
 	rra
 	ret
 
-Reader_ReadBitsInline_8:
-	Reader_ReadBitInline_B
+Reader_ReadBitsInline_8_IY:
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
-	Reader_ReadBitInline_B
+	Reader_ReadBitInline_B_IY
 	rra
 	ret
 

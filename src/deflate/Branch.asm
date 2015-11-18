@@ -2,9 +2,9 @@
 ; Huffman tree node
 ;
 Branch: MACRO
-	; ix = reader
+	; iy = reader
 	Process:
-		Reader_ReadBitInline
+		Reader_ReadBitInline_IY
 	jump:
 		jp c,System_ThrowException
 	jumpAddress: equ $ - 2

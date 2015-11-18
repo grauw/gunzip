@@ -80,10 +80,6 @@ Alphabet_GetRoot:
 Alphabet_Process:
 	jp ix
 
-; iy = this
-Alphabet_Process_IY:
-	jp iy
-
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize

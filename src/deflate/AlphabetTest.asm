@@ -37,23 +37,25 @@ AlphabetTest_TestTreeBuilding: PROC
 	ld bc,READBUFFER_SIZE
 	call Reader_class.New
 	call Reader_Construct
+	ex (sp),ix
 	pop iy
 
-	call Reader_PrepareReadBitInline
+	call Reader_PrepareReadBitInline_IY
 	ld d,7
 	ld hl,AlphabetTest_expectedSymbols
 Loop:
 	push hl
-	call Alphabet_Process_IY
+	call Alphabet_Process
 	pop hl
 	cp (hl)
 	call nz,System_ThrowException
 	inc hl
 	dec d
 	jr nz,Loop
-	call Reader_FinishReadBitInline
+	call Reader_FinishReadBitInline_IY
 
 	push iy
+	ex (sp),ix
 	call Reader_Destruct
 	call Reader_class.Delete
 	pop ix

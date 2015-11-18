@@ -223,28 +223,25 @@ DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths:
 	call Alphabet_GetRoot
 	ld e,a
 	ld d,2  ; +1 for nested 8-bit loop
-	push ix
-	ex (sp),iy
-	pop ix
-	call Reader_PrepareReadBitInline
+	call Reader_PrepareReadBitInline_IY
 	call DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
-	call Reader_FinishReadBitInline
+	call Reader_FinishReadBitInline_IY
 	pop ix
 	ret
 
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths:
-	jp iy
+	jp ix
 
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_WriteAndNext:
 	inc hl
 	dec e
@@ -258,8 +255,8 @@ DynamicAlphabets_WriteAndNext:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_FillAndNext_Loop:
 	dec b
 	jr z,DynamicAlphabets_DecodeLiteralLengthDistanceCodeLengths
@@ -276,8 +273,8 @@ DynamicAlphabets_FillAndNext:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_WriteLength: REPT 16, ?value
 	ld (hl),?value
 	jp DynamicAlphabets_WriteAndNext
@@ -287,10 +284,10 @@ DynamicAlphabets_WriteLength: REPT 16, ?value
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_Copy:
-	call Reader_ReadBitsInline_2
+	call Reader_ReadBitsInline_2_IY
 	add a,3
 	ld b,a
 	dec hl
@@ -302,10 +299,10 @@ DynamicAlphabets_Copy:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_FillZero_3:
-	call Reader_ReadBitsInline_3
+	call Reader_ReadBitsInline_3_IY
 	add a,3
 	ld b,a
 	xor a
@@ -315,10 +312,10 @@ DynamicAlphabets_FillZero_3:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = reader
-; iy = header code alphabet root
+; ix = header code alphabet root
+; iy = reader
 DynamicAlphabets_FillZero_11:
-	call Reader_ReadBitsInline_7
+	call Reader_ReadBitsInline_7_IY
 	add a,11
 	ld b,a
 	xor a
