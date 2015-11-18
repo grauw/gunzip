@@ -10,8 +10,6 @@ WriterTest_TestCount: PROC
 	ld bc,256
 	call NullWriter_class.New
 	call NullWriter_Construct
-	push ix
-	pop iy
 
 	call Writer_GetCount
 	ld a,e
@@ -22,7 +20,7 @@ WriterTest_TestCount: PROC
 
 	ld b,58
 Loop1:
-	call Writer_Write_IY
+	call Writer_Write
 	djnz Loop1
 	call Writer_FinishBlock
 	call Writer_GetCount
@@ -36,7 +34,7 @@ Loop1:
 
 	ld b,200
 Loop2:
-	call Writer_Write_IY
+	call Writer_Write
 	djnz Loop2
 	call Writer_FinishBlock
 	call Writer_GetCount
