@@ -76,7 +76,7 @@ Writer_WriteInline_JumpHL: MACRO
 ; Modifies: hl
 Writer_Write: PROC
 	pop hl
-	jp ix
+	Writer_WriteInline_JumpHL
 Continue:
 	push af
 	ld a,(ix + Writer.bufferPosition + 1)
