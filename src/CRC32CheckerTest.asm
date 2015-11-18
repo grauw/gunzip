@@ -11,7 +11,6 @@ CRC32CheckerTest_TestCRC32: PROC
 	call NullWriter_class.New
 	call NullWriter_Construct
 	push ix
-	pop iy
 
 	call CRC32Checker_class.New
 	call CRC32Checker_Construct
@@ -21,23 +20,27 @@ CRC32CheckerTest_TestCRC32: PROC
 	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
+	ex (sp),ix
 	ld b,58
 Loop1:
 	ld a,b
-	call Writer_Write_IY
+	call Writer_Write
 	djnz Loop1
-	call Writer_FinishBlock_IY
+	call Writer_FinishBlock
+	ex (sp),ix
 	ld de,07364H
 	ld bc,0DAA8H
 	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
+	ex (sp),ix
 	ld b,200
 Loop2:
 	ld a,b
-	call Writer_Write_IY
+	call Writer_Write
 	djnz Loop2
-	call Writer_FinishBlock_IY
+	call Writer_FinishBlock
+	ex (sp),ix
 	ld de,04E96H
 	ld bc,02DA9H
 	call CRC32Checker_VerifyCRC32
@@ -46,7 +49,6 @@ Loop2:
 	call CRC32Checker_Destruct
 	call CRC32Checker_class.Delete
 
-	push iy
 	pop ix
 	call NullWriter_Destruct
 	call NullWriter_class.Delete
