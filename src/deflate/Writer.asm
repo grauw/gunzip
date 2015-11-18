@@ -72,6 +72,17 @@ Writer_WriteInline_JumpHL_IY: MACRO
 	ENDM
 
 ; a = value
+; ix = this
+; Modifies: hl
+Writer_Write:
+	push ix
+	ex (sp),iy
+	call Writer_Write_IY
+	ex (sp),iy
+	pop ix
+	ret
+
+; a = value
 ; iy = this
 ; Modifies: hl
 Writer_Write_IY: PROC

@@ -151,18 +151,18 @@ Reader_Skip_IY:
 	jr nz,Reader_Skip_IY
 	ret
 
-; ix = this
+; iy = this
 ; f <- c: bit
 ; Modifies: none
-Reader_ReadBit:
-	srl (ix + Reader.bits)
+Reader_ReadBit_IY:
+	srl (iy + Reader.bits)
 	ret nz  ; return if sentinel bit is still present
 	push bc
 	ld c,a
-	call Reader_Read
+	call Reader_Read_IY
 	scf  ; set sentinel bit
 	rra
-	ld (ix + Reader.bits),a
+	ld (iy + Reader.bits),a
 	ld a,c
 	pop bc
 	ret
@@ -337,14 +337,14 @@ Reader_ReadBitsInline_8:
 	ret
 
 ; b = nr of bits to read (1-8)
-; ix = this
+; iy = this
 ; a <- value
 ; Modifies: af, bc
-Reader_ReadBits: PROC
+Reader_ReadBits_IY: PROC
 	ld c,1
 	xor a
 Loop:
-	call Reader_ReadBit
+	call Reader_ReadBit_IY
 	jr nc,Zero
 	add a,c
 Zero:
@@ -353,18 +353,7 @@ Zero:
 	ret
 	ENDP
 
-; b = nr of bits to read (1-8)
 ; iy = this
-; a <- value
-; Modifies: af, bc
-Reader_ReadBits_IY:
-	push iy
-	ex (sp),ix
-	call Reader_ReadBits
-	pop ix
-	ret
-
-; ix = this
-Reader_Align:
-	ld (ix + Reader.bits),0
+Reader_Align_IY:
+	ld (iy + Reader.bits),0
 	ret

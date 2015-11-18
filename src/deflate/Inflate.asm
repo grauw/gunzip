@@ -48,7 +48,7 @@ Inflate_GetReader:
 
 ; ix = this
 ; de <- reader
-; ix <- reader
+; iy <- reader
 Inflate_GetReaderIY:
 	ld e,(ix + Inflate.reader)
 	ld d,(ix + Inflate.reader + 1)
@@ -68,15 +68,11 @@ Inflate_GetWriter:
 
 ; ix = this
 Inflate_Inflate:
-	push ix
-	call Inflate_GetReader
-	call Reader_ReadBit
-	pop hl
+	call Inflate_GetReaderIY
+	call Reader_ReadBit_IY
 	push af
-	push hl
 	ld b,2
-	call Reader_ReadBits
-	pop ix
+	call Reader_ReadBits_IY
 	call Inflate_InflateBlock
 	pop af
 	jp nc,Inflate_Inflate
@@ -99,18 +95,16 @@ Inflate_InflateBlock:
 
 ; ix = this
 Inflate_InflateUncompressed: PROC
-	push ix
-	call Inflate_GetReader
-	call Reader_Align
-	call Reader_Read
+	call Inflate_GetReaderIY
+	call Reader_Align_IY
+	call Reader_Read_IY
 	ld e,a
-	call Reader_Read
+	call Reader_Read_IY
 	ld d,a
-	call Reader_Read
+	call Reader_Read_IY
 	ld l,a
-	call Reader_Read
+	call Reader_Read_IY
 	ld h,a
-	pop ix
 	scf
 	adc hl,de
 	ld hl,Inflate_invalidLengthError
@@ -123,14 +117,10 @@ Inflate_InflateUncompressed: PROC
 	inc d
 	ld c,d
 	push ix
-	push ix
 	call Inflate_GetWriter
-	ex (sp),ix
-	call Inflate_GetReader
-	pop iy
 Loop:
-	call Reader_Read
-	call Writer_Write_IY
+	call Reader_Read_IY
+	call Writer_Write
 	djnz Loop
 	dec c
 	jp nz,Loop
