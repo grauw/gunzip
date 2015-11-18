@@ -57,23 +57,26 @@ Inflate_GetWriter:
 	ret
 
 ; ix = this
-Inflate_Inflate:
+Inflate_Inflate: PROC
 	call Inflate_GetReaderIY
+Loop:
 	call Reader_ReadBit_IY
 	push af
 	ld b,2
 	call Reader_ReadBits_IY
 	call Inflate_InflateBlock
 	pop af
-	jp nc,Inflate_Inflate
+	jp nc,Loop
 	push ix
 	call Inflate_GetWriter
 	call Writer_FinishBlock
 	pop ix
 	ret
+	ENDP
 
 ; a = block type
 ; ix = this
+; iy = reader
 Inflate_InflateBlock:
 	and a
 	jp z,Inflate_InflateUncompressed
@@ -84,8 +87,8 @@ Inflate_InflateBlock:
 	jp Application_TerminateWithError
 
 ; ix = this
+; iy = reader
 Inflate_InflateUncompressed: PROC
-	call Inflate_GetReaderIY
 	call Reader_Align_IY
 	call Reader_Read_IY
 	ld e,a
@@ -119,6 +122,7 @@ Loop:
 	ENDP
 
 ; ix = this
+; iy = reader
 Inflate_InflateFixedCompressed:
 	push ix
 	call FixedAlphabets_class.New
@@ -137,9 +141,9 @@ Inflate_InflateFixedCompressed:
 	ret
 
 ; ix = this
+; iy = reader
 Inflate_InflateDynamicCompressed:
 	push ix
-	call Inflate_GetReaderIY
 	call DynamicAlphabets_class.New
 	ld hl,Inflate_literalLengthSymbols
 	ld de,Inflate_distanceSymbols
@@ -158,12 +162,9 @@ Inflate_InflateDynamicCompressed:
 ; hl = literal/length alphabet root
 ; de = distance alphabet root
 ; ix = this
+; iy = reader
 Inflate_InflateCompressed:
 	push ix
-	ld c,(ix + Inflate.reader)
-	ld b,(ix + Inflate.reader + 1)
-	ld iyl,c
-	ld iyh,b
 	ld c,(ix + Inflate.writer)
 	ld b,(ix + Inflate.writer + 1)
 	ld ixl,c
