@@ -58,6 +58,17 @@ Reader_Construct:
 Reader_Destruct:
 	ret
 
+; iy = this
+; a <- value
+; Modifies: none
+Reader_Read_IY:
+	push iy
+	ex (sp),ix
+	call Reader_Read
+	ex (sp),ix
+	pop iy
+	ret
+
 ; ix = this
 ; a <- value
 ; Modifies: none
@@ -130,14 +141,14 @@ Reader_DefaultFiller:
 	ret
 
 ; bc = nr of bytes to skip
-; ix = this
+; iy = this
 ; Modifies: bc, a
-Reader_Skip:
-	call Reader_Read
+Reader_Skip_IY:
+	call Reader_Read_IY
 	dec bc
 	ld a,b
 	or c
-	jr nz,Reader_Skip
+	jr nz,Reader_Skip_IY
 	ret
 
 ; ix = this

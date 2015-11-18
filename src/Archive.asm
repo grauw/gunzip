@@ -55,12 +55,12 @@ Archive_Destruct:
 
 ; ix = this
 ; de <- file reader
-; ix <- file reader
-Archive_GetReader:
+; iy <- file reader
+Archive_GetReaderIY:
 	ld e,(ix + Archive.reader)
 	ld d,(ix + Archive.reader + 1)
-	ld ixl,e
-	ld ixh,d
+	ld iyl,e
+	ld iyh,d
 	ret
 
 ; ix = this
@@ -74,43 +74,34 @@ Archive_GetInflate:
 	ret
 
 ; ix = this
-; a <- value
-; Modifies: de
-Archive_Read:
-	push ix
-	call Archive_GetReader
-	call Reader_Read
-	pop ix
-	ret
-
-; ix = this
 Archive_ReadHeader:
-	call Archive_Read
+	call Archive_GetReaderIY
+	call Reader_Read_IY
 	cp Archive_SIGNATURE_1
 	ld hl,Archive_notGzipError
 	jp nz,Application_TerminateWithError
-	call Archive_Read
+	call Reader_Read_IY
 	cp Archive_SIGNATURE_2
 	ld hl,Archive_notGzipError
 	jp nz,Application_TerminateWithError
-	call Archive_Read
+	call Reader_Read_IY
 	cp Archive_DEFLATE_ID
 	ld hl,Archive_notDeflateError
 	jp nz,Application_TerminateWithError
 
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.flags),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.mtime),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.mtime + 1),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.mtime + 2),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.mtime + 3),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.xfl),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.os),a
 
 	ld a,(ix + Archive.flags)
@@ -137,21 +128,22 @@ Archive_ReadHeader:
 
 ; ix = this
 Archive_ReadFooter:
-	call Archive_Read
+	call Archive_GetReaderIY
+	call Reader_Read_IY
 	ld (ix + Archive.crc32),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.crc32 + 1),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.crc32 + 2),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.crc32 + 3),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.isize),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.isize + 1),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.isize + 2),a
-	call Archive_Read
+	call Reader_Read_IY
 	ld (ix + Archive.isize + 3),a
 	ret
 
@@ -244,34 +236,39 @@ Archive_Verify:
 
 ; ix = this
 Archive_SkipExtra:
-	call Archive_Read
+	call Archive_GetReaderIY
+	call Reader_Read_IY
 	ld c,a
-	call Archive_Read
+	call Reader_Read_IY
 	ld b,a
-	push ix
-	call Archive_GetReader
-	call Reader_Skip
-	pop ix
+	call Reader_Skip_IY
 	ret
 
 ; ix = this
-Archive_SkipName:
-	call Archive_Read
+Archive_SkipName: PROC
+	call Archive_GetReaderIY
+Loop:
+	call Reader_Read_IY
 	and a
-	jp nz,Archive_SkipName
+	jp nz,Loop
 	ret
+	ENDP
 
 ; ix = this
-Archive_SkipComment:
-	call Archive_Read
+Archive_SkipComment: PROC
+	call Archive_GetReaderIY
+Loop:
+	call Reader_Read_IY
 	and a
-	jp nz,Archive_SkipComment
+	jp nz,Loop
 	ret
+	ENDP
 
 ; ix = this
 Archive_SkipHeaderCRC:
-	call Archive_Read
-	call Archive_Read
+	call Archive_GetReaderIY
+	call Reader_Read_IY
+	call Reader_Read_IY
 	ret
 
 ; ix = this
