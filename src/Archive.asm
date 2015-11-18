@@ -189,8 +189,6 @@ Archive_DestroyInflate:
 Archive_CreateCRC32Checker:
 	push de
 	push ix
-	ld iyl,e
-	ld iyh,d
 	call CRC32Checker_class.New
 	call CRC32Checker_Construct
 	pop ix

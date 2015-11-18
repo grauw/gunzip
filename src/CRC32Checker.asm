@@ -19,11 +19,13 @@ CRC32Checker: MACRO
 CRC32Checker_class: Class CRC32Checker, CRC32Checker_template, Heap_main
 CRC32Checker_template: CRC32Checker
 
-; iy = writer
+; de = writer
 ; ix = this
 ; ix <- this
 ; de <- this
 CRC32Checker_Construct:
+	ld iyl,e
+	ld iyh,d
 	ld e,(iy + Writer.flusher)
 	ld d,(iy + Writer.flusher + 1)
 	ld (ix + CRC32Checker.Process_oldHook),e
