@@ -88,53 +88,44 @@ PendingFill:
 
 ; iy = this
 Reader_FinishBlock_IY:
-	push iy
-	ex (sp),ix
-	call Reader_FinishBlock
-	ex (sp),ix
-	pop iy
-	ret
-
-; ix = this
-Reader_FinishBlock:
 	push bc
 	push de
 	push hl
-	call Reader_FillBuffer
+	call Reader_FillBuffer_IY
 	pop hl
 	pop de
 	pop bc
-	ld a,(ix + Reader.bufferStart)
-	ld (ix + Reader.bufferPosition),a
-	ld a,(ix + Reader.bufferStart + 1)
-	ld (ix + Reader.bufferPosition + 1),a
+	ld a,(iy + Reader.bufferStart)
+	ld (iy + Reader.bufferPosition),a
+	ld a,(iy + Reader.bufferStart + 1)
+	ld (iy + Reader.bufferPosition + 1),a
 	ret
 
 ; The filler is called with de = buffer start, bc = byte count
-; ix = this
+; iy = this
 ; Modifies: af, bc, de, hl
-Reader_FillBuffer:
-	ld a,(ix + Reader.bufferPosition)
-	cp (ix + Reader.bufferEnd)
+Reader_FillBuffer_IY:
+	ld a,(iy + Reader.bufferPosition)
+	cp (iy + Reader.bufferEnd)
 	call nz,System_ThrowException
-	ld a,(ix + Reader.bufferPosition + 1)
-	cp (ix + Reader.bufferEnd + 1)
+	ld a,(iy + Reader.bufferPosition + 1)
+	cp (iy + Reader.bufferEnd + 1)
 	call nz,System_ThrowException
-	ld l,(ix + Reader.bufferPosition)
-	ld h,(ix + Reader.bufferPosition + 1)
-	ld e,(ix + Reader.bufferStart)
-	ld d,(ix + Reader.bufferStart + 1)
+	ld l,(iy + Reader.bufferPosition)
+	ld h,(iy + Reader.bufferPosition + 1)
+	ld e,(iy + Reader.bufferStart)
+	ld d,(iy + Reader.bufferStart + 1)
 	and a
 	sbc hl,de
 	ret z
 	call c,System_ThrowException
 	ld c,l
 	ld b,h
-	ld l,(ix + Reader.filler)
-	ld h,(ix + Reader.filler + 1)
+	ld l,(iy + Reader.filler)
+	ld h,(iy + Reader.filler + 1)
 	jp hl
 
-; ix = this
+; iy = this
 Reader_DefaultFiller:
 	ret
 

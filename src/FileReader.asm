@@ -25,8 +25,8 @@ FileReader_Construct:
 	call DOS_OpenFileHandle
 	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
-	ld (ix + FileReader.super.filler),FileReader_ReadFromFile & 0FFH
-	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile >> 8
+	ld (ix + FileReader.super.filler),FileReader_ReadFromFile_IY & 0FFH
+	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile_IY >> 8
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -42,13 +42,13 @@ FileReader_Destruct:
 
 ; bc = byte count
 ; de = buffer start
-; ix = this
+; iy = this
 ; Modifies: af, bc, de, hl
-FileReader_ReadFromFile:
+FileReader_ReadFromFile_IY:
 	push bc
 	call DOS_ConsoleStatus  ; allow ctrl-c
 	pop hl
-	ld b,(ix + FileReader.fileHandle)
+	ld b,(iy + FileReader.fileHandle)
 	call DOS_ReadFromFileHandle
 	call Application_CheckDOSError
 	call DOS_ConsoleStatus  ; allow ctrl-c
