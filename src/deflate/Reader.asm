@@ -18,7 +18,7 @@ Reader: MACRO
 	bufferEnd:
 		dw 0
 	filler:
-		dw Reader_DefaultFiller
+		dw System_ThrowException
 	fillPending:
 		db 0
 	bits:
@@ -31,6 +31,7 @@ Reader_template: Reader
 
 ; hl = buffer start
 ; bc = buffer size
+; de = buffer filler
 ; ix = this
 ; ix <- this
 ; de <- this
@@ -42,6 +43,8 @@ Reader_Construct:
 	ld (ix + Reader.bufferStart + 1),h
 	ld (ix + Reader.bufferSize),c
 	ld (ix + Reader.bufferSize + 1),b
+	ld (ix + Reader.filler),e
+	ld (ix + Reader.filler + 1),d
 	add hl,bc
 	ld (ix + Reader.bufferEnd),l
 	ld (ix + Reader.bufferEnd + 1),h

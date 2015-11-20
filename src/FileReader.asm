@@ -19,14 +19,13 @@ FileReader_template: FileReader
 ; de <- this
 FileReader_Construct:
 	push de
+	ld de,FileReader_ReadFromFile_IY
 	call Reader_Construct
 	pop de
 	ld a,00000001B  ; read only
 	call DOS_OpenFileHandle
 	call Application_CheckDOSError
 	ld (ix + FileReader.fileHandle),b
-	ld (ix + FileReader.super.filler),FileReader_ReadFromFile_IY & 0FFH
-	ld (ix + FileReader.super.filler + 1),FileReader_ReadFromFile_IY >> 8
 	ld e,ixl
 	ld d,ixh
 	ret

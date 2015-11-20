@@ -19,6 +19,7 @@ FileWriter_template: FileWriter
 ; de <- this
 FileWriter_Construct:
 	push de
+	ld de,FileWriter_WriteToFile
 	call Writer_Construct
 	pop de
 	ld a,00000010B  ; write only
@@ -26,8 +27,6 @@ FileWriter_Construct:
 	call DOS_CreateFileHandle
 	call Application_CheckDOSError
 	ld (ix + FileWriter.fileHandle),b
-	ld (ix + FileWriter.super.flusher),FileWriter_WriteToFile & 0FFH
-	ld (ix + FileWriter.super.flusher + 1),FileWriter_WriteToFile >> 8
 	ld e,ixl
 	ld d,ixh
 	ret

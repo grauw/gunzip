@@ -24,7 +24,7 @@ Writer: MACRO
 	bufferEndCopyMargin:
 		db 0
 	flusher:
-		dw Writer_DefaultFlusher
+		dw System_ThrowException
 	count:
 		dd 0
 	_size:
@@ -35,6 +35,7 @@ Writer_template: Writer
 
 ; hl = buffer start
 ; bc = buffer size
+; de = buffer flusher
 ; ix = this
 ; ix <- this
 ; de <- this
@@ -46,6 +47,8 @@ Writer_Construct:
 	ld (ix + Writer.bufferStart + 1),h
 	ld (ix + Writer.bufferSize),c
 	ld (ix + Writer.bufferSize + 1),b
+	ld (ix + Writer.flusher),e
+	ld (ix + Writer.flusher + 1),d
 	ld (ix + Writer.bufferPosition),l
 	ld (ix + Writer.bufferPosition + 1),h
 	add hl,bc

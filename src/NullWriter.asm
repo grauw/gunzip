@@ -15,9 +15,8 @@ NullWriter_template: NullWriter
 ; ix <- this
 ; de <- this
 NullWriter_Construct:
+	ld de,NullWriter_Flush
 	call Writer_Construct
-	ld (ix + FileWriter.super.flusher),NullWriter_Flush & 0FFH
-	ld (ix + FileWriter.super.flusher + 1),NullWriter_Flush >> 8
 	ret
 
 ; ix = this

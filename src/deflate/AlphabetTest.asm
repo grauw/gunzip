@@ -35,6 +35,7 @@ AlphabetTest_TestTreeBuilding: PROC
 	ldir
 	ld hl,READBUFFER
 	ld bc,READBUFFER_SIZE
+	ld de,Reader_DefaultFiller
 	call Reader_class.New
 	call Reader_Construct
 	ex (sp),ix
