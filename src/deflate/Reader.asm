@@ -132,6 +132,28 @@ Reader_FillBuffer_IY:
 Reader_DefaultFiller:
 	ret
 
+; iy = this
+; de <- value
+Reader_ReadWord_IY:
+	call Reader_Read_IY
+	ld e,a
+	call Reader_Read_IY
+	ld d,a
+	ret
+
+; iy = this
+; dehl <- value
+Reader_ReadDoubleWord_IY:
+	call Reader_Read_IY
+	ld l,a
+	call Reader_Read_IY
+	ld h,a
+	call Reader_Read_IY
+	ld e,a
+	call Reader_Read_IY
+	ld d,a
+	ret
+
 ; bc = byte count requested
 ; iy = this
 ; bc <- byte count (<= bytes requested)

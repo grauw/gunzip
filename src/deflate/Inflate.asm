@@ -90,14 +90,10 @@ Inflate_InflateBlock:
 ; iy = reader
 Inflate_InflateUncompressed: PROC
 	call Reader_Align_IY
-	call Reader_Read_IY
-	ld e,a
-	call Reader_Read_IY
-	ld d,a
-	call Reader_Read_IY
-	ld l,a
-	call Reader_Read_IY
-	ld h,a
+	call Reader_ReadWord_IY
+	ex de,hl
+	call Reader_ReadWord_IY
+	ex de,hl
 	scf
 	adc hl,de
 	ld hl,Inflate_invalidLengthError

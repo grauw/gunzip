@@ -91,14 +91,11 @@ Archive_ReadHeader:
 
 	call Reader_Read_IY
 	ld (ix + Archive.flags),a
-	call Reader_Read_IY
-	ld (ix + Archive.mtime),a
-	call Reader_Read_IY
-	ld (ix + Archive.mtime + 1),a
-	call Reader_Read_IY
-	ld (ix + Archive.mtime + 2),a
-	call Reader_Read_IY
-	ld (ix + Archive.mtime + 3),a
+	call Reader_ReadDoubleWord_IY
+	ld (ix + Archive.mtime),l
+	ld (ix + Archive.mtime + 1),h
+	ld (ix + Archive.mtime + 2),e
+	ld (ix + Archive.mtime + 3),d
 	call Reader_Read_IY
 	ld (ix + Archive.xfl),a
 	call Reader_Read_IY
@@ -129,22 +126,16 @@ Archive_ReadHeader:
 ; ix = this
 Archive_ReadFooter:
 	call Archive_GetReaderIY
-	call Reader_Read_IY
-	ld (ix + Archive.crc32),a
-	call Reader_Read_IY
-	ld (ix + Archive.crc32 + 1),a
-	call Reader_Read_IY
-	ld (ix + Archive.crc32 + 2),a
-	call Reader_Read_IY
-	ld (ix + Archive.crc32 + 3),a
-	call Reader_Read_IY
-	ld (ix + Archive.isize),a
-	call Reader_Read_IY
-	ld (ix + Archive.isize + 1),a
-	call Reader_Read_IY
-	ld (ix + Archive.isize + 2),a
-	call Reader_Read_IY
-	ld (ix + Archive.isize + 3),a
+	call Reader_ReadDoubleWord_IY
+	ld (ix + Archive.crc32),l
+	ld (ix + Archive.crc32 + 1),h
+	ld (ix + Archive.crc32 + 2),e
+	ld (ix + Archive.crc32 + 3),d
+	call Reader_ReadDoubleWord_IY
+	ld (ix + Archive.isize),l
+	ld (ix + Archive.isize + 1),h
+	ld (ix + Archive.isize + 2),e
+	ld (ix + Archive.isize + 3),d
 	ret
 
 ; f = z: enable CRC32 check
@@ -235,10 +226,9 @@ Archive_Verify:
 ; ix = this
 Archive_SkipExtra:
 	call Archive_GetReaderIY
-	call Reader_Read_IY
-	ld c,a
-	call Reader_Read_IY
-	ld b,a
+	call Reader_ReadWord_IY
+	ld c,e
+	ld b,d
 	call Reader_Skip_IY
 	ret
 
@@ -265,8 +255,7 @@ Loop:
 ; ix = this
 Archive_SkipHeaderCRC:
 	call Archive_GetReaderIY
-	call Reader_Read_IY
-	call Reader_Read_IY
+	call Reader_ReadWord_IY
 	ret
 
 ; ix = this
