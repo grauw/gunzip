@@ -173,7 +173,7 @@ Writer_WriteBlock: PROC
 	and a
 	sbc hl,bc
 	ex de,hl
-	ldir
+	call System_FastLDIR
 	ld (ix + Writer.bufferPosition),e
 	ld (ix + Writer.bufferPosition + 1),d
 	ret
@@ -193,7 +193,7 @@ Split:
 	ex de,hl
 	ld e,(ix + Writer.bufferPosition)
 	ld d,(ix + Writer.bufferPosition + 1)
-	ldir
+	call System_FastLDIR
 	ld (ix + Writer.bufferPosition),e
 	ld (ix + Writer.bufferPosition + 1),d
 	call Writer_FinishBlock
