@@ -207,6 +207,29 @@ Split:
 	ret
 	ENDP
 
+; bc = byte count
+; ix = this
+; iy = reader
+Writer_CopyFromReader: PROC
+Loop:
+	ld a,c
+	or b
+	ret z
+	push bc
+	call Reader_ReadBlockFromBuffer_IY
+	push bc
+	ex de,hl
+	call Writer_WriteBlock
+	pop bc
+	pop hl
+	and a
+	sbc hl,bc
+	call c,System_ThrowException
+	ld c,l
+	ld b,h
+	jp Loop
+	ENDP
+
 ; ix = this
 ; hl <- buffer position
 ; Modifies: af

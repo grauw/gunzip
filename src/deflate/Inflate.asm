@@ -88,34 +88,25 @@ Inflate_InflateBlock:
 
 ; ix = this
 ; iy = reader
-Inflate_InflateUncompressed: PROC
+Inflate_InflateUncompressed:
 	call Reader_Align_IY
 	call Reader_ReadWord_IY
-	ex de,hl
+	ld c,e
+	ld b,d
 	call Reader_ReadWord_IY
 	ex de,hl
 	scf
-	adc hl,de
+	adc hl,bc
 	ld hl,Inflate_invalidLengthError
 	jp nz,Application_TerminateWithError
-	ld a,d
-	or e
+	ld a,c
+	or b
 	ret z
-	ld b,e
-	dec de
-	inc d
-	ld c,d
 	push ix
 	call Inflate_GetWriter
-Loop:
-	call Reader_Read_IY
-	call Writer_Write
-	djnz Loop
-	dec c
-	jp nz,Loop
+	call Writer_CopyFromReader
 	pop ix
 	ret
-	ENDP
 
 ; ix = this
 ; iy = reader
