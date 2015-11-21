@@ -185,12 +185,18 @@ Reader_FillIfNeeded:
 ; iy = this
 ; Modifies: bc, a
 Reader_Skip_IY:
-	call Reader_Read_IY
-	dec bc
-	ld a,b
+	ld a,c
 	or c
-	jr nz,Reader_Skip_IY
-	ret
+	ret z
+	push bc
+	call Reader_ReadBlockFromBuffer_IY
+	pop hl
+	and a
+	sbc hl,bc
+	call c,System_ThrowException
+	ld c,l
+	ld b,h
+	jp Reader_Skip_IY
 
 ; iy = this
 ; f <- c: bit
