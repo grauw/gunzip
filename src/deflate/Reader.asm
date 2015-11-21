@@ -183,7 +183,7 @@ Reader_FillIfNeeded:
 
 ; bc = nr of bytes to skip
 ; iy = this
-; Modifies: bc, a
+; Modifies: a, bc, hl
 Reader_Skip_IY: PROC
 Loop:
 	ld a,c
