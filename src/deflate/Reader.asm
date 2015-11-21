@@ -160,7 +160,7 @@ Reader_ReadDoubleWord_IY:
 ; hl <- source address
 ; Modifies: af
 Reader_ReadBlockFromBuffer_IY: PROC
-	call Reader_FillIfNeeded
+	call Reader_FillIfNeeded_IY
 	ld l,(iy + Reader.bufferPosition)
 	ld h,(iy + Reader.bufferPosition + 1)
 	push hl
@@ -195,7 +195,7 @@ Overflow:
 	ENDP
 
 ; iy = this
-Reader_FillIfNeeded:
+Reader_FillIfNeeded_IY:
 	bit 0,(iy + Reader.fillPending)
 	ret z
 	ld (iy + Reader.fillPending),0
