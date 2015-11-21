@@ -132,6 +132,55 @@ Reader_FillBuffer_IY:
 Reader_DefaultFiller:
 	ret
 
+; bc = byte count requested
+; iy = this
+; bc <- byte count (<= bytes requested)
+; hl <- source address
+; Modifies: af
+Reader_ReadBlockFromBuffer_IY: PROC
+	call Reader_FillIfNeeded
+	ld l,(iy + Reader.bufferPosition)
+	ld h,(iy + Reader.bufferPosition + 1)
+	push hl
+	add hl,bc
+	jr c,Overflow
+	ld a,h
+	cp (iy + Reader.bufferEnd + 1)
+	jr nc,Overflow
+	ld (iy + Reader.bufferPosition),l
+	ld (iy + Reader.bufferPosition + 1),h
+	pop hl
+	ret
+Overflow:
+	and a
+	pop bc
+	ld l,(iy + Reader.bufferEnd)
+	ld h,(iy + Reader.bufferEnd + 1)
+	dec hl
+	ld (iy + Reader.bufferPosition),l
+	ld (iy + Reader.bufferPosition + 1),h
+	ld (iy + Reader.fillPending),-1
+	inc hl
+	and a
+	sbc hl,bc
+	ld a,l
+	ld l,c
+	ld c,a
+	ld a,h
+	ld h,b
+	ld b,a
+	ret
+	ENDP
+
+; iy = this
+Reader_FillIfNeeded:
+	bit 0,(iy + MappedReader.super.fillPending)
+	ret z
+	inc (iy + MappedReader.super.bufferPosition)
+	inc (iy + MappedReader.super.bufferPosition + 1)
+	call Reader_FinishBlock_IY
+	ret
+
 ; bc = nr of bytes to skip
 ; iy = this
 ; Modifies: bc, a
