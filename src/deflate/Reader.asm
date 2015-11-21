@@ -186,7 +186,7 @@ Reader_FillIfNeeded:
 ; Modifies: bc, a
 Reader_Skip_IY:
 	ld a,c
-	or c
+	or b
 	ret z
 	push bc
 	call Reader_ReadBlockFromBuffer_IY
