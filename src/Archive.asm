@@ -112,11 +112,11 @@ Archive_ReadHeader:
 
 	ld a,(ix + Archive.flags)
 	and Archive_FNAME
-	call nz,Archive_SkipName
+	call nz,Archive_SkipASCIIZ
 
 	ld a,(ix + Archive.flags)
 	and Archive_FCOMMENT
-	call nz,Archive_SkipComment
+	call nz,Archive_SkipASCIIZ
 
 	ld a,(ix + Archive.flags)
 	and Archive_FHCRC
@@ -233,17 +233,7 @@ Archive_SkipExtra:
 	ret
 
 ; ix = this
-Archive_SkipName: PROC
-	call Archive_GetReaderIY
-Loop:
-	call Reader_Read_IY
-	and a
-	jp nz,Loop
-	ret
-	ENDP
-
-; ix = this
-Archive_SkipComment: PROC
+Archive_SkipASCIIZ: PROC
 	call Archive_GetReaderIY
 Loop:
 	call Reader_Read_IY
