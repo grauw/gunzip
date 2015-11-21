@@ -184,7 +184,8 @@ Reader_FillIfNeeded:
 ; bc = nr of bytes to skip
 ; iy = this
 ; Modifies: bc, a
-Reader_Skip_IY:
+Reader_Skip_IY: PROC
+Loop:
 	ld a,c
 	or b
 	ret z
@@ -196,7 +197,8 @@ Reader_Skip_IY:
 	call c,System_ThrowException
 	ld c,l
 	ld b,h
-	jp Reader_Skip_IY
+	jp Loop
+	ENDP
 
 ; iy = this
 ; f <- c: bit
