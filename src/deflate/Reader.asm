@@ -198,6 +198,7 @@ Overflow:
 Reader_FillIfNeeded:
 	bit 0,(iy + Reader.fillPending)
 	ret z
+	ld (iy + Reader.fillPending),0
 	inc (iy + Reader.bufferPosition)
 	inc (iy + Reader.bufferPosition + 1)
 	call Reader_FinishBlock_IY
