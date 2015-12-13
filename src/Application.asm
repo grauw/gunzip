@@ -116,16 +116,15 @@ Application_InflateToFile:
 	call Application_CreateFileReader
 	push de
 	call Application_ReadOutputSize
+	call Application_IsFast
+	cpl
 	push ix
 	call Archive_class.New
 	call Archive_Construct
 
 	ex (sp),ix
-	call Application_IsFast
-	push af
 	call Application_CreateFileWriter
 	call Application_PreAllocateOutput
-	pop af
 	pop ix
 	push de
 	call Archive_Extract
@@ -148,15 +147,14 @@ Application_InflateTest:
 	call Application_PrintTesting
 	call Application_CreateFileReader
 	push de
+	call Application_IsFast
+	cpl
 	push ix
 	call Archive_class.New
 	call Archive_Construct
 
 	ex (sp),ix
-	call Application_IsFast
-	push af
 	call Application_CreateNullWriter
-	pop af
 	pop ix
 	push de
 	call Archive_Extract
@@ -225,12 +223,12 @@ Application_IsQuiet:
 	ret
 
 ; ix = this
-; f <- nz: fast
+; a <- -1: fast
 Application_IsFast:
 	push de
 	push ix
 	call Application_GetCLI
-	bit 0,(ix + CLI.fast)
+	ld a,(ix + CLI.fast)
 	pop ix
 	pop de
 	ret

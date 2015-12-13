@@ -16,6 +16,8 @@ Archive: MACRO
 		dw 0
 	inflate:
 		dw 0
+	crc32CheckEnabled:
+		db 0
 	crc32Checker:
 		dw 0
 	flags:
@@ -36,6 +38,7 @@ Archive: MACRO
 Archive_class: Class Archive, Archive_template, Heap_main
 Archive_template: Archive
 
+; a = -1: CRC32 check enabled, 0: disabled
 ; de = reader
 ; ix = this
 ; ix <- this
@@ -43,6 +46,7 @@ Archive_template: Archive
 Archive_Construct:
 	ld (ix + Archive.reader),e
 	ld (ix + Archive.reader + 1),d
+	ld (ix + Archive.crc32CheckEnabled),a
 	call Archive_ReadHeader
 	ld e,ixl
 	ld d,ixh
@@ -138,17 +142,18 @@ Archive_ReadFooter:
 	ld (ix + Archive.isize + 3),d
 	ret
 
-; f = z: enable CRC32 check
 ; de = writer (min 32K)
 ; ix = this
 Archive_Extract:
-	call z,Archive_CreateCRC32Checker
+	bit 0,(ix + Archive.crc32CheckEnabled)
+	call nz,Archive_CreateCRC32Checker
 	call Archive_CreateInflate
 	call Archive_Inflate
 	call Archive_ReadFooter
 	call Archive_Verify
 	call Archive_DestroyInflate
-	call Archive_DestroyCRC32Checker
+	bit 0,(ix + Archive.crc32CheckEnabled)
+	call nz,Archive_DestroyCRC32Checker
 	ret
 
 ; de = writer (min 32K)
@@ -193,9 +198,6 @@ Archive_CreateCRC32Checker:
 Archive_DestroyCRC32Checker:
 	ld e,(ix + Archive.crc32Checker)
 	ld d,(ix + Archive.crc32Checker + 1)
-	ld a,e
-	or d
-	ret z
 	push ix
 	ld ixl,e
 	ld ixh,d
@@ -272,11 +274,10 @@ Archive_VerifyISIZE:
 ; ix = this
 ; f <- nz: mismatch
 Archive_VerifyCRC32:
+	bit 0,(ix + Archive.crc32CheckEnabled)
+	ret z
 	ld e,(ix + Archive.crc32Checker)
 	ld d,(ix + Archive.crc32Checker + 1)
-	ld a,e
-	or d
-	ret z
 	push de
 	ld e,(ix + Archive.crc32)
 	ld d,(ix + Archive.crc32 + 1)
