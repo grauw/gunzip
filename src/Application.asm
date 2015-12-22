@@ -111,8 +111,8 @@ Application_Inflate:
 
 ; ix = this
 Application_InflateToFile:
-	push ix
 	call Application_PrintInflating
+	push ix
 	call Application_CreateFileReader
 	push de
 	call Application_ReadOutputSize
@@ -143,8 +143,8 @@ Application_InflateToFile:
 
 ; ix = this
 Application_InflateTest:
-	push ix
 	call Application_PrintTesting
+	push ix
 	call Application_CreateFileReader
 	push de
 	call Application_IsFast
