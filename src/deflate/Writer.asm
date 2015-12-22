@@ -216,7 +216,7 @@ Loop:
 	or b
 	ret z
 	push bc
-	call Reader_ReadBlockFromBuffer_IY
+	call Reader_ReadBlockDirect_IY
 	push bc
 	ex de,hl
 	call Writer_WriteBlock

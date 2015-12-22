@@ -154,12 +154,13 @@ Reader_ReadDoubleWord_IY:
 	ld d,a
 	ret
 
+; Read block directly from buffer
 ; bc = byte count requested
 ; iy = this
 ; bc <- byte count (<= bytes requested)
 ; hl <- source address
 ; Modifies: af
-Reader_ReadBlockFromBuffer_IY: PROC
+Reader_ReadBlockDirect_IY: PROC
 	call Reader_FillIfNeeded_IY
 	ld l,(iy + Reader.bufferPosition)
 	ld h,(iy + Reader.bufferPosition + 1)
@@ -213,7 +214,7 @@ Loop:
 	or b
 	ret z
 	push bc
-	call Reader_ReadBlockFromBuffer_IY
+	call Reader_ReadBlockDirect_IY
 	pop hl
 	and a
 	sbc hl,bc
