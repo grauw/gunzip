@@ -25,6 +25,8 @@ NullWriter_Destruct:
 	call Writer_Destruct
 	ret
 
+; bc = byte count
+; de = buffer start
 ; ix = this
 NullWriter_Flush:
 	call DOS_ConsoleStatus  ; allow ctrl-c
