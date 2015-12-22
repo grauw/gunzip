@@ -279,7 +279,7 @@ Application_CreateFileWriter:
 	ret
 
 ; ix = this
-; de <- file writer
+; de <- null writer
 Application_CreateNullWriter:
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
