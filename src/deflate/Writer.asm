@@ -207,6 +207,49 @@ Split:
 	ret
 	ENDP
 
+; Write block directly into buffer
+; Afterwards, invoke Advance with the nr of bytes actually written
+; ix = this
+; bc <- max bytes to write
+; de <- destination
+; Modifies: af
+Writer_WriteBlockDirect:
+	ld e,(ix + Writer.bufferPosition)
+	ld d,(ix + Writer.bufferPosition + 1)
+	ld a,e
+	neg
+	ld c,a
+	ld a,(ix + Writer.bufferEnd + 1)
+	sbc a,d
+	ld b,a
+	ret
+
+; bc = nr of bytes to advance
+; ix = this
+; Modifies: af, bc, hl
+Writer_Advance: PROC
+	ld l,(ix + Writer.bufferPosition)
+	ld h,(ix + Writer.bufferPosition + 1)
+	add hl,bc
+	ld b,(ix + Writer.bufferEnd + 1)
+	jr c,Overflow
+	ld a,h
+	cp b
+	jr nc,Overflow
+	ld (ix + Writer.bufferPosition),l
+	ld (ix + Writer.bufferPosition + 1),h
+	ret
+Overflow:
+	ld c,0
+	ld (ix + Writer.bufferPosition),c
+	ld (ix + Writer.bufferPosition + 1),b
+	call Writer_FinishBlock
+	and a
+	sbc hl,bc
+	jr nz,Writer_Advance
+	ret
+	ENDP
+
 ; bc = byte count
 ; ix = this
 ; iy = reader
