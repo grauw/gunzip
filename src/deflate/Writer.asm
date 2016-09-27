@@ -124,7 +124,6 @@ Wrap:
 
 ; bc = byte count
 ; hl = buffer source
-; de = buffer destination
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_Copy_Slow: PROC
