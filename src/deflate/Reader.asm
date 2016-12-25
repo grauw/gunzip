@@ -104,7 +104,7 @@ Reader_FinishBlock_IY:
 	ld (iy + Reader.bufferPosition + 1),a
 	ret
 
-; The filler is called with de = buffer start, bc = byte count
+; The filler is called with bc = byte count, de = buffer start
 ; iy = this
 ; Modifies: af, bc, de, hl
 Reader_FillBuffer_IY:
@@ -128,6 +128,8 @@ Reader_FillBuffer_IY:
 	ld h,(iy + Reader.filler + 1)
 	jp hl
 
+; bc = byte count
+; de = buffer start
 ; iy = this
 Reader_DefaultFiller:
 	ret

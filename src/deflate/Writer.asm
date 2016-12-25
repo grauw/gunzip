@@ -306,7 +306,7 @@ Empty:
 	ret
 	ENDP
 
-; The flusher is called with de = buffer start, bc = byte count
+; The flusher is called with bc = byte count, de = buffer start
 ; ix = this
 ; Modifies: af, bc, de, hl
 Writer_FlushBuffer:
@@ -314,6 +314,8 @@ Writer_FlushBuffer:
 	ld h,(ix + Writer.flusher + 1)
 	jp hl
 
+; bc = byte count
+; de = buffer start
 ; ix = this
 Writer_DefaultFlusher:
 	ret
