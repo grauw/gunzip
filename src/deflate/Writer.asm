@@ -76,7 +76,7 @@ Writer_WriteInline_JumpHL: MACRO
 
 ; a = value
 ; ix = this
-; Modifies: hl
+; Modifies: f, hl
 Writer_Write: PROC
 	pop hl
 	Writer_WriteInline_JumpHL

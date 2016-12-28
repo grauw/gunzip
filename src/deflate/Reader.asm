@@ -63,7 +63,7 @@ Reader_Destruct:
 
 ; iy = this
 ; a <- value
-; Modifies: none
+; Modifies: f
 Reader_Read_IY: PROC
 	jp iy
 Continue:
@@ -209,7 +209,7 @@ Reader_FillIfNeeded_IY:
 
 ; bc = nr of bytes to skip
 ; iy = this
-; Modifies: a, bc, hl
+; Modifies: af, bc, hl
 Reader_Skip_IY: PROC
 Loop:
 	ld a,c
