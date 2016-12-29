@@ -144,6 +144,15 @@ Reader_ReadWord_IY:
 	ret
 
 ; iy = this
+; de <- value
+Reader_ReadWordBE_IY:
+	call Reader_Read_IY
+	ld d,a
+	call Reader_Read_IY
+	ld e,a
+	ret
+
+; iy = this
 ; dehl <- value
 Reader_ReadDoubleWord_IY:
 	call Reader_Read_IY
@@ -154,6 +163,19 @@ Reader_ReadDoubleWord_IY:
 	ld e,a
 	call Reader_Read_IY
 	ld d,a
+	ret
+
+; iy = reader
+; dehl <- value
+Reader_ReadDoubleWordBE_IY:
+	call Reader_Read_IY
+	ld d,a
+	call Reader_Read_IY
+	ld e,a
+	call Reader_Read_IY
+	ld h,a
+	call Reader_Read_IY
+	ld l,a
 	ret
 
 ; Read block directly from buffer
