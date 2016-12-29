@@ -39,9 +39,7 @@ DynamicAlphabets_Construct:
 	push hl
 	call DynamicAlphabets_ReadLengths
 	call DynamicAlphabets_ReadHeaderCodeLengths
-	push iy
 	call DynamicAlphabets_ConstructHeaderCodeAlphabet
-	pop iy
 	call DynamicAlphabets_ReadLiteralLengthDistanceCodeLengths
 	call DynamicAlphabets_DestructHeaderCodeAlphabet
 	pop hl
