@@ -248,6 +248,26 @@ Loop:
 	jp Loop
 	ENDP
 
+; debc = nr of bytes to skip
+; iy = this
+; Modifies: af, bc, hl
+Reader_Skip32_IY: PROC
+	ld a,c
+	or b
+	call nz,Reader_Skip_IY
+	inc de
+Loop:
+	dec de
+	ld a,e
+	or d
+	ret z
+	ld bc,8000H
+	call Reader_Skip_IY
+	ld bc,8000H
+	call Reader_Skip_IY
+	jp Loop
+	ENDP
+
 ; iy = this
 ; f <- c: bit
 ; Modifies: none
