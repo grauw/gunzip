@@ -83,15 +83,15 @@ Archive_ReadHeader:
 	call Reader_Read_IY
 	cp Archive_SIGNATURE_1
 	ld hl,Archive_notGzipError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 	call Reader_Read_IY
 	cp Archive_SIGNATURE_2
 	ld hl,Archive_notGzipError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 	call Reader_Read_IY
 	cp Archive_DEFLATE_ID
 	ld hl,Archive_notDeflateError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 
 	call Reader_Read_IY
 	ld (ix + Archive.flags),a
@@ -108,7 +108,7 @@ Archive_ReadHeader:
 	ld a,(ix + Archive.flags)
 	and Archive_RESERVED
 	ld hl,Archive_unknownFlagError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 
 	ld a,(ix + Archive.flags)
 	and Archive_FEXTRA
@@ -218,11 +218,11 @@ Archive_Inflate:
 Archive_Verify:
 	call Archive_VerifyISIZE
 	ld hl,Archive_isizeMismatchError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 
 	call Archive_VerifyCRC32
 	ld hl,Archive_crc32MismatchError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 	ret
 
 ; ix = this

@@ -1,7 +1,7 @@
 all:
 	mkdir -p gen bin
 	node tools/gencrctable.js > gen/crctable.asm
-	java -jar tools/glass.jar -I gen src/COM.asm bin/gunzip.com bin/gunzip.sym
+	java -jar tools/glass.jar -I gen -I lib/neonlib/src src/COM.asm bin/gunzip.com bin/gunzip.sym
 
 dist: all
 	cp README.md CHANGES.md LICENSE bin/

@@ -83,7 +83,7 @@ CLI_ParseOption: PROC
 	cp "F"
 	jr z,OptionFast
 	ld hl,CLI_unknownOptionError
-	jp Application_TerminateWithError
+	jp System_TerminateWithError
 OptionQuiet:
 	ld (ix + CLI.quiet),-1
 	inc de
@@ -99,7 +99,7 @@ Next:
 	cp " "
 	ret z
 	ld hl,CLI_unknownOptionError
-	jp Application_TerminateWithError
+	jp System_TerminateWithError
 	ENDP
 
 ; de = buffer position
@@ -124,7 +124,7 @@ OutputPath:
 	ld a,(ix + CLI.outputPath)
 	or (ix + CLI.outputPath + 1)
 	ld hl,CLI_multiplePathsError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 	ld (ix + CLI.outputPath),e
 	ld (ix + CLI.outputPath + 1),d
 	jp Continue

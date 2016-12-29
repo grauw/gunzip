@@ -15,6 +15,7 @@ STACK_SIZE: equ 100H
 
 TPA: ds 2C00H
 RAM: ds 0100H
+RAM_RESIDENT: equ RAM
 READBUFFER: ds VIRTUAL READBUFFER_SIZE
 WRITEBUFFER: ds VIRTUAL WRITEBUFFER_SIZE
 HEAP: ds VIRTUAL HEAP_SIZE
@@ -42,9 +43,9 @@ COM_Main:
 	INCLUDE "deflate/Branch.asm"
 	INCLUDE "deflate/FixedAlphabets.asm"
 	INCLUDE "deflate/DynamicAlphabets.asm"
-	INCLUDE "deflate/Reader.asm"
-	INCLUDE "deflate/Writer.asm"
-	INCLUDE "deflate/WriterTest.asm"
+	INCLUDE "Reader.asm"
+	INCLUDE "Writer.asm"
+	INCLUDE "WriterTest.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "FileWriter.asm"
 	INCLUDE "NullWriter.asm"

@@ -84,7 +84,7 @@ Inflate_InflateBlock:
 	jp c,Inflate_InflateFixedCompressed
 	jp z,Inflate_InflateDynamicCompressed
 	ld hl,Inflate_invalidBlockTypeError
-	jp Application_TerminateWithError
+	jp System_TerminateWithError
 
 ; ix = this
 ; iy = reader
@@ -98,7 +98,7 @@ Inflate_InflateUncompressed:
 	scf
 	adc hl,bc
 	ld hl,Inflate_invalidLengthError
-	jp nz,Application_TerminateWithError
+	jp nz,System_TerminateWithError
 	ld a,c
 	or b
 	ret z

@@ -14,9 +14,12 @@ Application_template: Application
 
 ;
 Application_Main:
+	ld hl,DOS_Terminate
+	call System_SetTerminateHandler
+
 	call DOS_IsDOS2
 	ld hl,Application_dos2RequiredError
-	jp c,Application_TerminateWithError
+	jp c,System_TerminateWithError
 
 	call Application_CheckStack
 
@@ -99,7 +102,7 @@ Application_ParseCLI:
 	ld a,l
 	or h
 	ld hl,Application_usageInstructions
-	jp z,Application_TerminateWithError
+	jp z,System_TerminateWithError
 	pop ix
 	ret
 
@@ -370,10 +373,10 @@ Application_CheckStack:
 	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
 	add hl,sp
 	ld hl,Application_insufficientTPAError
-	jp nc,Application_TerminateWithError
+	jp nc,System_TerminateWithError
 	ret
 
-; a <- DOS error code
+; a = DOS error code
 Application_CheckDOSError:
 	and a
 	ret z
@@ -384,12 +387,7 @@ Application_TerminateWithDOSError:
 	ld hl,Application_explainBuffer
 	call System_Print
 	call System_PrintCrLf
-	jp DOS_Terminate
-
-; hl <- message
-Application_TerminateWithError:
-	call System_Print
-	jp DOS_Terminate
+	jp System_TerminateWithError
 
 ;
 Application_welcome:
