@@ -273,7 +273,6 @@ TrapEmptyTree:
 ; c = code length
 ; de = tree position
 ; hl = sorted (code length, symbol) list pointer
-; iy = current branch
 ; ix = this
 Alphabet_BuildBranch:
 	push iy
