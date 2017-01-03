@@ -122,22 +122,22 @@ Application_InflateToFile:
 	call Application_IsFast
 	cpl
 	push ix
-	call Archive_class.New
-	call Archive_Construct
+	call GzipArchive_class.New
+	call GzipArchive_Construct
 
 	ex (sp),ix
 	call Application_CreateFileWriter
 	call Application_PreAllocateOutput
 	pop ix
 	push de
-	call Archive_Extract
+	call GzipArchive_Extract
 
 	ex (sp),ix
 	call FileWriter_Destruct
 	call FileWriter_class.Delete
 	pop ix
-	call Archive_Destruct
-	call Archive_class.Delete
+	call GzipArchive_Destruct
+	call GzipArchive_class.Delete
 	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete
@@ -153,21 +153,21 @@ Application_InflateTest:
 	call Application_IsFast
 	cpl
 	push ix
-	call Archive_class.New
-	call Archive_Construct
+	call GzipArchive_class.New
+	call GzipArchive_Construct
 
 	ex (sp),ix
 	call Application_CreateNullWriter
 	pop ix
 	push de
-	call Archive_Extract
+	call GzipArchive_Extract
 
 	ex (sp),ix
 	call NullWriter_Destruct
 	call NullWriter_class.Delete
 	pop ix
-	call Archive_Destruct
-	call Archive_class.Delete
+	call GzipArchive_Destruct
+	call GzipArchive_class.Delete
 	pop ix
 	call FileReader_Destruct
 	call FileReader_class.Delete

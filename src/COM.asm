@@ -36,7 +36,7 @@ COM_Main:
 	INCLUDE "Class.asm"
 	INCLUDE "Application.asm"
 	INCLUDE "CLI.asm"
-	INCLUDE "Archive.asm"
+	INCLUDE "GzipArchive.asm"
 	INCLUDE "deflate/Inflate.asm"
 	INCLUDE "deflate/Alphabet.asm"
 	INCLUDE "deflate/AlphabetTest.asm"
