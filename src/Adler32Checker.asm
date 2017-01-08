@@ -125,17 +125,17 @@ Loop:
 	ret
 	ENDP
 
-; ?hl = addend
-; ?de = addend
+; ?hl = addend (< ?modulo)
+; ?de = addend (< ?modulo)
 ; ?modulo = modulo value
 ; Modifies: ?de
 AddModulo: MACRO ?hl, ?de, ?modulo
 	add ?hl,?de
-	jr nc,Check
 	ld ?de,10000H - ?modulo
+	jp nc,Check
 	add ?hl,?de
+	jp Done
 Check:
-	ld ?de,10000H - ?modulo
 	add ?hl,?de
 	jr c,Done
 	sbc ?hl,?de
