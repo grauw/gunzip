@@ -76,7 +76,7 @@ To launch the build in openMSX after building, put a copy of `MSXDOS2.SYS` and
 invoke the `make run` command.
 
 Note that the [glass](https://bitbucket.org/grauw/glass) assembler which is
-embedded in the project requires [Java 7](http://java.com/getjava). To check
+embedded in the project requires [Java 8](http://java.com/getjava). To check
 your Java version, invoke the `java -version` command.
 
 Additionally, [Node.js](https://nodejs.org/) is required. Download it from their
