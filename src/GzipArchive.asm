@@ -17,9 +17,13 @@ GzipArchive: MACRO
 	inflate:
 		dw 0
 	crc32CheckEnabled:
+		IF GZIP_CRC32
 		db 0
+		ENDIF
 	crc32Checker:
+		IF GZIP_CRC32
 		dw 0
+		ENDIF
 	flags:
 		db 0
 	mtime:
@@ -31,7 +35,9 @@ GzipArchive: MACRO
 	isize:
 		dd 0
 	crc32:
+		IF GZIP_CRC32
 		dd 0
+		ENDIF
 	_size:
 	ENDM
 
@@ -46,7 +52,9 @@ GzipArchive_template: GzipArchive
 GzipArchive_Construct:
 	ld (ix + GzipArchive.reader),e
 	ld (ix + GzipArchive.reader + 1),d
+	IF GZIP_CRC32
 	ld (ix + GzipArchive.crc32CheckEnabled),a
+	ENDIF
 	call GzipArchive_ReadHeader
 	ld e,ixl
 	ld d,ixh
@@ -131,10 +139,12 @@ GzipArchive_ReadHeader:
 GzipArchive_ReadFooter:
 	call GzipArchive_GetReaderIY
 	call Reader_ReadDoubleWord_IY
+	IF GZIP_CRC32
 	ld (ix + GzipArchive.crc32),l
 	ld (ix + GzipArchive.crc32 + 1),h
 	ld (ix + GzipArchive.crc32 + 2),e
 	ld (ix + GzipArchive.crc32 + 3),d
+	ENDIF
 	call Reader_ReadDoubleWord_IY
 	ld (ix + GzipArchive.isize),l
 	ld (ix + GzipArchive.isize + 1),h
@@ -145,15 +155,19 @@ GzipArchive_ReadFooter:
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_Extract:
+	IF GZIP_CRC32
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	call nz,GzipArchive_CreateCRC32Checker
+	ENDIF
 	call GzipArchive_CreateInflate
 	call GzipArchive_Inflate
 	call GzipArchive_ReadFooter
 	call GzipArchive_Verify
 	call GzipArchive_DestroyInflate
+	IF GZIP_CRC32
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	call nz,GzipArchive_DestroyCRC32Checker
+	ENDIF
 	ret
 
 ; de = writer (min 32K)
@@ -183,6 +197,7 @@ GzipArchive_DestroyInflate:
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_CreateCRC32Checker:
+	IF GZIP_CRC32
 	push de
 	push ix
 	call CRC32Checker_class.New
@@ -192,10 +207,12 @@ GzipArchive_CreateCRC32Checker:
 	ld (ix + GzipArchive.crc32Checker + 1),d
 	pop de
 	ret
+	ENDIF
 
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_DestroyCRC32Checker:
+	IF GZIP_CRC32
 	ld e,(ix + GzipArchive.crc32Checker)
 	ld d,(ix + GzipArchive.crc32Checker + 1)
 	push ix
@@ -205,6 +222,7 @@ GzipArchive_DestroyCRC32Checker:
 	call CRC32Checker_class.Delete
 	pop ix
 	ret
+	ENDIF
 
 ; ix = this
 GzipArchive_Inflate:
@@ -220,9 +238,11 @@ GzipArchive_Verify:
 	ld hl,GzipArchive_isizeMismatchError
 	jp nz,System_TerminateWithError
 
+	IF GZIP_CRC32
 	call GzipArchive_VerifyCRC32
 	ld hl,GzipArchive_crc32MismatchError
 	jp nz,System_TerminateWithError
+	ENDIF
 	ret
 
 ; ix = this
@@ -274,6 +294,7 @@ GzipArchive_VerifyISIZE:
 ; ix = this
 ; f <- nz: mismatch
 GzipArchive_VerifyCRC32:
+	IF GZIP_CRC32
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	ret z
 	ld e,(ix + GzipArchive.crc32Checker)
@@ -287,6 +308,7 @@ GzipArchive_VerifyCRC32:
 	call CRC32Checker_VerifyCRC32
 	pop ix
 	ret
+	ENDIF
 
 ;
 GzipArchive_notGzipError:
@@ -302,4 +324,6 @@ GzipArchive_isizeMismatchError:
 	db "Inflated size mismatch.",13,10,0
 
 GzipArchive_crc32MismatchError:
+	IF GZIP_CRC32
 	db "Inflated CRC32 mismatch.",13,10,0
+	ENDIF

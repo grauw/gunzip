@@ -10,9 +10,13 @@ ZlibArchive: MACRO
 	inflate:
 		dw 0
 	adler32CheckEnabled:
+		IF ZLIB_ADLER32
 		db 0
+		ENDIF
 	adler32Checker:
+		IF ZLIB_ADLER32
 		dw 0
+		ENDIF
 	cm:
 		db 0
 	cinfo:
@@ -20,7 +24,9 @@ ZlibArchive: MACRO
 	flevel:
 		dd 0
 	adler32:
+		IF ZLIB_ADLER32
 		dd 0
+		ENDIF
 	_size:
 	ENDM
 
@@ -35,7 +41,9 @@ ZlibArchive_template: ZlibArchive
 ZlibArchive_Construct:
 	ld (ix + ZlibArchive.reader),e
 	ld (ix + ZlibArchive.reader + 1),d
+	IF ZLIB_ADLER32
 	ld (ix + ZlibArchive.adler32CheckEnabled),a
+	ENDIF
 	call ZlibArchive_ReadHeader
 	ld e,ixl
 	ld d,ixh
@@ -127,24 +135,30 @@ NoAdd:
 ZlibArchive_ReadFooter:
 	call ZlibArchive_GetReaderIY
 	call Reader_ReadDoubleWordBE_IY
+	IF ZLIB_ADLER32
 	ld (ix + ZlibArchive.adler32),l
 	ld (ix + ZlibArchive.adler32 + 1),h
 	ld (ix + ZlibArchive.adler32 + 2),e
 	ld (ix + ZlibArchive.adler32 + 3),d
+	ENDIF
 	ret
 
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_Extract:
+	IF ZLIB_ADLER32
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	call nz,ZlibArchive_CreateAdler32Checker
+	ENDIF
 	call ZlibArchive_CreateInflate
 	call ZlibArchive_Inflate
 	call ZlibArchive_ReadFooter
 	call ZlibArchive_Verify
 	call ZlibArchive_DestroyInflate
+	IF ZLIB_ADLER32
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	call nz,ZlibArchive_DestroyAdler32Checker
+	ENDIF
 	ret
 
 ; de = writer (min 32K)
@@ -174,6 +188,7 @@ ZlibArchive_DestroyInflate:
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_CreateAdler32Checker:
+	IF ZLIB_ADLER32
 	push de
 	push ix
 	call Adler32Checker_class.New
@@ -183,10 +198,12 @@ ZlibArchive_CreateAdler32Checker:
 	ld (ix + ZlibArchive.adler32Checker + 1),d
 	pop de
 	ret
+	ENDIF
 
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_DestroyAdler32Checker:
+	IF ZLIB_ADLER32
 	ld e,(ix + ZlibArchive.adler32Checker)
 	ld d,(ix + ZlibArchive.adler32Checker + 1)
 	push ix
@@ -196,6 +213,7 @@ ZlibArchive_DestroyAdler32Checker:
 	call Adler32Checker_class.Delete
 	pop ix
 	ret
+	ENDIF
 
 ; ix = this
 ZlibArchive_Inflate:
@@ -207,14 +225,17 @@ ZlibArchive_Inflate:
 
 ; ix = this
 ZlibArchive_Verify:
+	IF ZLIB_ADLER32
 	call ZlibArchive_VerifyAdler32
 	ld hl,ZlibArchive_adler32MismatchError
 	jp nz,System_TerminateWithError
+	ENDIF
 	ret
 
 ; ix = this
 ; f <- nz: mismatch
 ZlibArchive_VerifyAdler32:
+	IF ZLIB_ADLER32
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	ret z
 	ld e,(ix + ZlibArchive.adler32Checker)
@@ -228,6 +249,7 @@ ZlibArchive_VerifyAdler32:
 	call Adler32Checker_VerifyAdler32
 	pop ix
 	ret
+	ENDIF
 
 ;
 ZlibArchive_invalidFCHECKError:
@@ -243,4 +265,6 @@ ZlibArchive_unsupportedPresetDictionaryError:
 	db "Unsupported preset dictionary.",13,10,0
 
 ZlibArchive_adler32MismatchError:
+	IF ZLIB_ADLER32
 	db "Inflated Adler32 checksum mismatch.",13,10,0
+	ENDIF
