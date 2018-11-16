@@ -297,7 +297,7 @@ Application_ReadOutputSize:
 	push de
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_GetFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	push de
 	push hl
 	ld a,2
@@ -305,7 +305,7 @@ Application_ReadOutputSize:
 	ld de,-4 >> 16
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_MoveFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	ld e,ixl
 	ld d,ixh
 	ld hl,Application.outputSize
@@ -314,12 +314,12 @@ Application_ReadOutputSize:
 	ld hl,4
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_ReadFromFileHandle
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	pop hl
 	pop de
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_SetFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	pop de
 	ret
 
@@ -335,7 +335,7 @@ Application_PreAllocateOutput:
 	push de
 	ld b,(iy + FileWriter.fileHandle)
 	call DOS_GetFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	push de
 	push hl
 	ld l,(ix + Application.outputSize)
@@ -350,17 +350,17 @@ Application_PreAllocateOutput:
 	ex de,hl
 	ld b,(iy + FileWriter.fileHandle)
 	call DOS_SetFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	ld de,0  ; don’t care which value we write
 	ld hl,1
 	ld b,(iy + FileWriter.fileHandle)
 	call DOS_WriteToFileHandle
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	pop hl
 	pop de
 	ld b,(iy + FileWriter.fileHandle)
 	call DOS_SetFileHandlePointer
-	call Application_CheckDOSError
+	call DOS_TerminateIfError
 	pop de
 	ret
 
@@ -371,19 +371,6 @@ Application_CheckStack:
 	ld hl,Application_insufficientTPAError
 	jp nc,System_TerminateWithError
 	ret
-
-; a = DOS error code
-Application_CheckDOSError:
-	and a
-	ret z
-Application_TerminateWithDOSError:
-	ld b,a
-	ld de,Application_explainBuffer
-	call DOS_ExplainErrorCode
-	ld hl,Application_explainBuffer
-	call System_Print
-	call System_PrintCrLf
-	jp System_TerminateWithError
 
 ;
 Application_welcome:
@@ -417,8 +404,5 @@ Application_usageInstructions:
 
 Application_instance:
 	dw 0
-
-Application_explainBuffer:
-	ds 64,0
 
 	ENDS
