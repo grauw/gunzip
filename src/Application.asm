@@ -179,8 +179,7 @@ Application_PrintWelcome:
 	call Application_IsQuiet
 	ret nz
 	ld hl,Application_welcome
-	call System_Print
-	ret
+	jp System_Print
 
 ; ix = this
 Application_PrintInflating:
@@ -195,8 +194,7 @@ Application_PrintInflating:
 	pop ix
 	call System_Print
 	ld hl,Application_dotDotDot
-	call System_Print
-	ret
+	jp System_Print
 
 ; ix = this
 Application_PrintTesting:
@@ -211,8 +209,7 @@ Application_PrintTesting:
 	pop ix
 	call System_Print
 	ld hl,Application_dotDotDot
-	call System_Print
-	ret
+	jp System_Print
 
 ; ix = this
 ; f <- nz: quiet

@@ -251,8 +251,7 @@ GzipArchive_SkipExtra:
 	call Reader_ReadWord_IY
 	ld c,e
 	ld b,d
-	call Reader_Skip_IY
-	ret
+	jp Reader_Skip_IY
 
 ; ix = this
 GzipArchive_SkipASCIIZ: PROC
@@ -267,8 +266,7 @@ Loop:
 ; ix = this
 GzipArchive_SkipHeaderCRC:
 	call GzipArchive_GetReaderIY
-	call Reader_ReadWord_IY
-	ret
+	jp Reader_ReadWord_IY
 
 ; ix = this
 ; f <- nz: mismatch
