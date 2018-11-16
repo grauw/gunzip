@@ -34,7 +34,6 @@ COM_Main:
 	INCLUDE "BIOS.asm"
 	INCLUDE "System.asm"
 	INCLUDE "Heap.asm"
-	INCLUDE "HeapTest.asm"
 	INCLUDE "Class.asm"
 	INCLUDE "Application.asm"
 	INCLUDE "CLI.asm"

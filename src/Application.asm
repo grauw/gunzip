@@ -26,7 +26,6 @@ Application_Main:
 	ld ix,Heap_main
 	call Heap_Construct
 
-	call HeapTest_Test
 	call WriterTest_Test
 	call CRC32CheckerTest_Test
 	call AlphabetTest_Test
