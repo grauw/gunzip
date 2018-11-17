@@ -91,15 +91,15 @@ GzipArchive_ReadHeader:
 	call Reader_Read_IY
 	cp GzipArchive_SIGNATURE_1
 	ld hl,GzipArchive_notGzipError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	call Reader_Read_IY
 	cp GzipArchive_SIGNATURE_2
 	ld hl,GzipArchive_notGzipError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	call Reader_Read_IY
 	cp GzipArchive_DEFLATE_ID
 	ld hl,GzipArchive_notDeflateError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 
 	call Reader_Read_IY
 	ld (ix + GzipArchive.flags),a
@@ -116,7 +116,7 @@ GzipArchive_ReadHeader:
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_RESERVED
 	ld hl,GzipArchive_unknownFlagError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FEXTRA
@@ -236,12 +236,12 @@ GzipArchive_Inflate:
 GzipArchive_Verify:
 	call GzipArchive_VerifyISIZE
 	ld hl,GzipArchive_isizeMismatchError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 
 	IF GZIP_CRC32
 	call GzipArchive_VerifyCRC32
 	ld hl,GzipArchive_crc32MismatchError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	ENDIF
 	ret
 

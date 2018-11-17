@@ -80,12 +80,12 @@ ZlibArchive_ReadHeader:
 	call Reader_ReadWordBE_IY
 	call ZlibArchive_CheckFCHECK
 	ld hl,ZlibArchive_invalidFCHECKError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	ld a,d
 	and 00001111B
 	cp ZlibArchive_DEFLATE_ID
 	ld hl,ZlibArchive_notDeflateError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	ld (ix + ZlibArchive.cm),a
 	ld a,d
 	and 11110000B
@@ -95,12 +95,12 @@ ZlibArchive_ReadHeader:
 	rrca
 	cp ZlibArchive_MAX_WINDOW + 1
 	ld hl,ZlibArchive_invalidWindowError
-	jp nc,System_TerminateWithError
+	jp nc,System_ThrowExceptionWithMessage
 	ld (ix + ZlibArchive.cinfo),a
 	ld a,e
 	and 00100000B
 	ld hl,ZlibArchive_unsupportedPresetDictionaryError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	ld a,e
 	and 11000000B
 	rlca
@@ -228,7 +228,7 @@ ZlibArchive_Verify:
 	IF ZLIB_ADLER32
 	call ZlibArchive_VerifyAdler32
 	ld hl,ZlibArchive_adler32MismatchError
-	jp nz,System_TerminateWithError
+	jp nz,System_ThrowExceptionWithMessage
 	ENDIF
 	ret
 

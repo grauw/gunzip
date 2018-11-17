@@ -14,13 +14,6 @@ Application_template: Application
 
 ;
 Application_Main:
-	ld hl,DOS_Terminate
-	call System_SetTerminateHandler
-
-	call DOS_IsDOS2
-	ld hl,Application_dos2RequiredError
-	jp c,System_TerminateWithError
-
 	call Application_CheckStack
 
 	ld ix,Heap_main
@@ -32,22 +25,13 @@ Application_Main:
 
 	call Application_class.New
 	call Application_Construct
-	ld (Application_instance),ix
-	ld de,Application_Abort
-	call DOS_DefineAbortExitRoutine
-	call Application_EnterMainLoop
-	call Application_Abort
-	ret
-
-; DOS error or abort handler
-Application_Abort:
-	push af
-	push bc
-	ld ix,(Application_instance)
+	push ix
+	ld hl,Application_EnterMainLoop
+	call System_TryCall
+	pop ix
 	call Application_Destruct
 	call Application_class.Delete
-	pop bc
-	pop af
+	call System_Rethrow
 	ret
 
 ; ix = this
@@ -101,7 +85,7 @@ Application_ParseCLI:
 	ld a,l
 	or h
 	ld hl,Application_usageInstructions
-	jp z,System_TerminateWithError
+	jp z,System_ThrowExceptionWithMessage
 	pop ix
 	ret
 
@@ -369,7 +353,7 @@ Application_CheckStack:
 	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
 	add hl,sp
 	ld hl,Application_insufficientTPAError
-	jp nc,System_TerminateWithError
+	jp nc,System_ThrowExceptionWithMessage
 	ret
 
 ;
@@ -385,9 +369,6 @@ Application_testingFile:
 Application_dotDotDot:
 	db "...",13,10,0
 
-Application_dos2RequiredError:
-	db "MSX-DOS 2 is required.",13,10,0
-
 Application_insufficientTPAError:
 	db "Insufficient TPA space.",13,10,0
 
@@ -399,10 +380,3 @@ Application_usageInstructions:
 	db "  /f  Fast, no checksum validation.",13,10
 	db 13,10
 	db "If no output file is specified, the archive will be tested.",13,10,0
-
-	SECTION RAM
-
-Application_instance:
-	dw 0
-
-	ENDS
