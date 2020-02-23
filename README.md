@@ -10,21 +10,19 @@ Project information
 
 Extracts files compressed with the gzip (.gz) format.
 
-Author: Laurens Holst <laurens.nospam@grauw.nl>  
-Site: <https://bitbucket.org/grauw/gunzip>  
-Downloads: <https://bitbucket.org/grauw/gunzip/downloads>  
-History: <https://bitbucket.org/grauw/gunzip/src/default/CHANGES.md>  
-Issues: <https://bitbucket.org/grauw/gunzip/issues>  
-Support: <http://www.msx.org/forum/msx-talk/software/gunzip-msx>  
-License: Simplified BSD License
+  * Author: Laurens Holst <laurens@grauw.nl>
+  * Site: <http://www.grauw.nl/projects/gunzip/>
+  * Source: <https://hg.sr.ht/~grauw/gunzip>
+  * Support: <http://www.msx.org/forum/msx-talk/software/gunzip-msx>
+  * License: Simplified BSD License
 
 
-System Requirements
+System requirements
 -------------------
 
   * MSX, MSX2, MSX2+ or MSX turboR
-  * 16K video RAM
   * 64K main RAM
+  * 16K video RAM
   * MSX-DOS 2
 
 
@@ -62,9 +60,9 @@ mentioned in the project information section.
 You are also free to re-use code for your own projects, provided you abide by
 the license terms.
 
-Building the project with some of your own modifications is really easy on all
-modern desktop platforms. On Mac OS X and Linux, simply invoke `make` to build
-the binary and symbol files into the `bin` directory:
+Building the project is easy on all modern desktop platforms. On macOS and
+Linux, simply invoke `make` to build the binary and symbol files into the
+`bin` directory:
 
     make
 
@@ -75,7 +73,7 @@ To launch the build in openMSX after building, put a copy of `MSXDOS2.SYS` and
 `COMMAND2.COM` and some GZ files to test with in the `bin` directory, and then
 invoke the `make run` command.
 
-Note that the [glass](https://bitbucket.org/grauw/glass) assembler which is
+Note that the [glass](http://www.grauw.nl/projects/glass/) assembler which is
 embedded in the project requires [Java 8](http://java.com/getjava). To check
 your Java version, invoke the `java -version` command.
 

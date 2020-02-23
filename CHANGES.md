@@ -2,7 +2,7 @@ Gunzip change log
 =================
 
 For the complete list of changes please refer to the
-[revision history](https://bitbucket.org/grauw/gunzip/commits/all).
+[revision history](https://hg.sr.ht/~grauw/gunzip/log).
 
 [1.1] — 2015-11-09
 ------------------
@@ -20,5 +20,5 @@ For the complete list of changes please refer to the
 Initial release.
 
 
-[1.1]: https://bitbucket.org/grauw/gunzip/commits/tag/release-1.1
-[1.0]: https://bitbucket.org/grauw/gunzip/commits/tag/release-1.0
+[1.1]: https://hg.sr.ht/~grauw/gunzip/rev/release-1.1
+[1.0]: https://hg.sr.ht/~grauw/gunzip/rev/release-1.0
