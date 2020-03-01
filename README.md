@@ -16,6 +16,33 @@ Extracts files compressed with the gzip (.gz) format.
   * Support: <http://www.msx.org/forum/msx-talk/software/gunzip-msx>
   * License: Simplified BSD License
 
+By generating the Huffman decompression code, it performs very well compared to
+other compression tools.
+
+Philips NMS 8245 MSX2 (openMSX) with Sunrise IDE:
+
+  * gunzip 1.1 (244129 bytes): 87s
+  * gunzip 1.0 (244129 bytes): 133s
+  * pmext 2.22 (247552 bytes): 619s
+  * lhext 1.33 (252614 bytes): 278s
+  * tunzip 0.91 (247414 bytes): 341s
+
+Panasonic FS-A1GT turboR (openMSX) with Sunrise IDE:
+
+  * gunzip 1.1 (244129 bytes): 18s
+  * gunzip 1.0 (244129 bytes): 26s
+  * pmext 2.22 (247552 bytes): 127s
+  * lhext 1.33 (252614 bytes): 49s
+  * tunzip 0.91 (247414 bytes): 46s
+
+The DEFLATE algorithm which powers gzip is also used by various other compressed
+file formats, such as zip, png and vgm. As such this implementation is also used
+by [VGMPlay](http://www.grauw.nl/projects/vgmplay/), which triggered its
+development, and [PNGView](http://www.grauw.nl/projects/pngview/).
+
+Additionally Louthrax has used this code to implement
+[SofaUnZip](https://www.louthrax.net/mgr/sofaunzip.html), and Prodatron used it
+to implement unzip in [SymbOS](http://www.symbos.de/).
 
 System requirements
 -------------------
