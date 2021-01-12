@@ -23,12 +23,9 @@ Alphabet: MACRO
 	sortedCodeLengths:
 		dw 0
 	codeLengthCounts:
-		ds Alphabet_MAX_CODELENGTH * 2, 0
+		ds Alphabet_MAX_CODELENGTH * 2
 	_size:
 	ENDM
-
-Alphabet_class: Class Alphabet, Alphabet_template, Heap_main
-Alphabet_template: Alphabet
 
 ; bc = code length table length
 ; de = code length table
@@ -217,9 +214,17 @@ Alphabet_CountCodeLengths: PROC
 	exx
 	ld e,ixl
 	ld d,ixh
-	ld hl,Alphabet.codeLengthCounts - 2
+	ld hl,Alphabet.codeLengthCounts
 	add hl,de
-	ex de,hl
+	ld e,l
+	ld d,h
+	inc de
+	ld (hl),0
+	ld bc,Alphabet_MAX_CODELENGTH * 2 - 1
+	ldir
+	ld hl,-Alphabet_MAX_CODELENGTH * 2 - 2
+	add hl,de
+	ex de,hl  ; de = ix + Alphabet.codeLengthCounts - 2
 	exx
 Loop:
 	ld a,(hl)
