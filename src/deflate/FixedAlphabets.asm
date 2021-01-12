@@ -9,9 +9,6 @@ FixedAlphabets: MACRO
 	_size:
 	ENDM
 
-FixedAlphabets_class: Class FixedAlphabets, FixedAlphabets_template, Heap_main
-FixedAlphabets_template: FixedAlphabets
-
 ; hl = literal/length symbol handlers table
 ; de = distance symbol handlers table
 ; ix = this

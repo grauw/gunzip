@@ -25,9 +25,6 @@ DynamicAlphabets: MACRO
 	_size:
 	ENDM
 
-DynamicAlphabets_class: Class DynamicAlphabets, DynamicAlphabets_template, Heap_main
-DynamicAlphabets_template: DynamicAlphabets
-
 ; hl = literal/length symbol handlers table
 ; de = distance symbol handlers table
 ; ix = this
@@ -187,6 +184,16 @@ DynamicAlphabets_ReadLengths:
 ; ix = this
 ; iy = reader
 DynamicAlphabets_ReadHeaderCodeLengths: PROC
+	ld hl,DynamicAlphabets.headerCodeLengths
+	ld e,ixl
+	ld d,ixh
+	add hl,de
+	ld e,l
+	ld d,h
+	inc de
+	ld (hl),0
+	ld bc,DynamicAlphabets_MAX_HEADERCODELENGTHS - 1
+	ldir
 	ld b,(ix + DynamicAlphabets.hclen)
 	ld hl,DynamicAlphabets_headerCodeOrder
 Loop:

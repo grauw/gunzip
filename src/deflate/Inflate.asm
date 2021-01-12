@@ -6,6 +6,10 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
+	fixedAlphabets:
+		FixedAlphabets
+	dynamicAlphabets:
+		DynamicAlphabets
 	_size:
 	ENDM
 
@@ -112,9 +116,10 @@ Inflate_InflateUncompressed:
 ; iy = reader
 Inflate_InflateFixedCompressed:
 	push ix
-	call FixedAlphabets_class.New
 	ld hl,Inflate_literalLengthSymbols
 	ld de,Inflate_distanceSymbols
+	ld bc,Inflate.fixedAlphabets
+	add ix,bc
 	call FixedAlphabets_Construct
 	call FixedAlphabets_GetRoots
 	ex (sp),ix
@@ -123,7 +128,6 @@ Inflate_InflateFixedCompressed:
 
 	ex (sp),ix
 	call FixedAlphabets_Destruct
-	call FixedAlphabets_class.Delete
 	pop ix
 	ret
 
@@ -131,9 +135,10 @@ Inflate_InflateFixedCompressed:
 ; iy = reader
 Inflate_InflateDynamicCompressed:
 	push ix
-	call DynamicAlphabets_class.New
 	ld hl,Inflate_literalLengthSymbols
 	ld de,Inflate_distanceSymbols
+	ld bc,Inflate.dynamicAlphabets
+	add ix,bc
 	call DynamicAlphabets_Construct
 	call DynamicAlphabets_GetRoots
 	ex (sp),ix
@@ -142,7 +147,6 @@ Inflate_InflateDynamicCompressed:
 
 	ex (sp),ix
 	call DynamicAlphabets_Destruct
-	call DynamicAlphabets_class.Delete
 	pop ix
 	ret
 
