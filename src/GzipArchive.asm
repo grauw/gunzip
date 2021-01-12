@@ -41,9 +41,6 @@ GzipArchive: MACRO
 	_size:
 	ENDM
 
-GzipArchive_class: Class GzipArchive, GzipArchive_template, Heap_main
-GzipArchive_template: GzipArchive
-
 ; a = -1: CRC32 check enabled, 0: disabled
 ; de = reader
 ; ix = this

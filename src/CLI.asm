@@ -17,9 +17,6 @@ CLI: MACRO
 	_size:
 	ENDM
 
-CLI_class: Class CLI, CLI_template, Heap_main
-CLI_template: CLI
-
 ; ix = this
 ; ix <- this
 ; de <- this

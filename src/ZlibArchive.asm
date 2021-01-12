@@ -30,9 +30,6 @@ ZlibArchive: MACRO
 	_size:
 	ENDM
 
-ZlibArchive_class: Class ZlibArchive, ZlibArchive_template, Heap_main
-ZlibArchive_template: ZlibArchive
-
 ; a = -1: Adler32 check enabled, 0: disabled
 ; de = reader
 ; ix = this

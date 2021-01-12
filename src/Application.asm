@@ -2,15 +2,20 @@
 ; Top-level application program class
 ;
 Application: MACRO
-	cli:
-		dw 0
 	outputSize:
 		dd 0
+	cli:
+		CLI
+	fileReader:
+		FileReader
+	fileWriter:
+		FileWriter
+	nullWriter:
+		NullWriter
+	gzipArchive:
+		GzipArchive
 	_size:
 	ENDM
-
-Application_class: Class Application, Application_template, Heap_main
-Application_template: Application
 
 ;
 Application_Main:
@@ -26,14 +31,13 @@ Application_Main:
 	call CRC32CheckerTest_Test
 	call AlphabetTest_Test
 
-	call Application_class.New
+	ld ix,Application_instance
 	call Application_Construct
 	push ix
 	ld hl,Application_EnterMainLoop
 	call System_TryCall
 	pop ix
 	call Application_Destruct
-	call Application_class.Delete
 	call System_Rethrow
 	ret
 
@@ -42,11 +46,9 @@ Application_Main:
 ; de <- this
 Application_Construct:
 	push ix
-	call CLI_class.New
+	call Application_GetCLI
 	call CLI_Construct
 	pop ix
-	ld (ix + Application.cli),e
-	ld (ix + Application.cli + 1),d
 	ld e,ixl
 	ld d,ixh
 	ret
@@ -57,18 +59,57 @@ Application_Destruct:
 	push ix
 	call Application_GetCLI
 	call CLI_Destruct
-	call CLI_class.Delete
 	pop ix
 	ret
 
 ; ix = this
-; de <- Command-line interface
-; ix <- Command-line interface
+; ix <- command-line interface
+; Modifies: f
 Application_GetCLI:
-	ld e,(ix + Application.cli)
-	ld d,(ix + Application.cli + 1)
-	ld ixl,e
-	ld ixh,d
+	push de
+	ld de,Application.cli
+	add ix,de
+	pop de
+	ret
+
+; ix = this
+; ix <- file reader
+; Modifies: f
+Application_GetFileReader:
+	push de
+	ld de,Application.fileReader
+	add ix,de
+	pop de
+	ret
+
+; ix = this
+; ix <- file writer
+; Modifies: f
+Application_GetFileWriter:
+	push de
+	ld de,Application.fileWriter
+	add ix,de
+	pop de
+	ret
+
+; ix = this
+; ix <- null writer
+; Modifies: f
+Application_GetNullWriter:
+	push de
+	ld de,Application.nullWriter
+	add ix,de
+	pop de
+	ret
+
+; ix = this
+; ix <- gzip archive
+; Modifies: f
+Application_GetGzipArchive:
+	push de
+	ld de,Application.gzipArchive
+	add ix,de
+	pop de
 	ret
 
 ; ix = this
@@ -108,7 +149,7 @@ Application_InflateToFile:
 	call Application_IsFast
 	cpl
 	push ix
-	call GzipArchive_class.New
+	call Application_GetGzipArchive
 	call GzipArchive_Construct
 
 	ex (sp),ix
@@ -120,13 +161,10 @@ Application_InflateToFile:
 
 	ex (sp),ix
 	call FileWriter_Destruct
-	call FileWriter_class.Delete
 	pop ix
 	call GzipArchive_Destruct
-	call GzipArchive_class.Delete
 	pop ix
 	call FileReader_Destruct
-	call FileReader_class.Delete
 	pop ix
 	ret
 
@@ -139,7 +177,7 @@ Application_InflateTest:
 	call Application_IsFast
 	cpl
 	push ix
-	call GzipArchive_class.New
+	call Application_GetGzipArchive
 	call GzipArchive_Construct
 
 	ex (sp),ix
@@ -150,13 +188,10 @@ Application_InflateTest:
 
 	ex (sp),ix
 	call NullWriter_Destruct
-	call NullWriter_class.Delete
 	pop ix
 	call GzipArchive_Destruct
-	call GzipArchive_class.Delete
 	pop ix
 	call FileReader_Destruct
-	call FileReader_class.Delete
 	pop ix
 	ret
 
@@ -199,37 +234,33 @@ Application_PrintTesting:
 
 ; ix = this
 ; f <- nz: quiet
+; Modifies: none
 Application_IsQuiet:
-	push de
 	push ix
 	call Application_GetCLI
 	bit 0,(ix + CLI.quiet)
 	pop ix
-	pop de
 	ret
 
 ; ix = this
 ; a <- -1: fast
+; Modifies: f
 Application_IsFast:
-	push de
 	push ix
 	call Application_GetCLI
 	ld a,(ix + CLI.fast)
 	pop ix
-	pop de
 	ret
 
 ; ix = this
 ; f <- z: testing
-; Modifies: de
+; Modifies: a
 Application_IsTesting:
 	push ix
 	call Application_GetCLI
-	ld e,(ix + CLI.outputPath)
-	ld d,(ix + CLI.outputPath + 1)
+	ld a,(ix + CLI.outputPath)
+	or (ix + CLI.outputPath + 1)
 	pop ix
-	ld a,e
-	or d
 	ret
 
 ; ix = this
@@ -243,7 +274,7 @@ Application_CreateFileReader:
 	ld hl,READBUFFER
 	ld bc,READBUFFER_SIZE
 	push ix
-	call FileReader_class.New
+	call Application_GetFileReader
 	call FileReader_Construct
 	pop ix
 	ret
@@ -259,7 +290,7 @@ Application_CreateFileWriter:
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
 	push ix
-	call FileWriter_class.New
+	call Application_GetFileWriter
 	call FileWriter_Construct
 	pop ix
 	ret
@@ -270,7 +301,7 @@ Application_CreateNullWriter:
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
 	push ix
-	call NullWriter_class.New
+	call Application_GetNullWriter
 	call NullWriter_Construct
 	pop ix
 	ret
@@ -360,6 +391,9 @@ Application_CheckStack:
 	ret
 
 ;
+Application_instance:
+	Application
+
 Application_welcome:
 	db "Gunzip 1.1 by Grauw",13,10,10,0
 
