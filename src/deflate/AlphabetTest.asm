@@ -7,8 +7,8 @@ AlphabetTest_Test:
 	ret
 
 AlphabetTest_TestCodeBuilding:
-	ld bc,FixedAlphabets_literalLengthCodeLengthsCount
-	ld de,FixedAlphabets_literalLengthCodeLengths
+	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
+	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
 	ld hl,Inflate_literalLengthSymbols
 	ld ix,AlphabetTest_alphabet
 	call Alphabet_Construct

@@ -6,10 +6,8 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
-	fixedAlphabets:
-		FixedAlphabets
-	dynamicAlphabets:
-		DynamicAlphabets
+	huffmanCodes:
+		HuffmanCodes
 	_size:
 	ENDM
 
@@ -118,16 +116,16 @@ Inflate_InflateFixedCompressed:
 	push ix
 	ld hl,Inflate_literalLengthSymbols
 	ld de,Inflate_distanceSymbols
-	ld bc,Inflate.fixedAlphabets
+	ld bc,Inflate.huffmanCodes
 	add ix,bc
-	call FixedAlphabets_Construct
-	call FixedAlphabets_GetRoots
+	call HuffmanCodes_ConstructFixed
+	call HuffmanCodes_GetRoots
 	ex (sp),ix
 
 	call Inflate_InflateCompressed
 
 	ex (sp),ix
-	call FixedAlphabets_Destruct
+	call HuffmanCodes_Destruct
 	pop ix
 	ret
 
@@ -137,16 +135,16 @@ Inflate_InflateDynamicCompressed:
 	push ix
 	ld hl,Inflate_literalLengthSymbols
 	ld de,Inflate_distanceSymbols
-	ld bc,Inflate.dynamicAlphabets
+	ld bc,Inflate.huffmanCodes
 	add ix,bc
-	call DynamicAlphabets_Construct
-	call DynamicAlphabets_GetRoots
+	call HuffmanCodes_Construct
+	call HuffmanCodes_GetRoots
 	ex (sp),ix
 
 	call Inflate_InflateCompressed
 
 	ex (sp),ix
-	call DynamicAlphabets_Destruct
+	call HuffmanCodes_Destruct
 	pop ix
 	ret
 
