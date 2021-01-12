@@ -13,10 +13,6 @@ ZlibArchive: MACRO
 		IF ZLIB_ADLER32
 		db 0
 		ENDIF
-	adler32Checker:
-		IF ZLIB_ADLER32
-		dw 0
-		ENDIF
 	cm:
 		db 0
 	cinfo:
@@ -26,6 +22,10 @@ ZlibArchive: MACRO
 	adler32:
 		IF ZLIB_ADLER32
 		dd 0
+		ENDIF
+	adler32Checker:
+		IF ZLIB_ADLER32
+		Adler32Checker
 		ENDIF
 	_size:
 	ENDM
@@ -191,26 +191,21 @@ ZlibArchive_CreateAdler32Checker:
 	IF ZLIB_ADLER32
 	push de
 	push ix
-	call Adler32Checker_class.New
+	ld bc,ZlibArchive.adler32Checker
+	add ix,bc
 	call Adler32Checker_Construct
 	pop ix
-	ld (ix + ZlibArchive.adler32Checker),e
-	ld (ix + ZlibArchive.adler32Checker + 1),d
 	pop de
 	ret
 	ENDIF
 
-; de = writer (min 32K)
 ; ix = this
 ZlibArchive_DestroyAdler32Checker:
 	IF ZLIB_ADLER32
-	ld e,(ix + ZlibArchive.adler32Checker)
-	ld d,(ix + ZlibArchive.adler32Checker + 1)
 	push ix
-	ld ixl,e
-	ld ixh,d
+	ld de,ZlibArchive.adler32Checker
+	add ix,de
 	call Adler32Checker_Destruct
-	call Adler32Checker_class.Delete
 	pop ix
 	ret
 	ENDIF
@@ -238,14 +233,14 @@ ZlibArchive_VerifyAdler32:
 	IF ZLIB_ADLER32
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	ret z
-	ld e,(ix + ZlibArchive.adler32Checker)
-	ld d,(ix + ZlibArchive.adler32Checker + 1)
-	push de
-	ld e,(ix + ZlibArchive.adler32)
-	ld d,(ix + ZlibArchive.adler32 + 1)
+	ld l,(ix + ZlibArchive.adler32)
+	ld h,(ix + ZlibArchive.adler32 + 1)
 	ld c,(ix + ZlibArchive.adler32 + 2)
 	ld b,(ix + ZlibArchive.adler32 + 3)
-	ex (sp),ix
+	push ix
+	ld de,ZlibArchive.adler32Checker
+	add ix,de
+	ex de,hl
 	call Adler32Checker_VerifyAdler32
 	pop ix
 	ret

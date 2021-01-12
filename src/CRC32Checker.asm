@@ -16,9 +16,6 @@ CRC32Checker: MACRO
 	_size:
 	ENDM
 
-CRC32Checker_class: Class CRC32Checker, CRC32Checker_template, Heap_main
-CRC32Checker_template: CRC32Checker
-
 ; de = writer
 ; ix = this
 ; ix <- this
@@ -36,6 +33,11 @@ CRC32Checker_Construct:
 	ld (iy + Writer.flusher + 1),d
 	ld (ix + CRC32Checker.Process_this),e
 	ld (ix + CRC32Checker.Process_this + 1),d
+	ld a,0FFH
+	ld (ix + CRC32Checker.crc32),a
+	ld (ix + CRC32Checker.crc32 + 1),a
+	ld (ix + CRC32Checker.crc32 + 2),a
+	ld (ix + CRC32Checker.crc32 + 3),a
 	ret
 
 ; ix = this

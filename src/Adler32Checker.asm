@@ -16,9 +16,6 @@ Adler32Checker: MACRO
 	_size:
 	ENDM
 
-Adler32Checker_class: Class Adler32Checker, Adler32Checker_template, Heap_main
-Adler32Checker_template: Adler32Checker
-
 ; de = writer
 ; ix = this
 ; ix <- this
@@ -36,6 +33,11 @@ Adler32Checker_Construct:
 	ld (iy + Writer.flusher + 1),d
 	ld (ix + Adler32Checker.Process_this),e
 	ld (ix + Adler32Checker.Process_this + 1),d
+	xor a
+	ld (ix + Adler32Checker.adler32),1
+	ld (ix + Adler32Checker.adler32 + 1),a
+	ld (ix + Adler32Checker.adler32 + 2),a
+	ld (ix + Adler32Checker.adler32 + 3),a
 	ret
 
 ; ix = this

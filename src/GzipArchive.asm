@@ -20,10 +20,6 @@ GzipArchive: MACRO
 		IF GZIP_CRC32
 		db 0
 		ENDIF
-	crc32Checker:
-		IF GZIP_CRC32
-		dw 0
-		ENDIF
 	flags:
 		db 0
 	mtime:
@@ -37,6 +33,10 @@ GzipArchive: MACRO
 	crc32:
 		IF GZIP_CRC32
 		dd 0
+		ENDIF
+	crc32Checker:
+		IF GZIP_CRC32
+		CRC32Checker
 		ENDIF
 	_size:
 	ENDM
@@ -200,26 +200,21 @@ GzipArchive_CreateCRC32Checker:
 	IF GZIP_CRC32
 	push de
 	push ix
-	call CRC32Checker_class.New
+	ld bc,GzipArchive.crc32Checker
+	add ix,bc
 	call CRC32Checker_Construct
 	pop ix
-	ld (ix + GzipArchive.crc32Checker),e
-	ld (ix + GzipArchive.crc32Checker + 1),d
 	pop de
 	ret
 	ENDIF
 
-; de = writer (min 32K)
 ; ix = this
 GzipArchive_DestroyCRC32Checker:
 	IF GZIP_CRC32
-	ld e,(ix + GzipArchive.crc32Checker)
-	ld d,(ix + GzipArchive.crc32Checker + 1)
 	push ix
-	ld ixl,e
-	ld ixh,d
+	ld de,GzipArchive.crc32Checker
+	add ix,de
 	call CRC32Checker_Destruct
-	call CRC32Checker_class.Delete
 	pop ix
 	ret
 	ENDIF
@@ -295,14 +290,14 @@ GzipArchive_VerifyCRC32:
 	IF GZIP_CRC32
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	ret z
-	ld e,(ix + GzipArchive.crc32Checker)
-	ld d,(ix + GzipArchive.crc32Checker + 1)
-	push de
-	ld e,(ix + GzipArchive.crc32)
-	ld d,(ix + GzipArchive.crc32 + 1)
+	ld l,(ix + GzipArchive.crc32)
+	ld h,(ix + GzipArchive.crc32 + 1)
 	ld c,(ix + GzipArchive.crc32 + 2)
 	ld b,(ix + GzipArchive.crc32 + 3)
-	ex (sp),ix
+	push ix
+	ld de,GzipArchive.crc32Checker
+	add ix,de
+	ex de,hl
 	call CRC32Checker_VerifyCRC32
 	pop ix
 	ret
