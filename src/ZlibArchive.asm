@@ -7,8 +7,6 @@ ZlibArchive_MAX_WINDOW: equ 7
 ZlibArchive: MACRO
 	reader:
 		dw 0
-	inflate:
-		dw 0
 	adler32CheckEnabled:
 		IF ZLIB_ADLER32
 		db 0
@@ -23,6 +21,8 @@ ZlibArchive: MACRO
 		IF ZLIB_ADLER32
 		dd 0
 		ENDIF
+	inflate:
+		Inflate
 	adler32Checker:
 		IF ZLIB_ADLER32
 		Adler32Checker
@@ -54,6 +54,7 @@ ZlibArchive_Destruct:
 ; ix = this
 ; de <- file reader
 ; iy <- file reader
+; Modifies: none
 ZlibArchive_GetReaderIY:
 	ld e,(ix + ZlibArchive.reader)
 	ld d,(ix + ZlibArchive.reader + 1)
@@ -62,13 +63,13 @@ ZlibArchive_GetReaderIY:
 	ret
 
 ; ix = this
-; de <- Inflate implementation
 ; ix <- Inflate implementation
+; Modifies: f
 ZlibArchive_GetInflate:
-	ld e,(ix + ZlibArchive.inflate)
-	ld d,(ix + ZlibArchive.inflate + 1)
-	ld ixl,e
-	ld ixh,d
+	push de
+	ld de,ZlibArchive.inflate
+	add ix,de
+	pop de
 	ret
 
 ; ix = this
@@ -164,11 +165,9 @@ ZlibArchive_CreateInflate:
 	ld l,(ix + ZlibArchive.reader)
 	ld h,(ix + ZlibArchive.reader + 1)
 	push ix
-	call Inflate_class.New
+	call ZlibArchive_GetInflate
 	call Inflate_Construct
 	pop ix
-	ld (ix + ZlibArchive.inflate),e
-	ld (ix + ZlibArchive.inflate + 1),d
 	ret
 
 ; ix = this
@@ -176,10 +175,7 @@ ZlibArchive_DestroyInflate:
 	push ix
 	call ZlibArchive_GetInflate
 	call Inflate_Destruct
-	call Inflate_class.Delete
 	pop ix
-	ld (ix + ZlibArchive.inflate),0
-	ld (ix + ZlibArchive.inflate + 1),0
 	ret
 
 ; de = writer (min 32K)

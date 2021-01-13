@@ -29,7 +29,6 @@ HEAP: ds VIRTUAL HEAP_SIZE
 	INCLUDE "BIOS.asm"
 	INCLUDE "System.asm"
 	INCLUDE "Heap.asm"
-	INCLUDE "Class.asm"
 	INCLUDE "DOS2Runtime.asm"
 	INCLUDE "Application.asm"
 	INCLUDE "CLI.asm"

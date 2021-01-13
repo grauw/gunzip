@@ -14,8 +14,6 @@ GzipArchive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7;
 GzipArchive: MACRO
 	reader:
 		dw 0
-	inflate:
-		dw 0
 	crc32CheckEnabled:
 		IF GZIP_CRC32
 		db 0
@@ -34,6 +32,8 @@ GzipArchive: MACRO
 		IF GZIP_CRC32
 		dd 0
 		ENDIF
+	inflate:
+		Inflate
 	crc32Checker:
 		IF GZIP_CRC32
 		CRC32Checker
@@ -65,6 +65,7 @@ GzipArchive_Destruct:
 ; ix = this
 ; de <- file reader
 ; iy <- file reader
+; Modifies: none
 GzipArchive_GetReaderIY:
 	ld e,(ix + GzipArchive.reader)
 	ld d,(ix + GzipArchive.reader + 1)
@@ -73,13 +74,13 @@ GzipArchive_GetReaderIY:
 	ret
 
 ; ix = this
-; de <- Inflate implementation
 ; ix <- Inflate implementation
+; Modifies: f
 GzipArchive_GetInflate:
-	ld e,(ix + GzipArchive.inflate)
-	ld d,(ix + GzipArchive.inflate + 1)
-	ld ixl,e
-	ld ixh,d
+	push de
+	ld de,GzipArchive.inflate
+	add ix,de
+	pop de
 	ret
 
 ; ix = this
@@ -173,11 +174,9 @@ GzipArchive_CreateInflate:
 	ld l,(ix + GzipArchive.reader)
 	ld h,(ix + GzipArchive.reader + 1)
 	push ix
-	call Inflate_class.New
+	call GzipArchive_GetInflate
 	call Inflate_Construct
 	pop ix
-	ld (ix + GzipArchive.inflate),e
-	ld (ix + GzipArchive.inflate + 1),d
 	ret
 
 ; ix = this
@@ -185,10 +184,7 @@ GzipArchive_DestroyInflate:
 	push ix
 	call GzipArchive_GetInflate
 	call Inflate_Destruct
-	call Inflate_class.Delete
 	pop ix
-	ld (ix + GzipArchive.inflate),0
-	ld (ix + GzipArchive.inflate + 1),0
 	ret
 
 ; de = writer (min 32K)

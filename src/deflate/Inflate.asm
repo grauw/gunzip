@@ -11,9 +11,6 @@ Inflate: MACRO
 	_size:
 	ENDM
 
-Inflate_class: Class Inflate, Inflate_template, Heap_main
-Inflate_template: Inflate
-
 ; hl = reader
 ; de = writer (min 32K)
 ; ix = this
