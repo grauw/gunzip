@@ -180,7 +180,7 @@ Loop:
 	add hl,de
 	add hl,de
 	djnz Loop
-	ld (hl),-1
+	ld (hl),0
 	pop ix
 	ret
 	ENDP
@@ -257,9 +257,9 @@ Overflow:
 Alphabet_BuildTree: PROC
 	ld l,(ix + Alphabet.sortedCodeLengths)
 	ld h,(ix + Alphabet.sortedCodeLengths + 1)
-	ld bc,0
+	ld c,0
 	call Alphabet_GetNextSymbol
-	jp c,TrapEmptyTree
+	jp z,TrapEmptyTree
 	ld e,(ix + Alphabet.treeStart)
 	ld d,(ix + Alphabet.treeStart + 1)
 	ld (ix + Alphabet.root),e
@@ -282,6 +282,7 @@ TrapEmptyTree:
 ; de = tree position
 ; hl = sorted (code length, symbol) list pointer
 ; ix = this
+; f <- c: end reached, z: no bits left
 Alphabet_BuildBranch:
 	push iy
 	call Alphabet_AddBranch
@@ -296,6 +297,7 @@ Alphabet_BuildBranch:
 ; hl = sorted (code length, symbol) list pointer
 ; iy = current branch
 ; ix = this
+; f <- c: end reached, z: no bits left
 Alphabet_BuildBranchZero: PROC
 	djnz Branch
 Leaf:
@@ -315,9 +317,11 @@ Branch:
 ; hl = sorted (code length, symbol) list pointer
 ; iy = current branch
 ; ix = this
+; f <- c: end reached, z: no bits left
 Alphabet_BuildBranchOne: PROC
 	djnz Branch
 Leaf:
+	inc hl
 	ld a,(hl)
 	inc hl
 	ld (iy + Branch.jumpAddress),a
@@ -335,25 +339,18 @@ Branch:
 	ret
 	ENDP
 
-; b = bits left
 ; c = code length
 ; hl = sorted (code length, symbol) list pointer
 ; ix = this
-; b, c, hl <- updated
-; f <- c: end reached
-Alphabet_GetNextSymbol: PROC
-NextLengthLoop:
+; b <- bits left
+; c <- new code length
+; f <- c: negative bits left, z: no bits left
+Alphabet_GetNextSymbol:
 	ld a,(hl)
-	cp c
-	jr nz,NextLength
-	inc hl
+	sub c
+	ld c,(hl)
+	ld b,a
 	ret
-NextLength:
-	ret m
-	inc b
-	inc c
-	jp NextLengthLoop
-	ENDP
 
 ; ix = this
 ; de = tree position
@@ -381,8 +378,9 @@ Alphabet_AddLeaf:
 	ld a,0C3H  ; jp
 	ld (de),a
 	inc de
-	push bc
+	inc hl
 	ldi
 	ldi
-	pop bc
+	inc bc
+	inc bc
 	ret
