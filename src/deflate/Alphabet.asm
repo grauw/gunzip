@@ -255,7 +255,10 @@ Overflow:
 
 ; ix = this
 Alphabet_BuildTree: PROC
-	call Alphabet_GetFirstSymbol
+	ld l,(ix + Alphabet.sortedCodeLengths)
+	ld h,(ix + Alphabet.sortedCodeLengths + 1)
+	ld bc,0
+	call Alphabet_GetNextSymbol
 	jp c,TrapEmptyTree
 	ld e,(ix + Alphabet.treeStart)
 	ld d,(ix + Alphabet.treeStart + 1)
@@ -351,17 +354,6 @@ NextLength:
 	inc c
 	jp NextLengthLoop
 	ENDP
-
-; ix = this
-; b <- bits left
-; c <- code length
-; hl <- sorted (code length, symbol) list pointer
-; f <- c: end reached
-Alphabet_GetFirstSymbol:
-	ld l,(ix + Alphabet.sortedCodeLengths)
-	ld h,(ix + Alphabet.sortedCodeLengths + 1)
-	ld bc,0
-	jp Alphabet_GetNextSymbol
 
 ; ix = this
 ; de = tree position
