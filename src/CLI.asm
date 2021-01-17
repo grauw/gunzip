@@ -19,7 +19,6 @@ CLI: MACRO
 
 ; ix = this
 ; ix <- this
-; de <- this
 CLI_Construct:
 	push ix
 	ld bc,CLI_BUFFER_SIZE
@@ -31,8 +30,6 @@ CLI_Construct:
 	ld hl,CLI_parametersEnvName
 	ld b,255
 	call DOS_GetEnvironmentItem
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this

@@ -15,7 +15,6 @@ Inflate: MACRO
 ; de = writer (min 32K)
 ; ix = this
 ; ix <- this
-; de <- this
 Inflate_Construct:
 	ld iyl,e  ; check if write buffer is at least 32K
 	ld iyh,d
@@ -26,8 +25,6 @@ Inflate_Construct:
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
 	ld (ix + Inflate.writer + 1),d
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this
@@ -36,8 +33,8 @@ Inflate_Destruct:
 	ret
 
 ; ix = this
-; de <- reader
 ; iy <- reader
+; Modifies: de
 Inflate_GetReaderIY:
 	ld e,(ix + Inflate.reader)
 	ld d,(ix + Inflate.reader + 1)
@@ -46,8 +43,8 @@ Inflate_GetReaderIY:
 	ret
 
 ; ix = this
-; de <- writer
 ; ix <- writer
+; Modifies: de
 Inflate_GetWriter:
 	ld e,(ix + Inflate.writer)
 	ld d,(ix + Inflate.writer + 1)

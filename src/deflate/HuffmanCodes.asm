@@ -28,7 +28,6 @@ HuffmanCodes: MACRO
 ; ix = this
 ; iy = reader
 ; ix <- this
-; de <- this
 HuffmanCodes_Construct:
 	push de
 	push hl
@@ -41,15 +40,12 @@ HuffmanCodes_Construct:
 	call HuffmanCodes_ConstructLiteralLengthAlphabet
 	pop hl
 	call HuffmanCodes_ConstructDistanceAlphabet
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; hl = literal/length symbol handlers table
 ; de = distance symbol handlers table
 ; ix = this
 ; ix <- this
-; de <- this
 HuffmanCodes_ConstructFixed:
 	push de
 	push ix
@@ -65,8 +61,6 @@ HuffmanCodes_ConstructFixed:
 	ld de,HuffmanCodes_fixedDistanceCodeLengths
 	call Alphabet_Construct
 	pop ix
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this

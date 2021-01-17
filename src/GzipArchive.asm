@@ -45,7 +45,6 @@ GzipArchive: MACRO
 ; de = reader
 ; ix = this
 ; ix <- this
-; de <- this
 GzipArchive_Construct:
 	ld (ix + GzipArchive.reader),e
 	ld (ix + GzipArchive.reader + 1),d
@@ -53,8 +52,6 @@ GzipArchive_Construct:
 	ld (ix + GzipArchive.crc32CheckEnabled),a
 	ENDIF
 	call GzipArchive_ReadHeader
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this
@@ -63,9 +60,8 @@ GzipArchive_Destruct:
 	ret
 
 ; ix = this
-; de <- file reader
 ; iy <- file reader
-; Modifies: none
+; Modifies: de
 GzipArchive_GetReaderIY:
 	ld e,(ix + GzipArchive.reader)
 	ld d,(ix + GzipArchive.reader + 1)

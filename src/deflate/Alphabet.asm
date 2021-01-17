@@ -32,7 +32,6 @@ Alphabet: MACRO
 ; hl = symbol handler table
 ; ix = this
 ; ix <- this
-; de <- this
 Alphabet_Construct:
 	ld a,b
 	or c
@@ -46,8 +45,6 @@ Alphabet_Construct:
 	call Alphabet_AllocateTreeBuffer
 	call Alphabet_SortCodeLengths
 	call Alphabet_BuildTree
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this
@@ -65,7 +62,7 @@ Alphabet_Destruct:
 
 ; ix = this
 ; ix <- root branch
-; de <- root branch
+; Modifies: de
 Alphabet_GetRoot:
 	ld e,(ix + Alphabet.root)
 	ld d,(ix + Alphabet.root + 1)

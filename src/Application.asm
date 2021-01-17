@@ -43,14 +43,11 @@ Application_Main:
 
 ; ix = this
 ; ix <- this
-; de <- this
 Application_Construct:
 	push ix
 	call Application_GetCLI
 	call CLI_Construct
 	pop ix
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this

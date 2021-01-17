@@ -19,7 +19,6 @@ CRC32Checker: MACRO
 ; de = writer
 ; ix = this
 ; ix <- this
-; de <- this
 CRC32Checker_Construct:
 	ld iyl,e
 	ld iyh,d

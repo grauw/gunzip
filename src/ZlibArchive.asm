@@ -34,7 +34,6 @@ ZlibArchive: MACRO
 ; de = reader
 ; ix = this
 ; ix <- this
-; de <- this
 ZlibArchive_Construct:
 	ld (ix + ZlibArchive.reader),e
 	ld (ix + ZlibArchive.reader + 1),d
@@ -42,8 +41,6 @@ ZlibArchive_Construct:
 	ld (ix + ZlibArchive.adler32CheckEnabled),a
 	ENDIF
 	call ZlibArchive_ReadHeader
-	ld e,ixl
-	ld d,ixh
 	ret
 
 ; ix = this
@@ -52,9 +49,8 @@ ZlibArchive_Destruct:
 	ret
 
 ; ix = this
-; de <- file reader
 ; iy <- file reader
-; Modifies: none
+; Modifies: de
 ZlibArchive_GetReaderIY:
 	ld e,(ix + ZlibArchive.reader)
 	ld d,(ix + ZlibArchive.reader + 1)
