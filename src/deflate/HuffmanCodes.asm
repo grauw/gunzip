@@ -12,9 +12,7 @@ HuffmanCodes: MACRO
 		db 0
 	hclen:
 		db 0
-	headerCodeLengths:
-		ds HuffmanCodes_MAX_HEADERCODELENGTHS
-	literalLengthDistanceCodeLengths:
+	codeLengths:
 		ds HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS + HuffmanCodes_MAX_DISTANCECODELENGTHS
 	headerCodeAlphabet:
 		Alphabet
@@ -74,7 +72,7 @@ HuffmanCodes_ConstructFixed:
 ; ix = this
 HuffmanCodes_ConstructHeaderCodeAlphabet:
 	push ix
-	ld hl,HuffmanCodes.headerCodeLengths
+	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
 	add hl,de
@@ -91,7 +89,7 @@ HuffmanCodes_ConstructHeaderCodeAlphabet:
 HuffmanCodes_ConstructLiteralLengthAlphabet:
 	push ix
 	push hl
-	ld hl,HuffmanCodes.literalLengthDistanceCodeLengths
+	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
 	add hl,de
@@ -109,7 +107,7 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 HuffmanCodes_ConstructDistanceAlphabet:
 	push ix
 	push hl
-	ld hl,HuffmanCodes.literalLengthDistanceCodeLengths
+	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
 	add hl,de
@@ -208,7 +206,7 @@ HuffmanCodes_ReadLengths:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadHeaderCodeLengths: PROC
-	ld hl,HuffmanCodes.headerCodeLengths
+	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
 	add hl,de
@@ -231,7 +229,7 @@ Loop:
 	ld b,3
 	call Reader_ReadBits_IY
 	pop bc
-	ld (ix + HuffmanCodes.headerCodeLengths),a
+	ld (ix + HuffmanCodes.codeLengths),a
 	pop ix
 	pop hl
 	djnz Loop
@@ -241,7 +239,7 @@ Loop:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
-	ld hl,HuffmanCodes.literalLengthDistanceCodeLengths
+	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
 	add hl,de
