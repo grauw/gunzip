@@ -35,6 +35,8 @@ Alphabet: MACRO
 ; ix = this
 ; ix <- this
 Alphabet_Construct:
+	ld (ix + Alphabet.treeSize),0
+	ld (ix + Alphabet.treeSize + 1),0
 	ld a,b
 	or c
 	call z,System_ThrowException
@@ -44,6 +46,8 @@ Alphabet_Construct:
 	ld (ix + Alphabet.codeLengths + 1),d
 	ld (ix + Alphabet.symbolHandlers),l
 	ld (ix + Alphabet.symbolHandlers + 1),h
+	call Alphabet_CountCodeLengths
+	call Alphabet_CheckCodeComplete
 	call Alphabet_AllocateTreeBuffer
 	call Alphabet_SortCodeLengths
 	call Alphabet_BuildTree
@@ -52,10 +56,13 @@ Alphabet_Construct:
 ; ix = this
 ; ix <- this
 Alphabet_Destruct:
-	ld e,(ix + Alphabet.treeStart)
-	ld d,(ix + Alphabet.treeStart + 1)
 	ld c,(ix + Alphabet.treeSize)
 	ld b,(ix + Alphabet.treeSize + 1)
+	ld a,c
+	or b
+	ret z
+	ld e,(ix + Alphabet.treeStart)
+	ld d,(ix + Alphabet.treeStart + 1)
 	push ix
 	ld ix,Heap_main
 	call Heap_Free
@@ -163,7 +170,6 @@ Skip:
 
 ; ix = this
 Alphabet_InitCodeLengthsTable: PROC
-	call Alphabet_CountCodeLengths
 	call Alphabet_GetSortedCodeLengthsStart
 	ld (ix + Alphabet.sortedCodeLengths),l
 	ld (ix + Alphabet.sortedCodeLengths + 1),h
@@ -260,6 +266,31 @@ Overflow:
 	ENDP
 
 ; ix = this
+Alphabet_CheckCodeComplete: PROC
+	push ix
+	ld hl,1
+	ld b,Alphabet_MAX_CODELENGTH
+Loop:
+	ld e,(ix + Alphabet.codeLengthCounts)
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	add hl,hl
+	sbc hl,de
+	call c,System_ThrowException  ; over-full Huffman code
+	inc ix
+	inc ix
+	djnz Loop
+	pop ix
+	ret z  ; complete
+	ld l,(ix + Alphabet.codeLengthCountsSum)
+	ld h,(ix + Alphabet.codeLengthCountsSum + 1)
+	ld e,(ix + Alphabet.codeLengthCounts)
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	sbc hl,de
+	ret z  ; empty code or one-symbol code
+	call System_ThrowException  ; under-full Huffman code
+	ENDP
+
+; ix = this
 Alphabet_BuildTree: PROC
 	ld l,(ix + Alphabet.sortedCodeLengths)
 	ld h,(ix + Alphabet.sortedCodeLengths + 1)
@@ -271,6 +302,7 @@ Alphabet_BuildTree: PROC
 	ld (ix + Alphabet.root),e
 	ld (ix + Alphabet.root + 1),d
 	call Alphabet_BuildBranch
+	call nz,System_ThrowException  ; over-full Huffman code
 	ld l,(ix + Alphabet.treeEnd)
 	ld h,(ix + Alphabet.treeEnd + 1)
 	scf        ; +1 extra for sentinel byte

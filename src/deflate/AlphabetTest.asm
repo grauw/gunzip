@@ -4,6 +4,8 @@
 AlphabetTest_Test:
 	call AlphabetTest_TestCodeBuilding
 	call AlphabetTest_TestCompleteCodes
+	call AlphabetTest_TestUnderFullCodes
+	call AlphabetTest_TestOverFullCodes
 	call AlphabetTest_TestTreeBuilding
 	ret
 
@@ -24,34 +26,68 @@ AlphabetTest_TestCompleteCodes:
 	ld hl,AlphabetTest_testSymbols
 	call AlphabetTest_AssertConstructSuccess
 	ld bc,1
-	ld de,AlphabetTest_testCodeLengths11
+	ld de,AlphabetTest_testCodeLengths111
 	ld hl,AlphabetTest_testSymbols
 	call AlphabetTest_AssertConstructSuccess
 	ld bc,2
-	ld de,AlphabetTest_testCodeLengths11
+	ld de,AlphabetTest_testCodeLengths111
 	ld hl,AlphabetTest_testSymbols
 	call AlphabetTest_AssertConstructSuccess
 	ld bc,3
-	ld de,AlphabetTest_testCodeLengths122
+	ld de,AlphabetTest_testCodeLengths1222
 	ld hl,AlphabetTest_testSymbols
 	call AlphabetTest_AssertConstructSuccess
 	ld bc,4
-	ld de,AlphabetTest_testCodeLengths2222
+	ld de,AlphabetTest_testCodeLengths22222
 	ld hl,AlphabetTest_testSymbols
 	call AlphabetTest_AssertConstructSuccess
+	ret
+
+AlphabetTest_TestUnderFullCodes:
+	ld bc,2
+	ld de,AlphabetTest_testCodeLengths1222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ld bc,1
+	ld de,AlphabetTest_testCodeLengths22222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ld bc,2
+	ld de,AlphabetTest_testCodeLengths22222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ld bc,3
+	ld de,AlphabetTest_testCodeLengths22222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ret
+
+AlphabetTest_TestOverFullCodes:
+	ld bc,3
+	ld de,AlphabetTest_testCodeLengths111
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ld bc,4
+	ld de,AlphabetTest_testCodeLengths1222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
+	ld bc,5
+	ld de,AlphabetTest_testCodeLengths22222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructFail
 	ret
 
 AlphabetTest_testCodeLengths0:
 	db 0
 
-AlphabetTest_testCodeLengths11:
-	db 1, 1
+AlphabetTest_testCodeLengths111:
+	db 1, 1, 1
 
-AlphabetTest_testCodeLengths122:
-	db 1, 2, 2
+AlphabetTest_testCodeLengths1222:
+	db 1, 2, 2, 2
 
-AlphabetTest_testCodeLengths2222:
-	db 2, 2, 2, 2
+AlphabetTest_testCodeLengths22222:
+	db 2, 2, 2, 2, 2
 
 AlphabetTest_TestTreeBuilding: PROC
 	ld bc,AlphabetTest_testCodeLengthsCount
@@ -142,3 +178,21 @@ AlphabetTest_AssertConstructSuccess:
 	call Alphabet_Construct
 	call Alphabet_Destruct
 	ret
+
+AlphabetTest_AssertConstructFail: PROC
+Try:
+	System_TryCall_M Construct
+Catch:
+	call System_HasException
+	push af
+	call System_CatchException
+	ld ix,AlphabetTest_alphabet
+	call Alphabet_Destruct
+	pop af
+	call z,System_ThrowException
+	ret
+Construct:
+	ld ix,AlphabetTest_alphabet
+	call Alphabet_Construct
+	ret
+	ENDP
