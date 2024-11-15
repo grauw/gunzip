@@ -3,6 +3,7 @@
 ;
 AlphabetTest_Test:
 	call AlphabetTest_TestCodeBuilding
+	call AlphabetTest_TestCompleteCodes
 	call AlphabetTest_TestTreeBuilding
 	ret
 
@@ -10,14 +11,47 @@ AlphabetTest_TestCodeBuilding:
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
 	ld hl,Inflate_literalLengthSymbols
-	ld ix,AlphabetTest_alphabet
-	call Alphabet_Construct
-	call Alphabet_Destruct
+	call AlphabetTest_AssertConstructSuccess
 	ret
 
 AlphabetTest_expectedCodeLengthCounts:
 	db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 152, 0
 	db 112, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+AlphabetTest_TestCompleteCodes:
+	ld bc,1
+	ld de,AlphabetTest_testCodeLengths0
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructSuccess
+	ld bc,1
+	ld de,AlphabetTest_testCodeLengths11
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructSuccess
+	ld bc,2
+	ld de,AlphabetTest_testCodeLengths11
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructSuccess
+	ld bc,3
+	ld de,AlphabetTest_testCodeLengths122
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructSuccess
+	ld bc,4
+	ld de,AlphabetTest_testCodeLengths2222
+	ld hl,AlphabetTest_testSymbols
+	call AlphabetTest_AssertConstructSuccess
+	ret
+
+AlphabetTest_testCodeLengths0:
+	db 0
+
+AlphabetTest_testCodeLengths11:
+	db 1, 1
+
+AlphabetTest_testCodeLengths122:
+	db 1, 2, 2
+
+AlphabetTest_testCodeLengths2222:
+	db 2, 2, 2, 2
 
 AlphabetTest_TestTreeBuilding: PROC
 	ld bc,AlphabetTest_testCodeLengthsCount
@@ -101,4 +135,10 @@ AlphabetTest_AssertArrayEquals:
 	cpi
 	call nz,System_ThrowException
 	jp pe,AlphabetTest_AssertArrayEquals
+	ret
+
+AlphabetTest_AssertConstructSuccess:
+	ld ix,AlphabetTest_alphabet
+	call Alphabet_Construct
+	call Alphabet_Destruct
 	ret
