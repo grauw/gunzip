@@ -80,6 +80,7 @@ Alphabet_Process:
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize
+	inc hl  ; +1 extra for sentinel byte
 	ld (ix + Alphabet.treeSize),l
 	ld (ix + Alphabet.treeSize + 1),h
 	push hl
@@ -267,7 +268,7 @@ Alphabet_BuildTree: PROC
 	call Alphabet_BuildBranch
 	ld l,(ix + Alphabet.treeEnd)
 	ld h,(ix + Alphabet.treeEnd + 1)
-	and a
+	scf        ; +1 extra for sentinel byte
 	sbc hl,de
 	call c,System_ThrowException
 	ret
