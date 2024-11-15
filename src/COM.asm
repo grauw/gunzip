@@ -4,7 +4,6 @@
 
 	INCLUDE "Macros.asm"
 
-DEBUG: equ 1
 GZIP_CRC32: equ 1
 ZLIB_ADLER32: equ 1
 
