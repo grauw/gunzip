@@ -12,3 +12,7 @@ Branch: MACRO
 	ENDM
 
 Branch_template: Branch
+
+	IF Alphabet_BRANCH_SIZE != Branch._size
+	ERROR "Branch size mismatch."
+	ENDIF

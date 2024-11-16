@@ -2,7 +2,8 @@
 ; Huffman alphabet builder
 ;
 Alphabet_MAX_CODELENGTH: equ 15
-Alphabet_LEAF_SIZE: equ 3
+Alphabet_BRANCH_SIZE: equ 8
+Alphabet_LEAF0_SIZE: equ 3
 
 Alphabet: MACRO
 	Process:
@@ -109,7 +110,7 @@ Alphabet_AllocateTreeBuffer:
 Alphabet_CalculateTreeBufferSize: PROC
 	ld c,(ix + Alphabet.codeLengthCount)
 	ld b,(ix + Alphabet.codeLengthCount + 1)
-	ld a,Branch._size + Alphabet_LEAF_SIZE
+	ld a,Alphabet_BRANCH_SIZE + Alphabet_LEAF0_SIZE
 	ld hl,0
 Loop:
 	add hl,bc
@@ -401,8 +402,9 @@ Alphabet_AddBranch:
 	ld iyl,e
 	ld iyh,d
 	ld hl,Branch_template
-	ld bc,Branch._size
-	ldir
+	REPT Alphabet_BRANCH_SIZE
+	ldi
+	ENDM
 	pop hl
 	pop bc
 	ret
