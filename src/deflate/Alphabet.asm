@@ -109,15 +109,40 @@ Alphabet_AllocateTreeBuffer:
 ; hl <- buffer size
 ; Modifies: af
 Alphabet_CalculateTreeBufferSize: PROC
-	ld c,(ix + Alphabet.codeLengthCount)
-	ld b,(ix + Alphabet.codeLengthCount + 1)
-	ld a,Alphabet_BRANCH_SIZE + Alphabet_LEAF0_SIZE
-	ld hl,0
+	ld l,(ix + Alphabet.codeLengthCountsSum)
+	ld h,(ix + Alphabet.codeLengthCountsSum + 1)
+	dec hl
+	add hl,hl  ; branches x8
+	add hl,hl
+	adc hl,hl
+	jr c,NoSymbol
+	jr z,OneSymbol
+	push ix
+	ld b,Alphabet_MAX_CODELENGTH
 Loop:
-	add hl,bc
-	dec a
-	jp nz,Loop
+	ld e,(ix + Alphabet.codeLengthCounts)
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	inc de
+	srl d
+	rr e
+	add hl,de  ; zero-leafs x3
+	add hl,de
+	add hl,de
+	inc ix
+	inc ix
+	djnz Loop
+	pop ix
 	ret
+NoSymbol:
+	ld hl,0
+	ret
+OneSymbol:
+	ld hl,Alphabet_BRANCH_SIZE + Alphabet_LEAF0_SIZE
+	ret
+Assertion:
+	IF Alphabet_BRANCH_SIZE != 8 || Alphabet_LEAF0_SIZE != 3
+	ERROR "Leaf / branch size mismatch."
+	ENDIF
 	ENDP
 
 ; Generate list of (code length, symbol) pairs, sorted by code length
