@@ -22,6 +22,8 @@ Alphabet: MACRO
 		dw 0
 	sortedCodeLengths:
 		dw 0
+	codeLengthCountsSum:
+		dw 0
 	codeLengthCounts:
 		ds Alphabet_MAX_CODELENGTH * 2
 	_size:
@@ -186,8 +188,8 @@ Loop:
 ; ix = this
 ; hl <- sorted code lengths start address
 Alphabet_GetSortedCodeLengthsStart:
-	ld e,(ix + Alphabet.codeLengthCount)
-	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld e,(ix + Alphabet.codeLengthCountsSum)
+	ld d,(ix + Alphabet.codeLengthCountsSum + 1)
 	ld l,e
 	ld h,d
 	add hl,hl
@@ -223,6 +225,7 @@ Alphabet_CountCodeLengths: PROC
 	ld hl,-Alphabet_MAX_CODELENGTH * 2 - 2
 	add hl,de
 	ex de,hl  ; de = ix + Alphabet.codeLengthCounts - 2
+	ld bc,0
 	exx
 Loop:
 	ld a,(hl)
@@ -232,6 +235,7 @@ Loop:
 	cp Alphabet_MAX_CODELENGTH + 1
 	call nc,System_ThrowException
 	exx
+	inc bc
 	add a,a
 	ld l,a
 	ld h,0
@@ -244,6 +248,10 @@ Skip:
 	djnz Loop
 	dec c
 	jr nz,Loop
+	exx
+	ld (ix + Alphabet.codeLengthCountsSum),c
+	ld (ix + Alphabet.codeLengthCountsSum + 1),b
+	exx
 	ret
 Overflow:
 	inc hl
