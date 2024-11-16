@@ -87,7 +87,8 @@ Alphabet_Process:
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
 	call Alphabet_CalculateTreeBufferSize
-	inc hl  ; +1 extra for sentinel byte
+	ld bc,4
+	add hl,bc  ; +4 extra for last sorted length + sentinel
 	ld (ix + Alphabet.treeSize),l
 	ld (ix + Alphabet.treeSize + 1),h
 	push hl
@@ -306,7 +307,10 @@ Alphabet_BuildTree: PROC
 	call nz,System_ThrowException  ; over-full Huffman code
 	ld l,(ix + Alphabet.treeEnd)
 	ld h,(ix + Alphabet.treeEnd + 1)
-	scf        ; +1 extra for sentinel byte
+	scf        ; +4 extra for last sorted length + sentinel
+	inc de
+	inc de
+	inc de
 	sbc hl,de
 	call c,System_ThrowException
 	ret
