@@ -162,14 +162,14 @@ HuffmanCodes_GetDistanceAlphabet:
 HuffmanCodes_GetRoots:
 	push ix
 	call HuffmanCodes_GetDistanceAlphabet
-	ld e,(ix + Alphabet.root)
-	ld d,(ix + Alphabet.root + 1)
+	ld e,(ix + Alphabet.treeStart)
+	ld d,(ix + Alphabet.treeStart + 1)
 	pop ix
 	push de
 	push ix
 	call HuffmanCodes_GetLiteralLengthAlphabet
-	ld l,(ix + Alphabet.root)
-	ld h,(ix + Alphabet.root + 1)
+	ld l,(ix + Alphabet.treeStart)
+	ld h,(ix + Alphabet.treeStart + 1)
 	pop ix
 	pop de
 	ret

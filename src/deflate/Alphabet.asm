@@ -6,9 +6,6 @@ Alphabet_BRANCH_SIZE: equ 8
 Alphabet_LEAF0_SIZE: equ 3
 
 Alphabet: MACRO
-	Process:
-		jp 0
-	root: equ $ - 2
 	codeLengthCount:
 		dw 0
 	codeLengths:
@@ -74,15 +71,19 @@ Alphabet_Destruct:
 ; ix <- root branch
 ; Modifies: de
 Alphabet_GetRoot:
-	ld e,(ix + Alphabet.root)
-	ld d,(ix + Alphabet.root + 1)
+	ld e,(ix + Alphabet.treeStart)
+	ld d,(ix + Alphabet.treeStart + 1)
 	ld ixl,e
 	ld ixh,d
 	ret
 
 ; ix = this
 Alphabet_Process:
-	jp ix
+	push hl
+	ld l,(ix + Alphabet.treeStart)
+	ld h,(ix + Alphabet.treeStart + 1)
+	ex (sp),hl
+	ret
 
 ; Modifies: af, bc, de, hl
 Alphabet_AllocateTreeBuffer:
@@ -134,7 +135,7 @@ Loop:
 	pop ix
 	ret
 NoSymbol:
-	ld hl,0
+	ld hl,Alphabet_LEAF0_SIZE
 	ret
 OneSymbol:
 	ld hl,Alphabet_BRANCH_SIZE + Alphabet_LEAF0_SIZE
@@ -323,11 +324,9 @@ Alphabet_BuildTree: PROC
 	ld h,(ix + Alphabet.sortedCodeLengths + 1)
 	ld c,0
 	call Alphabet_GetNextSymbol
-	jp z,TrapEmptyTree
 	ld e,(ix + Alphabet.treeStart)
 	ld d,(ix + Alphabet.treeStart + 1)
-	ld (ix + Alphabet.root),e
-	ld (ix + Alphabet.root + 1),d
+	jp z,TrapEmptyTree
 	call Alphabet_BuildBranch
 	call nz,System_ThrowException  ; over-full Huffman code
 	ld l,(ix + Alphabet.treeEnd)
@@ -340,8 +339,12 @@ Alphabet_BuildTree: PROC
 	call c,System_ThrowException
 	ret
 TrapEmptyTree:
-	ld (ix + Alphabet.root),System_ThrowException & 0FFH
-	ld (ix + Alphabet.root + 1),System_ThrowException >> 8
+	ex de,hl
+	ld (hl),0C3H  ; jp
+	inc hl
+	ld (hl),System_ThrowException & 0FFH
+	inc hl
+	ld (hl),System_ThrowException >> 8
 	ret
 	ENDP
 
