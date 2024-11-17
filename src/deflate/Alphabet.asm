@@ -356,7 +356,16 @@ TrapEmptyTree:
 ; f <- c: end reached, z: no bits left
 Alphabet_BuildBranch:
 	push iy
-	call Alphabet_AddBranch
+	ld iyl,e
+	ld iyh,d
+	push bc
+	push hl
+	ld hl,Branch_template
+	REPT Alphabet_BRANCH_SIZE
+	ldi
+	ENDM
+	pop hl
+	pop bc
 	call Alphabet_BuildBranchZero
 	call nc,Alphabet_BuildBranchOne
 	pop iy
@@ -372,7 +381,14 @@ Alphabet_BuildBranch:
 Alphabet_BuildBranchZero: PROC
 	djnz Branch
 Leaf:
-	call Alphabet_AddLeaf
+	ld a,0C3H  ; jp
+	ld (de),a
+	inc de
+	inc hl
+	ldi
+	ldi
+	inc bc
+	inc bc
 	call Alphabet_GetNextSymbol
 	inc b
 	ret
@@ -421,38 +437,4 @@ Alphabet_GetNextSymbol:
 	sub c
 	ld c,(hl)
 	ld b,a
-	ret
-
-; ix = this
-; de = tree position
-; de <- updated tree position
-; iy <- branch
-; Modifies: f
-Alphabet_AddBranch:
-	push bc
-	push hl
-	ld iyl,e
-	ld iyh,d
-	ld hl,Branch_template
-	REPT Alphabet_BRANCH_SIZE
-	ldi
-	ENDM
-	pop hl
-	pop bc
-	ret
-
-; ix = this
-; de = tree position
-; hl = sorted (code length, symbol) list pointer
-; de <- updated tree position
-; Modifies: hl
-Alphabet_AddLeaf:
-	ld a,0C3H  ; jp
-	ld (de),a
-	inc de
-	inc hl
-	ldi
-	ldi
-	inc bc
-	inc bc
 	ret
