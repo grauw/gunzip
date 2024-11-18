@@ -18,8 +18,6 @@ Alphabet: MACRO
 		dw 0
 	treeEnd:
 		dw 0
-	sortedCodeLengths:
-		dw 0
 	codeLengthCountsSum:
 		dw 0
 	codeLengthCounts:
@@ -47,8 +45,7 @@ Alphabet_Construct:
 	call Alphabet_CountCodeLengths
 	call Alphabet_CheckCodeComplete
 	call Alphabet_AllocateTreeBuffer
-	call Alphabet_SortCodeLengths
-	call Alphabet_BuildTree
+	call Alphabet_BuildDecoder
 	ret
 
 ; ix = this
@@ -149,7 +146,6 @@ Assertion:
 ; Generate list of (code length, symbol) pairs, sorted by code length
 ; ix = this
 Alphabet_SortCodeLengths: PROC
-	call Alphabet_InitCodeLengthsTable
 	exx
 	ld l,(ix + Alphabet.symbolHandlers)
 	ld h,(ix + Alphabet.symbolHandlers + 1)
@@ -196,11 +192,9 @@ Skip:
 	jp SkipContinue
 	ENDP
 
+; hl = sorted code lengths start address
 ; ix = this
 Alphabet_InitCodeLengthsTable: PROC
-	call Alphabet_GetSortedCodeLengthsStart
-	ld (ix + Alphabet.sortedCodeLengths),l
-	ld (ix + Alphabet.sortedCodeLengths + 1),h
 	ld b,Alphabet_MAX_CODELENGTH
 	push ix
 Loop:
@@ -319,9 +313,18 @@ Loop:
 	ENDP
 
 ; ix = this
+Alphabet_BuildDecoder:
+	call Alphabet_GetSortedCodeLengthsStart
+	push hl
+	call Alphabet_InitCodeLengthsTable
+	call Alphabet_SortCodeLengths
+	pop hl
+	call Alphabet_BuildTree
+	ret
+
+; hl = sorted code lengths
+; ix = this
 Alphabet_BuildTree: PROC
-	ld l,(ix + Alphabet.sortedCodeLengths)
-	ld h,(ix + Alphabet.sortedCodeLengths + 1)
 	ld c,0
 	call Alphabet_GetNextSymbol
 	ld e,(ix + Alphabet.treeStart)
