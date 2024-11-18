@@ -46,8 +46,6 @@ Loop2:
 	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
 
-	call CRC32Checker_Destruct
-
 	ld ix,CRC32CheckerTest_nullWriter
 	call NullWriter_Destruct
 	ret

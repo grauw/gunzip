@@ -39,11 +39,6 @@ Adler32Checker_Construct:
 	ld (ix + Adler32Checker.adler32 + 3),a
 	ret
 
-; ix = this
-; ix <- this
-Adler32Checker_Destruct:
-	ret
-
 ; bc = byte count
 ; de = buffer start
 ; ix = this

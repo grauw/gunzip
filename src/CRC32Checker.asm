@@ -39,11 +39,6 @@ CRC32Checker_Construct:
 	ld (ix + CRC32Checker.crc32 + 3),a
 	ret
 
-; ix = this
-; ix <- this
-CRC32Checker_Destruct:
-	ret
-
 ; bc = byte count
 ; de = buffer start
 ; ix = this

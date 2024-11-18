@@ -149,10 +149,6 @@ ZlibArchive_Extract:
 	call ZlibArchive_ReadFooter
 	call ZlibArchive_Verify
 	call ZlibArchive_DestroyInflate
-	IF ZLIB_ADLER32
-	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
-	call nz,ZlibArchive_DestroyAdler32Checker
-	ENDIF
 	ret
 
 ; de = writer (min 32K)
@@ -185,17 +181,6 @@ ZlibArchive_CreateAdler32Checker:
 	call Adler32Checker_Construct
 	pop ix
 	pop de
-	ret
-	ENDIF
-
-; ix = this
-ZlibArchive_DestroyAdler32Checker:
-	IF ZLIB_ADLER32
-	push ix
-	ld de,ZlibArchive.adler32Checker
-	add ix,de
-	call Adler32Checker_Destruct
-	pop ix
 	ret
 	ENDIF
 

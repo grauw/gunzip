@@ -158,10 +158,6 @@ GzipArchive_Extract:
 	call GzipArchive_ReadFooter
 	call GzipArchive_Verify
 	call GzipArchive_DestroyInflate
-	IF GZIP_CRC32
-	bit 0,(ix + GzipArchive.crc32CheckEnabled)
-	call nz,GzipArchive_DestroyCRC32Checker
-	ENDIF
 	ret
 
 ; de = writer (min 32K)
@@ -194,17 +190,6 @@ GzipArchive_CreateCRC32Checker:
 	call CRC32Checker_Construct
 	pop ix
 	pop de
-	ret
-	ENDIF
-
-; ix = this
-GzipArchive_DestroyCRC32Checker:
-	IF GZIP_CRC32
-	push ix
-	ld de,GzipArchive.crc32Checker
-	add ix,de
-	call CRC32Checker_Destruct
-	pop ix
 	ret
 	ENDIF
 
