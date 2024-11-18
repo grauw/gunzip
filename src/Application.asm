@@ -53,10 +53,6 @@ Application_Construct:
 ; ix = this
 ; ix <- this
 Application_Destruct:
-	push ix
-	call Application_GetCLI
-	call CLI_Destruct
-	pop ix
 	ret
 
 ; ix = this

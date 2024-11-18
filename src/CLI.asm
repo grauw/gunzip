@@ -13,41 +13,33 @@ CLI: MACRO
 	fast:
 		db 0
 	buffer:
-		dw 0
+		ds CLI_BUFFER_SIZE
 	_size:
 	ENDM
 
 ; ix = this
 ; ix <- this
 CLI_Construct:
-	push ix
-	ld bc,CLI_BUFFER_SIZE
-	ld ix,Heap_main
-	call Heap_Allocate
-	pop ix
-	ld (ix + CLI.buffer),e
-	ld (ix + CLI.buffer + 1),d
+	call CLI_GetBuffer
 	ld hl,CLI_parametersEnvName
 	ld b,255
 	call DOS_GetEnvironmentItem
 	ret
 
 ; ix = this
-; ix <- this
-CLI_Destruct:
-	push ix
-	ld e,(ix + CLI.buffer)
-	ld d,(ix + CLI.buffer + 1)
-	ld bc,CLI_BUFFER_SIZE
-	ld ix,Heap_main
-	call Heap_Free
-	pop ix
+; de <- buffer
+; Modifies: hl
+CLI_GetBuffer:
+	ld e,ixl
+	ld d,ixh
+	ld hl,CLI.buffer
+	add hl,de
+	ex de,hl
 	ret
 
 ; ix = this
 CLI_Parse: PROC
-	ld e,(ix + CLI.buffer)
-	ld d,(ix + CLI.buffer + 1)
+	call CLI_GetBuffer
 Loop:
 	ld a,(de)
 	and a
