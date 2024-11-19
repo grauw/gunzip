@@ -91,10 +91,7 @@ HuffmanCodes_ConstructHeaderCodeAlphabet:
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	push ix
 	push de
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
+	call HuffmanCodes_GetCodeLengths
 	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS
 	call HuffmanCodes_GetAlphabet
 	ex de,hl
@@ -115,10 +112,7 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 	push ix
 	push de
 	push hl
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
+	call HuffmanCodes_GetCodeLengths
 	ld c,(ix + HuffmanCodes.hlit)
 	ld b,1
 	call HuffmanCodes_GetAlphabet
@@ -140,10 +134,7 @@ HuffmanCodes_ConstructDistanceAlphabet:
 	push ix
 	push de
 	push hl
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
+	call HuffmanCodes_GetCodeLengths
 	ld e,(ix + HuffmanCodes.hlit)
 	ld d,1
 	add hl,de
@@ -167,6 +158,16 @@ HuffmanCodes_GetDecoders:
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	ld ixl,e
 	ld ixh,d
+	ret
+
+; ix = this
+; hl <- code lengths
+; Modifies: de
+HuffmanCodes_GetCodeLengths:
+	ld hl,HuffmanCodes.codeLengths
+	ld e,ixl
+	ld d,ixh
+	add hl,de
 	ret
 
 ; ix = this
@@ -201,10 +202,7 @@ HuffmanCodes_ReadLengths:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadHeaderCodeLengths: PROC
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
+	call HuffmanCodes_GetCodeLengths
 	push hl
 	ld e,l
 	ld d,h
@@ -234,10 +232,7 @@ Loop:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
+	call HuffmanCodes_GetCodeLengths
 	ld a,(ix + HuffmanCodes.hlit)
 	add a,(ix + HuffmanCodes.hdist)
 	push ix
