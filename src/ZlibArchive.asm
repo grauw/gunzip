@@ -44,11 +44,6 @@ ZlibArchive_Construct:
 	ret
 
 ; ix = this
-; ix <- this
-ZlibArchive_Destruct:
-	ret
-
-; ix = this
 ; iy <- file reader
 ; Modifies: de
 ZlibArchive_GetReaderIY:
@@ -137,20 +132,23 @@ ZlibArchive_ReadFooter:
 	ENDIF
 	ret
 
+; bc = decoders buffer
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_Extract:
 	IF ZLIB_ADLER32
+	push bc
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	call nz,ZlibArchive_CreateAdler32Checker
+	pop bc
 	ENDIF
 	call ZlibArchive_CreateInflate
 	call ZlibArchive_Inflate
 	call ZlibArchive_ReadFooter
 	call ZlibArchive_Verify
-	call ZlibArchive_DestroyInflate
 	ret
 
+; bc = decoders buffer
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_CreateInflate:
@@ -159,14 +157,6 @@ ZlibArchive_CreateInflate:
 	push ix
 	call ZlibArchive_GetInflate
 	call Inflate_Construct
-	pop ix
-	ret
-
-; ix = this
-ZlibArchive_DestroyInflate:
-	push ix
-	call ZlibArchive_GetInflate
-	call Inflate_Destruct
 	pop ix
 	ret
 

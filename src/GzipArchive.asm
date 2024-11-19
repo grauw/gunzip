@@ -55,11 +55,6 @@ GzipArchive_Construct:
 	ret
 
 ; ix = this
-; ix <- this
-GzipArchive_Destruct:
-	ret
-
-; ix = this
 ; iy <- file reader
 ; Modifies: de
 GzipArchive_GetReaderIY:
@@ -146,20 +141,23 @@ GzipArchive_ReadFooter:
 	ld (ix + GzipArchive.isize + 3),d
 	ret
 
+; bc = decoders buffer
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_Extract:
 	IF GZIP_CRC32
+	push bc
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	call nz,GzipArchive_CreateCRC32Checker
+	pop bc
 	ENDIF
 	call GzipArchive_CreateInflate
 	call GzipArchive_Inflate
 	call GzipArchive_ReadFooter
 	call GzipArchive_Verify
-	call GzipArchive_DestroyInflate
 	ret
 
+; bc = decoders buffer
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_CreateInflate:
@@ -168,14 +166,6 @@ GzipArchive_CreateInflate:
 	push ix
 	call GzipArchive_GetInflate
 	call Inflate_Construct
-	pop ix
-	ret
-
-; ix = this
-GzipArchive_DestroyInflate:
-	push ix
-	call GzipArchive_GetInflate
-	call Inflate_Destruct
 	pop ix
 	ret
 

@@ -4,8 +4,16 @@
 HuffmanCodes_MAX_HEADERCODELENGTHS: equ 19
 HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS: equ 286
 HuffmanCodes_MAX_DISTANCECODELENGTHS: equ 30
+HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS: equ HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS + 2
+HuffmanCodes_FIXED_DISTANCECODELENGTHS: equ HuffmanCodes_MAX_DISTANCECODELENGTHS + 2
 
 HuffmanCodes: MACRO
+	literalLengthHandlers:
+		dw 0
+	distanceHandlers:
+		dw 0
+	decoders:
+		dw 0
 	hlit:
 		db 0  ; we only store the LSB, MSB is always 1
 	hdist:
@@ -23,49 +31,70 @@ HuffmanCodes: MACRO
 	_size:
 	ENDM
 
+; bc = decoders buffer
 ; hl = literal/length symbol handlers table
 ; de = distance symbol handlers table
 ; ix = this
+HuffmanCodes_Construct:
+	ld (ix + HuffmanCodes.literalLengthHandlers),l
+	ld (ix + HuffmanCodes.literalLengthHandlers + 1),h
+	ld (ix + HuffmanCodes.distanceHandlers),e
+	ld (ix + HuffmanCodes.distanceHandlers + 1),d
+	ld (ix + HuffmanCodes.decoders),c
+	ld (ix + HuffmanCodes.decoders + 1),b
+	ret
+
+; ix = this
 ; iy = reader
 ; ix <- this
-HuffmanCodes_Construct:
-	push de
-	push hl
+HuffmanCodes_ConstructDynamic:
 	call HuffmanCodes_ReadLengths
 	call HuffmanCodes_ReadHeaderCodeLengths
 	call HuffmanCodes_ConstructHeaderCodeAlphabet
 	call HuffmanCodes_ReadLiteralLengthDistanceCodeLengths
-	call HuffmanCodes_DestructHeaderCodeAlphabet
-	pop hl
 	call HuffmanCodes_ConstructLiteralLengthAlphabet
-	pop hl
 	call HuffmanCodes_ConstructDistanceAlphabet
 	ret
 
-; hl = literal/length symbol handlers table
-; de = distance symbol handlers table
 ; ix = this
 ; ix <- this
 HuffmanCodes_ConstructFixed:
-	push de
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld l,(ix + HuffmanCodes.literalLengthHandlers)
+	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	push ix
+	push de
 	call HuffmanCodes_GetLiteralLengthAlphabet
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
 	call Alphabet_Construct
+	pop de
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	pop ix
-	pop hl
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld l,(ix + HuffmanCodes.distanceHandlers)
+	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	push ix
+	push de
 	call HuffmanCodes_GetDistanceAlphabet
 	ld bc,HuffmanCodes_fixedDistanceCodeLengthsCount
 	ld de,HuffmanCodes_fixedDistanceCodeLengths
 	call Alphabet_Construct
+	pop de
+	call Decoders_GetDistanceDecoder
+	call Alphabet_BuildDecoder
 	pop ix
 	ret
 
 ; ix = this
 HuffmanCodes_ConstructHeaderCodeAlphabet:
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
 	push ix
+	push de
 	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
 	ld d,ixh
@@ -75,13 +104,20 @@ HuffmanCodes_ConstructHeaderCodeAlphabet:
 	ex de,hl
 	ld hl,HuffmanCodes_headerCodeSymbols
 	call Alphabet_Construct
+	pop de
+	call Decoders_GetHeaderCodeDecoder
+	call Alphabet_BuildDecoder
 	pop ix
 	ret
 
-; hl = literal/length symbol handlers table
 ; ix = this
 HuffmanCodes_ConstructLiteralLengthAlphabet:
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld l,(ix + HuffmanCodes.literalLengthHandlers)
+	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	push ix
+	push de
 	push hl
 	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
@@ -93,13 +129,20 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 	ex de,hl
 	pop hl
 	call Alphabet_Construct
+	pop de
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	pop ix
 	ret
 
-; hl = distance symbol handlers table
 ; ix = this
 HuffmanCodes_ConstructDistanceAlphabet:
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld l,(ix + HuffmanCodes.distanceHandlers)
+	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	push ix
+	push de
 	push hl
 	ld hl,HuffmanCodes.codeLengths
 	ld e,ixl
@@ -114,28 +157,20 @@ HuffmanCodes_ConstructDistanceAlphabet:
 	ex de,hl
 	pop hl
 	call Alphabet_Construct
+	pop de
+	call Decoders_GetDistanceDecoder
+	call Alphabet_BuildDecoder
 	pop ix
 	ret
 
 ; ix = this
-; ix <- this
-HuffmanCodes_Destruct:
-	push ix
-	call HuffmanCodes_GetLiteralLengthAlphabet
-	call Alphabet_Destruct
-	pop ix
-	push ix
-	call HuffmanCodes_GetDistanceAlphabet
-	call Alphabet_Destruct
-	pop ix
-	ret
-
-; ix = this
-HuffmanCodes_DestructHeaderCodeAlphabet:
-	push ix
-	call HuffmanCodes_GetHeaderCodeAlphabet
-	call Alphabet_Destruct
-	pop ix
+; ix <- decoders buffer
+; Modifies: de
+HuffmanCodes_GetDecoders:
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld ixl,e
+	ld ixh,d
 	ret
 
 ; ix = this
@@ -154,24 +189,6 @@ HuffmanCodes_GetLiteralLengthAlphabet:
 HuffmanCodes_GetDistanceAlphabet:
 	ld de,HuffmanCodes.distanceAlphabet
 	add ix,de
-	ret
-
-; ix = this
-; hl <- literal/length alphabet root
-; de <- distance alphabet root
-HuffmanCodes_GetRoots:
-	push ix
-	call HuffmanCodes_GetDistanceAlphabet
-	ld e,(ix + Alphabet.treeStart)
-	ld d,(ix + Alphabet.treeStart + 1)
-	pop ix
-	push de
-	push ix
-	call HuffmanCodes_GetLiteralLengthAlphabet
-	ld l,(ix + Alphabet.treeStart)
-	ld h,(ix + Alphabet.treeStart + 1)
-	pop ix
-	pop de
 	ret
 
 ; ix = this
@@ -240,8 +257,10 @@ HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
 	ld a,(ix + HuffmanCodes.hlit)
 	add a,(ix + HuffmanCodes.hdist)
 	push ix
-	call HuffmanCodes_GetHeaderCodeAlphabet
-	call Alphabet_GetRoot
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld ixl,e
+	ld ixh,d
 	ld e,a
 	ld d,2  ; +1 for nested 8-bit loop
 	call Reader_PrepareReadBitInline_IY
@@ -253,7 +272,7 @@ HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths:
 	jp ix
@@ -261,7 +280,7 @@ HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_WriteAndNext:
 	inc hl
@@ -276,7 +295,7 @@ HuffmanCodes_WriteAndNext:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillAndNext_Loop:
 	dec b
@@ -294,7 +313,7 @@ HuffmanCodes_FillAndNext:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_WriteLength: REPT 16, ?value
 	ld (hl),?value
@@ -305,7 +324,7 @@ HuffmanCodes_WriteLength: REPT 16, ?value
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_Copy:
 	call Reader_ReadBitsInline_2_IY
@@ -320,7 +339,7 @@ HuffmanCodes_Copy:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillZero_3:
 	call Reader_ReadBitsInline_3_IY
@@ -333,7 +352,7 @@ HuffmanCodes_FillZero_3:
 ; c = inline bit reader state
 ; de = loop counter for nested 8-bit loop
 ; hl = literal/length/distance code lengths position
-; ix = header code alphabet root
+; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillZero_11:
 	call Reader_ReadBitsInline_7_IY
@@ -369,8 +388,16 @@ HuffmanCodes_fixedLiteralLengthCodeLengths:
 
 HuffmanCodes_fixedLiteralLengthCodeLengthsCount: equ $ - HuffmanCodes_fixedLiteralLengthCodeLengths
 
+	IF HuffmanCodes_fixedLiteralLengthCodeLengthsCount != HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS
+	ERROR "Fixed literal length code lengths count mismatch."
+	ENDIF
+
 HuffmanCodes_fixedDistanceCodeLengths:
 	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
 	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
 
 HuffmanCodes_fixedDistanceCodeLengthsCount: equ $ - HuffmanCodes_fixedDistanceCodeLengths
+
+	IF HuffmanCodes_fixedDistanceCodeLengthsCount != HuffmanCodes_FIXED_DISTANCECODELENGTHS
+	ERROR "Fixed distance code lengths count mismatch."
+	ENDIF

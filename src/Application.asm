@@ -21,12 +21,6 @@ Application: MACRO
 Application_Main:
 	call Application_CheckStack
 
-	ld ix,Heap_main
-	call Heap_Construct
-	ld bc,HEAP_SIZE
-	ld de,HEAP
-	call Heap_Free
-
 	call WriterTest_Test
 	call CRC32CheckerTest_Test
 	call AlphabetTest_Test
@@ -150,12 +144,11 @@ Application_InflateToFile:
 	call Application_PreAllocateOutput
 	pop ix
 	push de
+	ld bc,Application_decoders
 	call GzipArchive_Extract
 
-	ex (sp),ix
-	call FileWriter_Destruct
 	pop ix
-	call GzipArchive_Destruct
+	call FileWriter_Destruct
 	pop ix
 	call FileReader_Destruct
 	pop ix
@@ -177,12 +170,11 @@ Application_InflateTest:
 	call Application_CreateNullWriter
 	pop ix
 	push de
+	ld bc,Application_decoders
 	call GzipArchive_Extract
 
-	ex (sp),ix
-	call NullWriter_Destruct
 	pop ix
-	call GzipArchive_Destruct
+	call NullWriter_Destruct
 	pop ix
 	call FileReader_Destruct
 	pop ix
@@ -377,7 +369,7 @@ Application_PreAllocateOutput:
 
 ; Check if the stack is well above the heap
 Application_CheckStack:
-	ld hl,-(HEAP + HEAP_SIZE + STACK_SIZE)
+	ld hl,-(TPA_TOP + STACK_SIZE)
 	add hl,sp
 	ld hl,Application_insufficientTPAError
 	jp nc,System_ThrowExceptionWithMessage
@@ -410,3 +402,10 @@ Application_usageInstructions:
 	db "  /f  Fast, no checksum validation.",13,10
 	db 13,10
 	db "If no output file is specified, the archive will be tested.",13,10,0
+
+	SECTION DECODERBUFFER
+
+Application_decoders:
+	Decoders
+
+	ENDS

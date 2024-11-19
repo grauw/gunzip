@@ -11,15 +11,15 @@ ZLIB_ADLER32: equ 1
 
 READBUFFER_SIZE: equ 1000H
 WRITEBUFFER_SIZE: equ 8000H
-HEAP_SIZE: equ 1180H
 STACK_SIZE: equ 100H
 
-TPA: ds 2C00H
+TPA: ds 2E00H
 RAM: ds 0100H
 RAM_RESIDENT: equ RAM
 READBUFFER: ds VIRTUAL READBUFFER_SIZE
 WRITEBUFFER: ds VIRTUAL WRITEBUFFER_SIZE
-HEAP: ds VIRTUAL HEAP_SIZE
+DECODERBUFFER: ds VIRTUAL 1000H
+TPA_TOP:
 
 	SECTION TPA
 
@@ -28,12 +28,12 @@ HEAP: ds VIRTUAL HEAP_SIZE
 	INCLUDE "DOS.asm"
 	INCLUDE "BIOS.asm"
 	INCLUDE "System.asm"
-	INCLUDE "Heap.asm"
 	INCLUDE "DOS2Runtime.asm"
 	INCLUDE "Application.asm"
 	INCLUDE "CLI.asm"
 	INCLUDE "GzipArchive.asm"
 	INCLUDE "deflate/Inflate.asm"
+	INCLUDE "deflate/Decoder.asm"
 	INCLUDE "deflate/Alphabet.asm"
 	INCLUDE "deflate/AlphabetTest.asm"
 	INCLUDE "deflate/Branch.asm"
@@ -50,12 +50,5 @@ HEAP: ds VIRTUAL HEAP_SIZE
 	ALIGN 100H
 CRC32Table:
 	INCLUDE "crctable.asm"
-
-	ENDS
-
-	SECTION RAM
-
-Heap_main:
-	Heap
 
 	ENDS

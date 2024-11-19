@@ -95,6 +95,9 @@ AlphabetTest_TestTreeBuilding: PROC
 	ld hl,AlphabetTest_testSymbols
 	ld ix,AlphabetTest_alphabet
 	call Alphabet_Construct
+	ld de,Application_decoders.literalLength
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 
 	ld hl,AlphabetTest_testCodes
 	ld de,READBUFFER
@@ -113,7 +116,8 @@ AlphabetTest_TestTreeBuilding: PROC
 	ld ix,AlphabetTest_alphabet
 Loop:
 	push hl
-	call Alphabet_Process
+	ld hl,Application_decoders.literalLength
+	call System_JumpHL
 	pop hl
 	cp (hl)
 	call nz,System_ThrowException
@@ -124,9 +128,6 @@ Loop:
 
 	ld ix,AlphabetTest_reader
 	call Reader_Destruct
-
-	ld ix,AlphabetTest_alphabet
-	call Alphabet_Destruct
 	ret
 	ENDP
 
@@ -176,7 +177,9 @@ AlphabetTest_AssertArrayEquals:
 AlphabetTest_AssertConstructSuccess:
 	ld ix,AlphabetTest_alphabet
 	call Alphabet_Construct
-	call Alphabet_Destruct
+	ld de,Application_decoders.literalLength
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	ret
 
 AlphabetTest_AssertConstructFail: PROC
@@ -186,13 +189,14 @@ Catch:
 	call System_HasException
 	push af
 	call System_CatchException
-	ld ix,AlphabetTest_alphabet
-	call Alphabet_Destruct
 	pop af
 	call z,System_ThrowException
 	ret
 Construct:
 	ld ix,AlphabetTest_alphabet
 	call Alphabet_Construct
+	ld de,Application_decoders.literalLength
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	ret
 	ENDP

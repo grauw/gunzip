@@ -6,11 +6,14 @@ Inflate: MACRO
 		dw 0
 	writer:
 		dw 0
+	decoders:
+		dw 0
 	huffmanCodes:
 		HuffmanCodes
 	_size:
 	ENDM
 
+; bc = decoders buffer
 ; hl = reader
 ; de = writer (min 32K)
 ; ix = this
@@ -25,11 +28,14 @@ Inflate_Construct:
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
 	ld (ix + Inflate.writer + 1),d
-	ret
-
-; ix = this
-; ix <- this
-Inflate_Destruct:
+	ld (ix + Inflate.decoders),c
+	ld (ix + Inflate.decoders + 1),b
+	push ix
+	call Inflate_GetHuffmanCodes
+	ld hl,Inflate_literalLengthSymbols
+	ld de,Inflate_distanceSymbols
+	call HuffmanCodes_Construct
+	pop ix
 	ret
 
 ; ix = this
@@ -50,6 +56,24 @@ Inflate_GetWriter:
 	ld d,(ix + Inflate.writer + 1)
 	ld ixl,e
 	ld ixh,d
+	ret
+
+; ix = this
+; ix <- decoders buffer
+; Modifies: de
+Inflate_GetDecoders:
+	ld e,(ix + Inflate.decoders)
+	ld d,(ix + Inflate.decoders + 1)
+	ld ixl,e
+	ld ixh,d
+	ret
+
+; ix = this
+; ix <- huffman codes
+; Modifies: de
+Inflate_GetHuffmanCodes:
+	ld de,Inflate.huffmanCodes
+	add ix,de
 	ret
 
 ; ix = this
@@ -108,45 +132,29 @@ Inflate_InflateUncompressed:
 ; iy = reader
 Inflate_InflateFixedCompressed:
 	push ix
-	ld hl,Inflate_literalLengthSymbols
-	ld de,Inflate_distanceSymbols
-	ld bc,Inflate.huffmanCodes
-	add ix,bc
+	call Inflate_GetHuffmanCodes
 	call HuffmanCodes_ConstructFixed
-	call HuffmanCodes_GetRoots
-	ex (sp),ix
-
-	call Inflate_InflateCompressed
-
-	ex (sp),ix
-	call HuffmanCodes_Destruct
 	pop ix
+	call Inflate_InflateCompressed
 	ret
 
 ; ix = this
 ; iy = reader
 Inflate_InflateDynamicCompressed:
 	push ix
-	ld hl,Inflate_literalLengthSymbols
-	ld de,Inflate_distanceSymbols
-	ld bc,Inflate.huffmanCodes
-	add ix,bc
-	call HuffmanCodes_Construct
-	call HuffmanCodes_GetRoots
-	ex (sp),ix
-
-	call Inflate_InflateCompressed
-
-	ex (sp),ix
-	call HuffmanCodes_Destruct
+	call Inflate_GetHuffmanCodes
+	call HuffmanCodes_ConstructDynamic
 	pop ix
+	call Inflate_InflateCompressed
 	ret
 
-; hl = literal/length alphabet root
-; de = distance alphabet root
 ; ix = this
 ; iy = reader
 Inflate_InflateCompressed:
+	push ix
+	call Inflate_GetDecoders
+	call Decoders_GetDecoders
+	pop ix
 	push ix
 	ld c,(ix + Inflate.writer)
 	ld b,(ix + Inflate.writer + 1)
@@ -159,8 +167,8 @@ Inflate_InflateCompressed:
 	ret
 
 ; c = inline bit reader state
-; hl = literal/length alphabet root
-; de = distance alphabet root
+; hl = literal/length decoder
+; de = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_DecodeLiteralLengthInline: MACRO
@@ -172,8 +180,8 @@ Inflate_DecodeLiteralLength:
 
 ; Literal/length alphabet symbols 0-255
 ; c = inline bit reader state
-; hl = literal/length alphabet root
-; de = distance alphabet root
+; hl = literal/length decoder
+; de = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_WriteLiteral: REPT 256, ?value
@@ -183,8 +191,8 @@ Inflate_WriteLiteral: REPT 256, ?value
 
 ; Literal/length alphabet symbol 256
 ; c = inline bit reader state
-; hl = literal/length alphabet root
-; de = distance alphabet root
+; hl = literal/length decoder
+; de = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_EndBlock:
@@ -192,8 +200,8 @@ Inflate_EndBlock:
 
 ; Literal/length alphabet symbols 257-285
 ; c = inline bit reader state
-; hl = literal/length alphabet root
-; de = distance alphabet root
+; hl = literal/length decoder
+; de = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_CopyLength.0:
@@ -319,8 +327,8 @@ Inflate_CopyLength.28:
 
 ; a = length
 ; c' = inline bit reader state
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl' = literal/length decoder
+; de' = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_DecodeDistance_SetLength:
@@ -331,8 +339,8 @@ Inflate_DecodeDistance_SetLength:
 
 ; bc = length
 ; c' = inline bit reader state
-; hl' = literal/length alphabet root
-; de' = distance alphabet root
+; hl' = literal/length decoder
+; de' = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_DecodeDistanceInline: MACRO
@@ -344,8 +352,8 @@ Inflate_DecodeDistanceInline: MACRO
 ; Distance alphabet symbols 0-29
 ; c = inline bit reader state
 ; bc = length
-; de = literal/length alphabet root
-; hl = distance alphabet root
+; de = literal/length decoder
+; hl = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_CopyDistance.0:
@@ -504,8 +512,8 @@ Inflate_CopyDistance.29:
 ; a = -distance
 ; bc = length
 ; c' = inline bit reader state
-; de' = literal/length alphabet root
-; hl' = distance alphabet root
+; de' = literal/length decoder
+; hl' = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_CopyAndNext_SetSmallDistance:
@@ -518,8 +526,8 @@ Inflate_CopyAndNext_SetSmallDistance:
 ; a' = ~-distance LSB
 ; bc = length
 ; c' = inline bit reader state
-; de' = literal/length alphabet root
-; hl' = distance alphabet root
+; de' = literal/length decoder
+; hl' = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_CopyAndNext_SetBigDistance:
@@ -533,8 +541,8 @@ Inflate_CopyAndNext_SetBigDistance:
 ; bc = length
 ; hl = -distance
 ; c' = inline bit reader state
-; de' = literal/length alphabet root
-; hl' = distance alphabet root
+; de' = literal/length decoder
+; hl' = distance decoder
 ; ix = writer
 ; iy = reader
 Inflate_CopyAndNextInline: MACRO

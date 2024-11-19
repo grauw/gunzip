@@ -12,12 +12,6 @@ Alphabet: MACRO
 		dw 0
 	symbolHandlers:
 		dw 0
-	treeSize:
-		dw 0
-	treeStart:
-		dw 0
-	treeEnd:
-		dw 0
 	codeLengthCountsSum:
 		dw 0
 	codeLengthCounts:
@@ -31,8 +25,6 @@ Alphabet: MACRO
 ; ix = this
 ; ix <- this
 Alphabet_Construct:
-	ld (ix + Alphabet.treeSize),0
-	ld (ix + Alphabet.treeSize + 1),0
 	ld a,b
 	or c
 	call z,System_ThrowException
@@ -44,104 +36,7 @@ Alphabet_Construct:
 	ld (ix + Alphabet.symbolHandlers + 1),h
 	call Alphabet_CountCodeLengths
 	call Alphabet_CheckCodeComplete
-	call Alphabet_AllocateTreeBuffer
-	call Alphabet_BuildDecoder
 	ret
-
-; ix = this
-; ix <- this
-Alphabet_Destruct:
-	ld c,(ix + Alphabet.treeSize)
-	ld b,(ix + Alphabet.treeSize + 1)
-	ld a,c
-	or b
-	ret z
-	ld e,(ix + Alphabet.treeStart)
-	ld d,(ix + Alphabet.treeStart + 1)
-	push ix
-	ld ix,Heap_main
-	call Heap_Free
-	pop ix
-	ret
-
-; ix = this
-; ix <- root branch
-; Modifies: de
-Alphabet_GetRoot:
-	ld e,(ix + Alphabet.treeStart)
-	ld d,(ix + Alphabet.treeStart + 1)
-	ld ixl,e
-	ld ixh,d
-	ret
-
-; ix = this
-Alphabet_Process:
-	push hl
-	ld l,(ix + Alphabet.treeStart)
-	ld h,(ix + Alphabet.treeStart + 1)
-	ex (sp),hl
-	ret
-
-; Modifies: af, bc, de, hl
-Alphabet_AllocateTreeBuffer:
-	call Alphabet_CalculateTreeBufferSize
-	ld bc,4
-	add hl,bc  ; +4 extra for last sorted length + sentinel
-	ld (ix + Alphabet.treeSize),l
-	ld (ix + Alphabet.treeSize + 1),h
-	push hl
-	ld c,l
-	ld b,h
-	push ix
-	ld ix,Heap_main
-	call Heap_Allocate
-	pop ix
-	ld (ix + Alphabet.treeStart),e
-	ld (ix + Alphabet.treeStart + 1),d
-	pop hl
-	add hl,de
-	ld (ix + Alphabet.treeEnd),l
-	ld (ix + Alphabet.treeEnd + 1),h
-	ret
-
-; hl <- buffer size
-; Modifies: af
-Alphabet_CalculateTreeBufferSize: PROC
-	ld l,(ix + Alphabet.codeLengthCountsSum)
-	ld h,(ix + Alphabet.codeLengthCountsSum + 1)
-	dec hl
-	add hl,hl  ; branches x8
-	add hl,hl
-	adc hl,hl
-	jr c,NoSymbol
-	jr z,OneSymbol
-	push ix
-	ld b,Alphabet_MAX_CODELENGTH
-Loop:
-	ld e,(ix + Alphabet.codeLengthCounts)
-	ld d,(ix + Alphabet.codeLengthCounts + 1)
-	inc de
-	srl d
-	rr e
-	add hl,de  ; zero-leafs x3
-	add hl,de
-	add hl,de
-	inc ix
-	inc ix
-	djnz Loop
-	pop ix
-	ret
-NoSymbol:
-	ld hl,Alphabet_LEAF0_SIZE
-	ret
-OneSymbol:
-	ld hl,Alphabet_BRANCH_SIZE + Alphabet_LEAF0_SIZE
-	ret
-Assertion:
-	IF Alphabet_BRANCH_SIZE != 8 || Alphabet_LEAF0_SIZE != 3
-	ERROR "Leaf / branch size mismatch."
-	ENDIF
-	ENDP
 
 ; Generate list of (code length, symbol) pairs, sorted by code length
 ; ix = this
@@ -212,22 +107,6 @@ Loop:
 	pop ix
 	ret
 	ENDP
-
-; ix = this
-; hl <- sorted code lengths start address
-Alphabet_GetSortedCodeLengthsStart:
-	ld e,(ix + Alphabet.codeLengthCountsSum)
-	ld d,(ix + Alphabet.codeLengthCountsSum + 1)
-	ld l,e
-	ld h,d
-	add hl,hl
-	add hl,de  ; x3
-	ex de,hl
-	ld l,(ix + Alphabet.treeEnd)
-	ld h,(ix + Alphabet.treeEnd + 1)
-	scf        ; +1 extra for sentinel byte
-	sbc hl,de
-	ret
 
 ; ix = this
 Alphabet_CountCodeLengths: PROC
@@ -312,36 +191,40 @@ Loop:
 	call System_ThrowException  ; under-full Huffman code
 	ENDP
 
+; bc = decoder buffer end
+; de = decoder buffer
+; hl = sorted code lengths start
 ; ix = this
 Alphabet_BuildDecoder:
-	call Alphabet_GetSortedCodeLengthsStart
+	push bc
+	push de
 	push hl
 	call Alphabet_InitCodeLengthsTable
 	call Alphabet_SortCodeLengths
 	pop hl
+	pop de
+	pop bc
 	call Alphabet_BuildTree
 	ret
 
+; bc = decoder buffer end
+; de = decoder buffer
 ; hl = sorted code lengths
 ; ix = this
 Alphabet_BuildTree: PROC
+	push bc
 	ld c,0
 	call Alphabet_GetNextSymbol
-	ld e,(ix + Alphabet.treeStart)
-	ld d,(ix + Alphabet.treeStart + 1)
 	jp z,TrapEmptyTree
 	call Alphabet_BuildBranch
 	call nz,System_ThrowException  ; over-full Huffman code
-	ld l,(ix + Alphabet.treeEnd)
-	ld h,(ix + Alphabet.treeEnd + 1)
-	scf        ; +4 extra for last sorted length + sentinel
-	inc de
-	inc de
-	inc de
+	pop hl
+	and a
 	sbc hl,de
 	call c,System_ThrowException
 	ret
 TrapEmptyTree:
+	pop bc
 	ex de,hl
 	ld (hl),0C3H  ; jp
 	inc hl
