@@ -4,6 +4,10 @@
 Application: MACRO
 	outputSize:
 		dd 0
+	archiveFIB:
+		FileInfoBlock
+	outputFIB:
+		FileInfoBlock
 	cli:
 		CLI
 	fileReader:
@@ -128,6 +132,8 @@ Application_Inflate:
 
 ; ix = this
 Application_InflateToFile:
+	call Application_FindNextFile
+	ret c
 	call Application_PrintInflating
 	push ix
 	call Application_CreateFileReader
@@ -138,24 +144,25 @@ Application_InflateToFile:
 	push ix
 	call Application_GetGzipArchive
 	call GzipArchive_Construct
-
 	ex (sp),ix
+	call Application_FindNewOutput
 	call Application_CreateFileWriter
 	call Application_PreAllocateOutput
 	pop ix
 	push de
 	ld bc,Application_decoders
 	call GzipArchive_Extract
-
 	pop ix
 	call FileWriter_Destruct
 	pop ix
 	call FileReader_Destruct
 	pop ix
-	ret
+	jr Application_InflateToFile
 
 ; ix = this
 Application_InflateTest:
+	call Application_FindNextFile
+	ret c
 	call Application_PrintTesting
 	push ix
 	call Application_CreateFileReader
@@ -165,20 +172,18 @@ Application_InflateTest:
 	push ix
 	call Application_GetGzipArchive
 	call GzipArchive_Construct
-
 	ex (sp),ix
 	call Application_CreateNullWriter
 	pop ix
 	push de
 	ld bc,Application_decoders
 	call GzipArchive_Extract
-
 	pop ix
 	call NullWriter_Destruct
 	pop ix
 	call FileReader_Destruct
 	pop ix
-	ret
+	jr Application_InflateTest
 
 ; ix = this
 Application_PrintWelcome:
@@ -193,11 +198,10 @@ Application_PrintInflating:
 	ret nz
 	ld hl,Application_inflatingFile
 	call System_Print
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	pop ix
+	ld e,ixl
+	ld d,ixh
+	ld hl,Application.archiveFIB.name
+	add hl,de
 	call System_Print
 	ld hl,Application_dotDotDot
 	jp System_Print
@@ -208,11 +212,10 @@ Application_PrintTesting:
 	ret nz
 	ld hl,Application_testingFile
 	call System_Print
-	push ix
-	call Application_GetCLI
-	ld l,(ix + CLI.archivePath)
-	ld h,(ix + CLI.archivePath + 1)
-	pop ix
+	ld e,ixl
+	ld d,ixh
+	ld hl,Application.archiveFIB.name
+	add hl,de
 	call System_Print
 	ld hl,Application_dotDotDot
 	jp System_Print
@@ -249,13 +252,72 @@ Application_IsTesting:
 	ret
 
 ; ix = this
-; de <- file reader
-Application_CreateFileReader:
+; f <- c: done
+Application_FindNextFile: PROC
+	ld a,(ix + Application.archiveFIB + 1)
+	and a
+	jr nz,Next
+First:
 	push ix
 	call Application_GetCLI
 	ld e,(ix + CLI.archivePath)
 	ld d,(ix + CLI.archivePath + 1)
 	pop ix
+	push ix
+	ld bc,Application.archiveFIB
+	add ix,bc
+	call DOS_FindFirstEntry
+	pop ix
+	call DOS_TerminateIfError
+	and a
+	ret
+Next:
+	push ix
+	ld bc,Application.archiveFIB
+	add ix,bc
+	call DOS_FindNextEntry
+	pop ix
+	cp .NOFIL
+	scf
+	ret z
+	call DOS_TerminateIfError
+	and a
+	ret
+	ENDP
+
+; ix = this
+Application_FindNewOutput:
+	ld c,ixl
+	ld b,ixh
+	ld hl,Application.outputFIB.name
+	add hl,bc
+	ex de,hl
+	ld hl,Application.archiveFIB.name
+	add hl,bc
+	ld bc,FileInfoBlock.attributes - FileInfoBlock.name
+	ldir
+	push ix
+	call Application_GetCLI
+	ld e,(ix + CLI.outputPath)
+	ld d,(ix + CLI.outputPath + 1)
+	pop ix
+	push ix
+	ld bc,Application.outputFIB
+	add ix,bc
+	ld b,0
+	call DOS_FindNewEntry
+	pop ix
+	call DOS_TerminateIfError
+	ret
+
+; ix = this
+; de <- file reader
+Application_CreateFileReader:
+	ld e,ixl
+	ld d,ixh
+	ld hl,Application.archiveFIB
+	add hl,de
+	ex de,hl
 	ld hl,READBUFFER
 	ld bc,READBUFFER_SIZE
 	push ix
@@ -267,11 +329,11 @@ Application_CreateFileReader:
 ; ix = this
 ; de <- file writer
 Application_CreateFileWriter:
-	push ix
-	call Application_GetCLI
-	ld e,(ix + CLI.outputPath)
-	ld d,(ix + CLI.outputPath + 1)
-	pop ix
+	ld e,ixl
+	ld d,ixh
+	ld hl,Application.outputFIB
+	add hl,de
+	ex de,hl
 	ld hl,WRITEBUFFER
 	ld bc,WRITEBUFFER_SIZE
 	push ix
@@ -394,13 +456,17 @@ Application_dotDotDot:
 Application_insufficientTPAError:
 	db "Insufficient TPA space.",13,10,0
 
+Application_sameFileError:
+	db "Archive file equals output file.",13,10,0
+
 Application_usageInstructions:
-	db "Usage: gunzip [options] <archive.gz> <outputfile>",13,10
+	db "Usage: gunzip [options] <archive.gz> [<outputfi.le>]",13,10
 	db 13,10
 	db "Options:",13,10
 	db "  /q  Quiet, suppress messages.",13,10
 	db "  /f  Fast, no checksum validation.",13,10
 	db 13,10
+	db "Archive and output file names support wildcards."
 	db "If no output file is specified, the archive will be tested.",13,10,0
 
 	SECTION DECODERBUFFER
