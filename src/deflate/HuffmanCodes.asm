@@ -22,11 +22,7 @@ HuffmanCodes: MACRO
 		db 0
 	codeLengths:
 		ds HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS + HuffmanCodes_MAX_DISTANCECODELENGTHS
-	headerCodeAlphabet:
-		Alphabet
-	literalLengthAlphabet:
-		Alphabet
-	distanceAlphabet:
+	alphabet:
 		Alphabet
 	_size:
 	ENDM
@@ -65,7 +61,7 @@ HuffmanCodes_ConstructFixed:
 	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	push ix
 	push de
-	call HuffmanCodes_GetLiteralLengthAlphabet
+	call HuffmanCodes_GetAlphabet
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
 	call Alphabet_Construct
@@ -79,7 +75,7 @@ HuffmanCodes_ConstructFixed:
 	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	push ix
 	push de
-	call HuffmanCodes_GetDistanceAlphabet
+	call HuffmanCodes_GetAlphabet
 	ld bc,HuffmanCodes_fixedDistanceCodeLengthsCount
 	ld de,HuffmanCodes_fixedDistanceCodeLengths
 	call Alphabet_Construct
@@ -100,7 +96,7 @@ HuffmanCodes_ConstructHeaderCodeAlphabet:
 	ld d,ixh
 	add hl,de
 	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS
-	call HuffmanCodes_GetHeaderCodeAlphabet
+	call HuffmanCodes_GetAlphabet
 	ex de,hl
 	ld hl,HuffmanCodes_headerCodeSymbols
 	call Alphabet_Construct
@@ -125,7 +121,7 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 	add hl,de
 	ld c,(ix + HuffmanCodes.hlit)
 	ld b,1
-	call HuffmanCodes_GetLiteralLengthAlphabet
+	call HuffmanCodes_GetAlphabet
 	ex de,hl
 	pop hl
 	call Alphabet_Construct
@@ -153,7 +149,7 @@ HuffmanCodes_ConstructDistanceAlphabet:
 	add hl,de
 	ld c,(ix + HuffmanCodes.hdist)
 	ld b,0
-	call HuffmanCodes_GetDistanceAlphabet
+	call HuffmanCodes_GetAlphabet
 	ex de,hl
 	pop hl
 	call Alphabet_Construct
@@ -174,20 +170,8 @@ HuffmanCodes_GetDecoders:
 	ret
 
 ; ix = this
-HuffmanCodes_GetHeaderCodeAlphabet:
-	ld de,HuffmanCodes.headerCodeAlphabet
-	add ix,de
-	ret
-
-; ix = this
-HuffmanCodes_GetLiteralLengthAlphabet:
-	ld de,HuffmanCodes.literalLengthAlphabet
-	add ix,de
-	ret
-
-; ix = this
-HuffmanCodes_GetDistanceAlphabet:
-	ld de,HuffmanCodes.distanceAlphabet
+HuffmanCodes_GetAlphabet:
+	ld de,HuffmanCodes.alphabet
 	add ix,de
 	ret
 
