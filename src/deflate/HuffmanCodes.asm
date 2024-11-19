@@ -205,28 +205,28 @@ HuffmanCodes_ReadHeaderCodeLengths: PROC
 	ld e,ixl
 	ld d,ixh
 	add hl,de
+	push hl
 	ld e,l
 	ld d,h
 	inc de
 	ld (hl),0
 	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS - 1
 	ldir
+	pop de
 	ld b,(ix + HuffmanCodes.hclen)
 	ld hl,HuffmanCodes_headerCodeOrder
 Loop:
-	ld e,(hl)
-	ld d,0
-	inc hl
-	push hl
-	push ix
-	add ix,de
 	push bc
 	ld b,3
 	call Reader_ReadBits_IY
+	ld c,(hl)  ; b = 0 after ReadBits
+	inc hl
+	ex de,hl
+	add hl,bc
+	ld (hl),a
+	sbc hl,bc
+	ex de,hl
 	pop bc
-	ld (ix + HuffmanCodes.codeLengths),a
-	pop ix
-	pop hl
 	djnz Loop
 	ret
 	ENDP
