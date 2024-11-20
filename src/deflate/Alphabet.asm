@@ -38,76 +38,6 @@ Alphabet_Construct:
 	call Alphabet_CheckCodeComplete
 	ret
 
-; Generate list of (code length, symbol) pairs, sorted by code length
-; ix = this
-Alphabet_SortCodeLengths: PROC
-	exx
-	ld l,(ix + Alphabet.symbolHandlers)
-	ld h,(ix + Alphabet.symbolHandlers + 1)
-	exx
-	ld l,(ix + Alphabet.codeLengths)
-	ld h,(ix + Alphabet.codeLengths + 1)
-	ld e,(ix + Alphabet.codeLengthCount)
-	ld d,(ix + Alphabet.codeLengthCount + 1)
-	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
-	dec de
-	inc d
-	ld c,d
-Loop:
-	ld a,(hl)
-	inc hl
-	add a,a
-	jr z,Skip
-	exx
-	ld e,a
-	ld d,0
-	push ix
-	add ix,de
-	ld e,(ix + Alphabet.codeLengthCounts - 2)
-	ld d,(ix + Alphabet.codeLengthCounts - 1)
-	rrca
-	ld (de),a
-	inc de
-	ldi
-	ldi
-	ld (ix + Alphabet.codeLengthCounts - 2),e
-	ld (ix + Alphabet.codeLengthCounts - 1),d
-	pop ix
-	exx
-SkipContinue:
-	djnz Loop
-	dec c
-	jr nz,Loop
-	ret
-Skip:
-	exx
-	inc hl
-	inc hl
-	exx
-	jp SkipContinue
-	ENDP
-
-; hl = sorted code lengths start address
-; ix = this
-Alphabet_InitCodeLengthsTable: PROC
-	ld b,Alphabet_MAX_CODELENGTH
-	push ix
-Loop:
-	ld e,(ix + Alphabet.codeLengthCounts)
-	ld d,(ix + Alphabet.codeLengthCounts + 1)
-	ld (ix + Alphabet.codeLengthCounts),l
-	ld (ix + Alphabet.codeLengthCounts + 1),h
-	inc ix
-	inc ix
-	add hl,de
-	add hl,de
-	add hl,de
-	djnz Loop
-	ld (hl),0
-	pop ix
-	ret
-	ENDP
-
 ; ix = this
 Alphabet_CountCodeLengths: PROC
 	ld e,(ix + Alphabet.codeLengthCount)
@@ -206,6 +136,76 @@ Alphabet_BuildDecoder:
 	pop bc
 	call Alphabet_BuildTree
 	ret
+
+; hl = sorted code lengths start address
+; ix = this
+Alphabet_InitCodeLengthsTable: PROC
+	ld b,Alphabet_MAX_CODELENGTH
+	push ix
+Loop:
+	ld e,(ix + Alphabet.codeLengthCounts)
+	ld d,(ix + Alphabet.codeLengthCounts + 1)
+	ld (ix + Alphabet.codeLengthCounts),l
+	ld (ix + Alphabet.codeLengthCounts + 1),h
+	inc ix
+	inc ix
+	add hl,de
+	add hl,de
+	add hl,de
+	djnz Loop
+	ld (hl),0
+	pop ix
+	ret
+	ENDP
+
+; Generate list of (code length, symbol) pairs, sorted by code length
+; ix = this
+Alphabet_SortCodeLengths: PROC
+	exx
+	ld l,(ix + Alphabet.symbolHandlers)
+	ld h,(ix + Alphabet.symbolHandlers + 1)
+	exx
+	ld l,(ix + Alphabet.codeLengths)
+	ld h,(ix + Alphabet.codeLengths + 1)
+	ld e,(ix + Alphabet.codeLengthCount)
+	ld d,(ix + Alphabet.codeLengthCount + 1)
+	ld b,e  ; convert 16-bit counter de to two 8-bit counters in b and c
+	dec de
+	inc d
+	ld c,d
+Loop:
+	ld a,(hl)
+	inc hl
+	add a,a
+	jr z,Skip
+	exx
+	ld e,a
+	ld d,0
+	push ix
+	add ix,de
+	ld e,(ix + Alphabet.codeLengthCounts - 2)
+	ld d,(ix + Alphabet.codeLengthCounts - 1)
+	rrca
+	ld (de),a
+	inc de
+	ldi
+	ldi
+	ld (ix + Alphabet.codeLengthCounts - 2),e
+	ld (ix + Alphabet.codeLengthCounts - 1),d
+	pop ix
+	exx
+SkipContinue:
+	djnz Loop
+	dec c
+	jr nz,Loop
+	ret
+Skip:
+	exx
+	inc hl
+	inc hl
+	exx
+	jp SkipContinue
+	ENDP
 
 ; bc = decoder buffer end
 ; de = decoder buffer
