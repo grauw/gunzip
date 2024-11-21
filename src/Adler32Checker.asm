@@ -16,6 +16,8 @@ Adler32Checker: MACRO
 	_size:
 	ENDM
 
+	IF ZLIB_ADLER32
+
 ; de = writer
 ; ix = this
 ; ix <- this
@@ -137,3 +139,5 @@ Check:
 	sbc ?hl,?de
 Done:
 	ENDM
+
+	ENDIF

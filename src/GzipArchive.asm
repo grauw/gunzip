@@ -169,10 +169,11 @@ GzipArchive_CreateInflate:
 	pop ix
 	ret
 
+	IF GZIP_CRC32
+
 ; de = writer (min 32K)
 ; ix = this
 GzipArchive_CreateCRC32Checker:
-	IF GZIP_CRC32
 	push de
 	push ix
 	ld bc,GzipArchive.crc32Checker
@@ -181,6 +182,7 @@ GzipArchive_CreateCRC32Checker:
 	pop ix
 	pop de
 	ret
+
 	ENDIF
 
 ; ix = this
@@ -248,10 +250,11 @@ GzipArchive_VerifyISIZE:
 	cp (ix + GzipArchive.isize + 3)
 	ret
 
+	IF GZIP_CRC32
+
 ; ix = this
 ; f <- nz: mismatch
 GzipArchive_VerifyCRC32:
-	IF GZIP_CRC32
 	bit 0,(ix + GzipArchive.crc32CheckEnabled)
 	ret z
 	ld l,(ix + GzipArchive.crc32)
@@ -265,6 +268,7 @@ GzipArchive_VerifyCRC32:
 	call CRC32Checker_VerifyCRC32
 	pop ix
 	ret
+
 	ENDIF
 
 ;
@@ -280,7 +284,9 @@ GzipArchive_unknownFlagError:
 GzipArchive_isizeMismatchError:
 	db "Inflated size mismatch.",13,10,0
 
-GzipArchive_crc32MismatchError:
 	IF GZIP_CRC32
+
+GzipArchive_crc32MismatchError:
 	db "Inflated CRC32 mismatch.",13,10,0
+
 	ENDIF

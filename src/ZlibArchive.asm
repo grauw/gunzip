@@ -160,10 +160,11 @@ ZlibArchive_CreateInflate:
 	pop ix
 	ret
 
+	IF ZLIB_ADLER32
+
 ; de = writer (min 32K)
 ; ix = this
 ZlibArchive_CreateAdler32Checker:
-	IF ZLIB_ADLER32
 	push de
 	push ix
 	ld bc,ZlibArchive.adler32Checker
@@ -172,6 +173,7 @@ ZlibArchive_CreateAdler32Checker:
 	pop ix
 	pop de
 	ret
+
 	ENDIF
 
 ; ix = this
@@ -191,10 +193,11 @@ ZlibArchive_Verify:
 	ENDIF
 	ret
 
+	IF ZLIB_ADLER32
+
 ; ix = this
 ; f <- nz: mismatch
 ZlibArchive_VerifyAdler32:
-	IF ZLIB_ADLER32
 	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
 	ret z
 	ld l,(ix + ZlibArchive.adler32)
@@ -208,6 +211,7 @@ ZlibArchive_VerifyAdler32:
 	call Adler32Checker_VerifyAdler32
 	pop ix
 	ret
+
 	ENDIF
 
 ;
@@ -223,7 +227,9 @@ ZlibArchive_invalidWindowError:
 ZlibArchive_unsupportedPresetDictionaryError:
 	db "Unsupported preset dictionary.",13,10,0
 
-ZlibArchive_adler32MismatchError:
 	IF ZLIB_ADLER32
+
+ZlibArchive_adler32MismatchError:
 	db "Inflated Adler32 checksum mismatch.",13,10,0
+
 	ENDIF

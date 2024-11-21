@@ -47,8 +47,12 @@ TPA_TOP:
 	INCLUDE "CRC32Checker.asm"
 	INCLUDE "CRC32CheckerTest.asm"
 
+	IF GZIP_CRC32
+
 	ALIGN 100H
 CRC32Table:
 	INCLUDE "crctable.asm"
+
+	ENDIF
 
 	ENDS

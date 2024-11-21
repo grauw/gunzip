@@ -2,8 +2,12 @@
 ; CRC32 checker unit tests
 ;
 CRC32CheckerTest_Test:
+	IF GZIP_CRC32
 	call CRC32CheckerTest_TestCRC32
+	ENDIF
 	ret
+
+	IF GZIP_CRC32
 
 CRC32CheckerTest_TestCRC32: PROC
 	ld hl,WRITEBUFFER
@@ -57,3 +61,5 @@ CRC32CheckerTest_crc32Checker:
 
 CRC32CheckerTest_nullWriter:
 	NullWriter
+
+	ENDIF

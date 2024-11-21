@@ -16,6 +16,8 @@ CRC32Checker: MACRO
 	_size:
 	ENDM
 
+	IF GZIP_CRC32
+
 ; de = writer
 ; ix = this
 ; ix <- this
@@ -128,3 +130,5 @@ Loop:
 	exx
 	ret
 	ENDP
+
+	ENDIF
