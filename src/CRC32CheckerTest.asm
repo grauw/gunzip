@@ -14,6 +14,8 @@ CRC32CheckerTest_TestCRC32: PROC
 	ld bc,256
 	ld ix,CRC32CheckerTest_nullWriter
 	call NullWriter_Construct
+	ld e,ixl
+	ld d,ixh
 
 	ld ix,CRC32CheckerTest_crc32Checker
 	call CRC32Checker_Construct
@@ -49,9 +51,6 @@ Loop2:
 	ld ix,CRC32CheckerTest_crc32Checker
 	call CRC32Checker_VerifyCRC32
 	call nz,System_ThrowException
-
-	ld ix,CRC32CheckerTest_nullWriter
-	call NullWriter_Destruct
 	ret
 	ENDP
 

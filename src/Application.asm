@@ -175,11 +175,8 @@ Application_InflateTest:
 	ex (sp),ix
 	call Application_CreateNullWriter
 	pop ix
-	push de
 	ld bc,Application_decoders
 	call GzipArchive_Extract
-	pop ix
-	call NullWriter_Destruct
 	pop ix
 	call FileReader_Destruct
 	pop ix
@@ -323,6 +320,8 @@ Application_CreateFileReader:
 	push ix
 	call Application_GetFileReader
 	call FileReader_Construct
+	ld e,ixl
+	ld d,ixh
 	pop ix
 	ret
 
@@ -339,6 +338,8 @@ Application_CreateFileWriter:
 	push ix
 	call Application_GetFileWriter
 	call FileWriter_Construct
+	ld e,ixl
+	ld d,ixh
 	pop ix
 	ret
 
@@ -350,6 +351,8 @@ Application_CreateNullWriter:
 	push ix
 	call Application_GetNullWriter
 	call NullWriter_Construct
+	ld e,ixl
+	ld d,ixh
 	pop ix
 	ret
 

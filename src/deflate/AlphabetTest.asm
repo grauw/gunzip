@@ -125,9 +125,6 @@ Loop:
 	dec d
 	jr nz,Loop
 	call Reader_FinishReadBitInline_IY
-
-	ld ix,AlphabetTest_reader
-	call Reader_Destruct
 	ret
 	ENDP
 
