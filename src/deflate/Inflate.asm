@@ -32,8 +32,6 @@ Inflate_Construct:
 	ld (ix + Inflate.decoders + 1),b
 	push ix
 	call Inflate_GetHuffmanCodes
-	ld hl,Inflate_literalLengthSymbols
-	ld de,Inflate_distanceSymbols
 	call HuffmanCodes_Construct
 	pop ix
 	ret
