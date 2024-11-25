@@ -182,11 +182,14 @@ HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
 	pop ix
 	pop hl
 	pop de
+	inc h
+	xor a
+	cp (hl)
+	call z,System_ThrowException  ; no end-of-block code
 	ld c,(ix + HuffmanCodes.hlit)
-	ld b,1
+	ld b,a
 	add hl,bc
 	ld c,(ix + HuffmanCodes.hdist)
-	ld b,0
 	ldir
 	ret
 
