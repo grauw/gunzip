@@ -8,6 +8,8 @@ HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS: equ HuffmanCodes_MAX_LITERALLENGTHC
 HuffmanCodes_FIXED_DISTANCECODELENGTHS: equ HuffmanCodes_MAX_DISTANCECODELENGTHS + 2
 
 HuffmanCodes: MACRO
+	alphabet:
+		Alphabet
 	literalLengthHandlers:
 		dw 0
 	distanceHandlers:
@@ -22,8 +24,6 @@ HuffmanCodes: MACRO
 		db 0
 	codeLengths:
 		ds HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS + HuffmanCodes_MAX_DISTANCECODELENGTHS
-	alphabet:
-		Alphabet
 	_size:
 	ENDM
 
@@ -55,110 +55,67 @@ HuffmanCodes_ConstructDynamic:
 ; ix = this
 ; ix <- this
 HuffmanCodes_ConstructFixed:
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	ld l,(ix + HuffmanCodes.literalLengthHandlers)
-	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
-	push ix
-	push de
-	call HuffmanCodes_GetAlphabet
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
+	ld l,(ix + HuffmanCodes.literalLengthHandlers)
+	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	call Alphabet_Construct
-	pop de
-	call Decoders_GetLiteralLengthDecoder
-	call Alphabet_BuildDecoder
-	pop ix
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
-	ld l,(ix + HuffmanCodes.distanceHandlers)
-	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
-	push ix
-	push de
-	call HuffmanCodes_GetAlphabet
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	ld bc,HuffmanCodes_fixedDistanceCodeLengthsCount
 	ld de,HuffmanCodes_fixedDistanceCodeLengths
+	ld l,(ix + HuffmanCodes.distanceHandlers)
+	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	call Alphabet_Construct
-	pop de
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
 	call Decoders_GetDistanceDecoder
-	call Alphabet_BuildDecoder
-	pop ix
-	ret
+	jp Alphabet_BuildDecoder
 
 ; ix = this
 HuffmanCodes_ConstructHeaderCodeAlphabet:
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	push ix
-	push de
 	call HuffmanCodes_GetCodeLengths
-	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS
-	call HuffmanCodes_GetAlphabet
 	ex de,hl
+	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS
 	ld hl,HuffmanCodes_headerCodeSymbols
 	call Alphabet_Construct
-	pop de
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
 	call Decoders_GetHeaderCodeDecoder
-	call Alphabet_BuildDecoder
-	pop ix
-	ret
+	jp Alphabet_BuildDecoder
 
 ; ix = this
 HuffmanCodes_ConstructLiteralLengthAlphabet:
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	ld l,(ix + HuffmanCodes.literalLengthHandlers)
-	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
-	push ix
-	push de
-	push hl
 	call HuffmanCodes_GetCodeLengths
+	ex de,hl
 	ld c,(ix + HuffmanCodes.hlit)
 	ld b,1
-	call HuffmanCodes_GetAlphabet
-	ex de,hl
-	pop hl
+	ld l,(ix + HuffmanCodes.literalLengthHandlers)
+	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	call Alphabet_Construct
-	pop de
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
 	call Decoders_GetLiteralLengthDecoder
-	call Alphabet_BuildDecoder
-	pop ix
-	ret
+	jp Alphabet_BuildDecoder
 
 ; ix = this
 HuffmanCodes_ConstructDistanceAlphabet:
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	ld l,(ix + HuffmanCodes.distanceHandlers)
-	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
-	push ix
-	push de
-	push hl
 	call HuffmanCodes_GetCodeLengths
 	ld e,(ix + HuffmanCodes.hlit)
 	ld d,1
 	add hl,de
+	ex de,hl
 	ld c,(ix + HuffmanCodes.hdist)
 	ld b,0
-	call HuffmanCodes_GetAlphabet
-	ex de,hl
-	pop hl
+	ld l,(ix + HuffmanCodes.distanceHandlers)
+	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	call Alphabet_Construct
-	pop de
-	call Decoders_GetDistanceDecoder
-	call Alphabet_BuildDecoder
-	pop ix
-	ret
-
-; ix = this
-; ix <- decoders buffer
-; Modifies: de
-HuffmanCodes_GetDecoders:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
-	ld ixl,e
-	ld ixh,d
-	ret
+	call Decoders_GetDistanceDecoder
+	jp Alphabet_BuildDecoder
 
 ; ix = this
 ; hl <- code lengths
@@ -168,12 +125,6 @@ HuffmanCodes_GetCodeLengths:
 	ld e,ixl
 	ld d,ixh
 	add hl,de
-	ret
-
-; ix = this
-HuffmanCodes_GetAlphabet:
-	ld de,HuffmanCodes.alphabet
-	add ix,de
 	ret
 
 ; ix = this
