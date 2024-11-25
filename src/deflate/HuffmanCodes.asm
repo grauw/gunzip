@@ -41,18 +41,18 @@ HuffmanCodes_Construct:
 ; ix = this
 ; iy = reader
 ; ix <- this
-HuffmanCodes_ConstructDynamic:
+HuffmanCodes_BuildDynamicDecoders:
 	call HuffmanCodes_ReadLengths
 	call HuffmanCodes_ReadHeaderCodeLengths
-	call HuffmanCodes_ConstructHeaderCodeAlphabet
+	call HuffmanCodes_BuildHeaderCodeDecoder
 	call HuffmanCodes_ReadLiteralLengthDistanceCodeLengths
-	call HuffmanCodes_ConstructLiteralLengthAlphabet
-	call HuffmanCodes_ConstructDistanceAlphabet
+	call HuffmanCodes_BuildLiteralLengthDecoder
+	call HuffmanCodes_BuildDistanceDecoder
 	ret
 
 ; ix = this
 ; ix <- this
-HuffmanCodes_ConstructFixed:
+HuffmanCodes_BuildFixedDecoders:
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
 	ld l,(ix + HuffmanCodes.literalLengthSymbols)
@@ -73,7 +73,7 @@ HuffmanCodes_ConstructFixed:
 	jp Alphabet_BuildDecoder
 
 ; ix = this
-HuffmanCodes_ConstructHeaderCodeAlphabet:
+HuffmanCodes_BuildHeaderCodeDecoder:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	push de
@@ -85,7 +85,7 @@ HuffmanCodes_ConstructHeaderCodeAlphabet:
 	jp Alphabet_BuildDecoder
 
 ; ix = this
-HuffmanCodes_ConstructLiteralLengthAlphabet:
+HuffmanCodes_BuildLiteralLengthDecoder:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	push de
@@ -99,7 +99,7 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 	jp Alphabet_BuildDecoder
 
 ; ix = this
-HuffmanCodes_ConstructDistanceAlphabet:
+HuffmanCodes_BuildDistanceDecoder:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	push de

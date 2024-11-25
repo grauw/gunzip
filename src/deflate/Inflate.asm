@@ -133,7 +133,7 @@ Inflate_InflateUncompressed:
 Inflate_InflateFixedCompressed:
 	push ix
 	call Inflate_GetHuffmanCodes
-	call HuffmanCodes_ConstructFixed
+	call HuffmanCodes_BuildFixedDecoders
 	pop ix
 	call Inflate_InflateCompressed
 	ret
@@ -143,7 +143,7 @@ Inflate_InflateFixedCompressed:
 Inflate_InflateDynamicCompressed:
 	push ix
 	call Inflate_GetHuffmanCodes
-	call HuffmanCodes_ConstructDynamic
+	call HuffmanCodes_BuildDynamicDecoders
 	pop ix
 	call Inflate_InflateCompressed
 	ret
