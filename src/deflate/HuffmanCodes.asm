@@ -10,9 +10,9 @@ HuffmanCodes_FIXED_DISTANCECODELENGTHS: equ HuffmanCodes_MAX_DISTANCECODELENGTHS
 HuffmanCodes: MACRO
 	alphabet:
 		Alphabet
-	literalLengthHandlers:
+	literalLengthSymbols:
 		dw 0
-	distanceHandlers:
+	distanceSymbols:
 		dw 0
 	decoders:
 		dw 0
@@ -30,10 +30,10 @@ HuffmanCodes: MACRO
 ; de = distance symbol handlers table
 ; ix = this
 HuffmanCodes_Construct:
-	ld (ix + HuffmanCodes.literalLengthHandlers),l
-	ld (ix + HuffmanCodes.literalLengthHandlers + 1),h
-	ld (ix + HuffmanCodes.distanceHandlers),e
-	ld (ix + HuffmanCodes.distanceHandlers + 1),d
+	ld (ix + HuffmanCodes.literalLengthSymbols),l
+	ld (ix + HuffmanCodes.literalLengthSymbols + 1),h
+	ld (ix + HuffmanCodes.distanceSymbols),e
+	ld (ix + HuffmanCodes.distanceSymbols + 1),d
 	ld (ix + HuffmanCodes.decoders),c
 	ld (ix + HuffmanCodes.decoders + 1),b
 	ret
@@ -55,8 +55,8 @@ HuffmanCodes_ConstructDynamic:
 HuffmanCodes_ConstructFixed:
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
-	ld l,(ix + HuffmanCodes.literalLengthHandlers)
-	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
+	ld l,(ix + HuffmanCodes.literalLengthSymbols)
+	ld h,(ix + HuffmanCodes.literalLengthSymbols + 1)
 	call Alphabet_Construct
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
@@ -64,8 +64,8 @@ HuffmanCodes_ConstructFixed:
 	call Alphabet_BuildDecoder
 	ld bc,HuffmanCodes_fixedDistanceCodeLengthsCount
 	ld de,HuffmanCodes_fixedDistanceCodeLengths
-	ld l,(ix + HuffmanCodes.distanceHandlers)
-	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
+	ld l,(ix + HuffmanCodes.distanceSymbols)
+	ld h,(ix + HuffmanCodes.distanceSymbols + 1)
 	call Alphabet_Construct
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
@@ -91,8 +91,8 @@ HuffmanCodes_ConstructLiteralLengthAlphabet:
 	push de
 	ld c,(ix + HuffmanCodes.hlit)
 	ld b,1
-	ld l,(ix + HuffmanCodes.literalLengthHandlers)
-	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
+	ld l,(ix + HuffmanCodes.literalLengthSymbols)
+	ld h,(ix + HuffmanCodes.literalLengthSymbols + 1)
 	call Alphabet_Construct
 	pop de
 	call Decoders_GetLiteralLengthDecoder
@@ -108,8 +108,8 @@ HuffmanCodes_ConstructDistanceAlphabet:
 	ex de,hl
 	ld c,(ix + HuffmanCodes.hdist)
 	ld b,0
-	ld l,(ix + HuffmanCodes.distanceHandlers)
-	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
+	ld l,(ix + HuffmanCodes.distanceSymbols)
+	ld h,(ix + HuffmanCodes.distanceSymbols + 1)
 	call Alphabet_Construct
 	pop de
 	call Decoders_GetDistanceDecoder

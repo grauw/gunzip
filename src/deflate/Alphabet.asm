@@ -10,7 +10,7 @@ Alphabet: MACRO
 		dw 0
 	codeLengths:
 		dw 0
-	symbolHandlers:
+	symbols:
 		dw 0
 	codeLengthCountsSum:
 		dw 0
@@ -32,8 +32,8 @@ Alphabet_Construct:
 	ld (ix + Alphabet.codeLengthCount + 1),b
 	ld (ix + Alphabet.codeLengths),e
 	ld (ix + Alphabet.codeLengths + 1),d
-	ld (ix + Alphabet.symbolHandlers),l
-	ld (ix + Alphabet.symbolHandlers + 1),h
+	ld (ix + Alphabet.symbols),l
+	ld (ix + Alphabet.symbols + 1),h
 	call Alphabet_CountCodeLengths
 	call Alphabet_CheckCodeComplete
 	ret
@@ -162,8 +162,8 @@ Loop:
 ; ix = this
 Alphabet_SortCodeLengths: PROC
 	exx
-	ld l,(ix + Alphabet.symbolHandlers)
-	ld h,(ix + Alphabet.symbolHandlers + 1)
+	ld l,(ix + Alphabet.symbols)
+	ld h,(ix + Alphabet.symbols + 1)
 	exx
 	ld l,(ix + Alphabet.codeLengths)
 	ld h,(ix + Alphabet.codeLengths + 1)
