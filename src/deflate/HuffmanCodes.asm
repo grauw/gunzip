@@ -22,8 +22,6 @@ HuffmanCodes: MACRO
 		db 0
 	hclen:
 		db 0
-	codeLengths:
-		ds HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS + HuffmanCodes_MAX_DISTANCECODELENGTHS
 	_size:
 	ENDM
 
@@ -76,35 +74,36 @@ HuffmanCodes_ConstructFixed:
 
 ; ix = this
 HuffmanCodes_ConstructHeaderCodeAlphabet:
-	call HuffmanCodes_GetCodeLengths
-	ex de,hl
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	push de
 	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS
 	ld hl,HuffmanCodes_headerCodeSymbols
 	call Alphabet_Construct
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	call Decoders_GetHeaderCodeDecoder
+	pop de
+	call Decoders_GetDistanceDecoder
 	jp Alphabet_BuildDecoder
 
 ; ix = this
 HuffmanCodes_ConstructLiteralLengthAlphabet:
-	call HuffmanCodes_GetCodeLengths
-	ex de,hl
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	push de
 	ld c,(ix + HuffmanCodes.hlit)
 	ld b,1
 	ld l,(ix + HuffmanCodes.literalLengthHandlers)
 	ld h,(ix + HuffmanCodes.literalLengthHandlers + 1)
 	call Alphabet_Construct
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
+	pop de
 	call Decoders_GetLiteralLengthDecoder
 	jp Alphabet_BuildDecoder
 
 ; ix = this
 HuffmanCodes_ConstructDistanceAlphabet:
-	call HuffmanCodes_GetCodeLengths
-	ld e,(ix + HuffmanCodes.hlit)
-	ld d,1
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	push de
+	ld hl,Decoders.distance
 	add hl,de
 	ex de,hl
 	ld c,(ix + HuffmanCodes.hdist)
@@ -112,20 +111,9 @@ HuffmanCodes_ConstructDistanceAlphabet:
 	ld l,(ix + HuffmanCodes.distanceHandlers)
 	ld h,(ix + HuffmanCodes.distanceHandlers + 1)
 	call Alphabet_Construct
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
+	pop de
 	call Decoders_GetDistanceDecoder
 	jp Alphabet_BuildDecoder
-
-; ix = this
-; hl <- code lengths
-; Modifies: de
-HuffmanCodes_GetCodeLengths:
-	ld hl,HuffmanCodes.codeLengths
-	ld e,ixl
-	ld d,ixh
-	add hl,de
-	ret
 
 ; ix = this
 ; iy = reader
@@ -153,10 +141,11 @@ HuffmanCodes_ReadLengths:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadHeaderCodeLengths: PROC
-	call HuffmanCodes_GetCodeLengths
-	push hl
-	ld e,l
-	ld d,h
+	ld e,(ix + HuffmanCodes.decoders)
+	ld d,(ix + HuffmanCodes.decoders + 1)
+	push de
+	ld l,e
+	ld h,d
 	inc de
 	ld (hl),0
 	ld bc,HuffmanCodes_MAX_HEADERCODELENGTHS - 1
@@ -183,12 +172,16 @@ Loop:
 ; ix = this
 ; iy = reader
 HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
-	call HuffmanCodes_GetCodeLengths
-	ld a,(ix + HuffmanCodes.hlit)
-	add a,(ix + HuffmanCodes.hdist)
-	push ix
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
+	ld hl,Decoders.distance
+	add hl,de
+	ex de,hl
+	ld a,(ix + HuffmanCodes.hlit)
+	add a,(ix + HuffmanCodes.hdist)
+	push de
+	push hl
+	push ix
 	ld ixl,e
 	ld ixh,d
 	ld e,a
@@ -197,6 +190,14 @@ HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
 	call HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths
 	call Reader_FinishReadBitInline_IY
 	pop ix
+	pop hl
+	pop de
+	ld c,(ix + HuffmanCodes.hlit)
+	ld b,1
+	add hl,bc
+	ld c,(ix + HuffmanCodes.hdist)
+	ld b,0
+	ldir
 	ret
 
 ; c = inline bit reader state

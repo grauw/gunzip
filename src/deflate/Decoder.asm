@@ -64,12 +64,6 @@ Decoders_GetDecoders:
 ; de = decoder buffer
 ; hl = sorted code lengths start
 ; de = this
-Decoders_GetHeaderCodeDecoder: equ Decoders_GetLiteralLengthDecoder
-
-; bc = decoder buffer end
-; de = decoder buffer
-; hl = sorted code lengths start
-; de = this
 Decoders_GetLiteralLengthDecoder:
 	ld hl,Decoders.literalLength.decoderEnd
 	add hl,de
