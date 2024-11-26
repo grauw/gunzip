@@ -101,8 +101,7 @@ Inflate_InflateBlock:
 	cp 2
 	jp c,Inflate_InflateFixedCompressed
 	jp z,Inflate_InflateDynamicCompressed
-	ld hl,Inflate_invalidBlockTypeError
-	jp System_ThrowExceptionWithMessage
+	jp System_ThrowException  ; invalid block type
 
 ; ix = this
 ; iy = reader
@@ -115,8 +114,7 @@ Inflate_InflateUncompressed:
 	ex de,hl
 	scf
 	adc hl,bc
-	ld hl,Inflate_invalidLengthError
-	jp nz,System_ThrowExceptionWithMessage
+	jp nz,System_ThrowException  ; invalid length
 	ld a,c
 	or b
 	ret z
@@ -637,9 +635,3 @@ Inflate_distanceSymbols:
 	dw Inflate_CopyDistance.20, Inflate_CopyDistance.21, Inflate_CopyDistance.22, Inflate_CopyDistance.23
 	dw Inflate_CopyDistance.24, Inflate_CopyDistance.25, Inflate_CopyDistance.26, Inflate_CopyDistance.27
 	dw Inflate_CopyDistance.28, Inflate_CopyDistance.29, System_ThrowException, System_ThrowException
-
-Inflate_invalidBlockTypeError:
-	db "Invalid block type.",13,10,0
-
-Inflate_invalidLengthError:
-	db "Invalid length.",13,10,0

@@ -87,8 +87,7 @@ GzipArchive_ReadHeader:
 	jp nz,System_ThrowExceptionWithMessage
 	call Reader_Read_IY
 	cp GzipArchive_DEFLATE_ID
-	ld hl,GzipArchive_notDeflateError
-	jp nz,System_ThrowExceptionWithMessage
+	jp nz,System_ThrowException  ; not DEFLATE
 
 	call Reader_Read_IY
 	ld (ix + GzipArchive.flags),a
@@ -104,8 +103,7 @@ GzipArchive_ReadHeader:
 
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_RESERVED
-	ld hl,GzipArchive_unknownFlagError
-	jp nz,System_ThrowExceptionWithMessage
+	jp nz,System_ThrowException  ; unknown flag
 
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FEXTRA
@@ -274,12 +272,6 @@ GzipArchive_VerifyCRC32:
 ;
 GzipArchive_notGzipError:
 	db "Not a GZIP file.",13,10,0
-
-GzipArchive_notDeflateError:
-	db "Not compressed with DEFLATE.",13,10,0
-
-GzipArchive_unknownFlagError:
-	db "Unknown flag.",13,10,0
 
 GzipArchive_isizeMismatchError:
 	db "Inflated size mismatch.",13,10,0

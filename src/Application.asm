@@ -459,9 +459,6 @@ Application_dotDotDot:
 Application_insufficientTPAError:
 	db "Insufficient TPA space.",13,10,0
 
-Application_sameFileError:
-	db "Archive file equals output file.",13,10,0
-
 Application_usageInstructions:
 	db "Usage: gunzip [options] <archive.gz> [<outputfi.le>]",13,10
 	db 13,10

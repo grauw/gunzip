@@ -68,13 +68,11 @@ ZlibArchive_ReadHeader:
 	call ZlibArchive_GetReaderIY
 	call Reader_ReadWordBE_IY
 	call ZlibArchive_CheckFCHECK
-	ld hl,ZlibArchive_invalidFCHECKError
-	jp nz,System_ThrowExceptionWithMessage
+	jp nz,System_ThrowException  ; invalid FCHECK
 	ld a,d
 	and 00001111B
 	cp ZlibArchive_DEFLATE_ID
-	ld hl,ZlibArchive_notDeflateError
-	jp nz,System_ThrowExceptionWithMessage
+	jp nz,System_ThrowException  ; not DEFLATE
 	ld (ix + ZlibArchive.cm),a
 	ld a,d
 	and 11110000B
@@ -83,12 +81,11 @@ ZlibArchive_ReadHeader:
 	rrca
 	rrca
 	cp ZlibArchive_MAX_WINDOW + 1
-	ld hl,ZlibArchive_invalidWindowError
-	jp nc,System_ThrowExceptionWithMessage
+	jp nc,System_ThrowException  ; invalid window size
 	ld (ix + ZlibArchive.cinfo),a
 	ld a,e
 	and 00100000B
-	ld hl,ZlibArchive_unsupportedPresetDictionaryError
+	ld hl,ZlibArchive_presetDictionaryError
 	jp nz,System_ThrowExceptionWithMessage
 	ld a,e
 	and 11000000B
@@ -215,17 +212,8 @@ ZlibArchive_VerifyAdler32:
 	ENDIF
 
 ;
-ZlibArchive_invalidFCHECKError:
-	db "Invalid FCHECK.",13,10,0
-
-ZlibArchive_notDeflateError:
-	db "Not compressed with DEFLATE.",13,10,0
-
-ZlibArchive_invalidWindowError:
-	db "Invalid window size.",13,10,0
-
-ZlibArchive_unsupportedPresetDictionaryError:
-	db "Unsupported preset dictionary.",13,10,0
+ZlibArchive_presetDictionaryError:
+	db "Preset dictionary not supported.",13,10,0
 
 	IF ZLIB_ADLER32
 
