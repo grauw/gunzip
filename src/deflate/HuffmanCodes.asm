@@ -39,7 +39,7 @@ HuffmanCodes_BuildDynamicDecoders:
 	call HuffmanCodes_ReadLengths
 	call HuffmanCodes_ReadHeaderCodeLengths
 	call HuffmanCodes_BuildHeaderCodeDecoder
-	call HuffmanCodes_ReadLiteralLengthDistanceCodeLengths
+	call HuffmanCodes_DecodeCodeLengths
 	call HuffmanCodes_BuildLiteralLengthDecoder
 	call HuffmanCodes_BuildDistanceDecoder
 	ret
@@ -161,29 +161,32 @@ Loop:
 
 ; ix = this
 ; iy = reader
-HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
+HuffmanCodes_DecodeCodeLengths:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
 	ld hl,Decoders.distance
 	add hl,de
 	ex de,hl
-	ld a,(ix + HuffmanCodes.hlit)
-	add a,(ix + HuffmanCodes.hdist)
+	xor a
+	sub (ix + HuffmanCodes.hlit)
+	sub (ix + HuffmanCodes.hdist)
 	push de
 	push hl
 	push ix
 	ld ixl,e
 	ld ixh,d
-	ld e,a
-	ld d,2  ; +1 for nested 8-bit loop
+	ld e,a  ; range: 258-318, two 8-bit loops
 	call Reader_PrepareReadBitInline_IY
-	call HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths
+	call HuffmanCodes_DecodeCodeLength
+	call HuffmanCodes_DecodeCodeLength
 	call Reader_FinishReadBitInline_IY
+	ld a,e
 	pop ix
 	pop hl
 	pop de
+	and a
+	call nz,System_ThrowException  ; code lengths count mismatch
 	inc h
-	xor a
 	cp (hl)
 	call z,System_ThrowException  ; no end-of-block code
 	ld c,(ix + HuffmanCodes.hlit)
@@ -194,96 +197,94 @@ HuffmanCodes_ReadLiteralLengthDistanceCodeLengths:
 	ret
 
 ; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
+; e = -code lengths remaining
+; hl = code lengths address
 ; ix = header code decoder
 ; iy = reader
-HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths:
-	jp ix
-
-; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
-; ix = header code decoder
-; iy = reader
-HuffmanCodes_WriteAndNext:
-	inc hl
-	dec e
-	jp nz,HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths
-	dec d
-	jr nz,HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths
-	ret
-
-; a = fill value
-; b = repeat count
-; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
-; ix = header code decoder
-; iy = reader
-HuffmanCodes_FillAndNext_Loop:
-	dec b
-	jr z,HuffmanCodes_DecodeLiteralLengthDistanceCodeLengths
-HuffmanCodes_FillAndNext:
-	ld (hl),a
-	inc hl
-	dec e
-	jp nz,HuffmanCodes_FillAndNext_Loop
-	dec d
-	jr nz,HuffmanCodes_FillAndNext_Loop
-	ret
+HuffmanCodes_DecodeCodeLength:
+	equ System_JumpIX
 
 ; Header code alphabet symbols 0-15
 ; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
+; e = -code lengths remaining
+; hl = code lengths address
 ; ix = header code decoder
 ; iy = reader
 HuffmanCodes_WriteLength: REPT 16, ?value
 	ld (hl),?value
-	jp HuffmanCodes_WriteAndNext
+	jr HuffmanCodes_WriteAndNext
 	ENDM
+
+; c = inline bit reader state
+; e = -code lengths remaining
+; hl = code lengths address
+; ix = header code decoder
+; iy = reader
+HuffmanCodes_WriteAndNext:
+	inc hl
+	inc e
+	ret z
+	jp ix
 
 ; Header code alphabet symbols 16
 ; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
+; e = -code lengths remaining
+; hl = code lengths address
 ; ix = header code decoder
 ; iy = reader
-HuffmanCodes_Copy:
+HuffmanCodes_Copy: PROC
 	call Reader_ReadBitsInline_2_IY
 	add a,3
+	push bc
 	ld b,a
 	dec hl
-	ld a,(hl)
+	ld c,(hl)
 	inc hl
-	jp HuffmanCodes_FillAndNext
+Loop:
+	ld (hl),c
+	inc hl
+	djnz Loop
+	pop bc
+	add a,e
+	ld e,a
+	ret c
+	jp ix
+	ENDP
 
 ; Header code alphabet symbols 17
 ; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
+; e = -code lengths remaining
+; hl = code lengths address
 ; ix = header code decoder
 ; iy = reader
-HuffmanCodes_FillZero_3:
+HuffmanCodes_FillZero_3: PROC
 	call Reader_ReadBitsInline_3_IY
 	add a,3
+Continue:
+	push bc
 	ld b,a
-	xor a
-	jp HuffmanCodes_FillAndNext
+	ld c,0
+Loop:
+	ld (hl),c
+	inc hl
+	djnz Loop
+	pop bc
+	add a,e
+	ld e,a
+	ret c
+	jp ix
+	ENDP
 
 ; Header code alphabet symbols 18
 ; c = inline bit reader state
-; de = loop counter for nested 8-bit loop
-; hl = literal/length/distance code lengths position
+; e = -code lengths remaining
+; hl = code lengths address
 ; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillZero_11:
 	call Reader_ReadBitsInline_7_IY
 	add a,11
-	ld b,a
-	xor a
-	jp HuffmanCodes_FillAndNext
+	jr HuffmanCodes_FillZero_3.Continue
 
 ;
 HuffmanCodes_headerCodeOrder:
