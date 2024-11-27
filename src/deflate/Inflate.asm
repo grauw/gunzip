@@ -1,7 +1,11 @@
 ;
 ; Inflate implementation
 ;
+Inflate_FINAL: equ 0
+
 Inflate: MACRO
+	state:
+		db 0
 	reader:
 		dw 0
 	writer:
@@ -24,6 +28,7 @@ Inflate_Construct:
 	ld a,(iy + Writer.bufferSize + 1)
 	cp 80H
 	call c,System_ThrowException
+	ld (ix + Inflate.state),0
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.writer),e
@@ -75,27 +80,25 @@ Inflate_GetHuffmanCodes:
 	ret
 
 ; ix = this
-Inflate_Inflate: PROC
+Inflate_Inflate:
 	call Inflate_GetReaderIY
-Loop:
-	call Reader_ReadBit_IY
-	push af
-	ld b,2
-	call Reader_ReadBits_IY
-	call Inflate_InflateBlock
-	pop af
-	jp nc,Loop
+	call Inflate_InflateLoop
 	push ix
 	call Inflate_GetWriter
 	call Writer_FinishBlock
 	pop ix
 	ret
-	ENDP
 
-; a = block type
 ; ix = this
-; iy = reader
-Inflate_InflateBlock:
+Inflate_InflateLoop:
+	ld a,(ix + Inflate.state)
+	and 1 << Inflate_FINAL
+	ret nz
+	call Reader_ReadBit_IY
+	rla  ; carry to Inflate_FINAL
+	ld (ix + Inflate.state),a
+	ld b,2
+	call Reader_ReadBits_IY
 	and a
 	jp z,Inflate_InflateUncompressed
 	cp 2
@@ -122,7 +125,7 @@ Inflate_InflateUncompressed:
 	call Inflate_GetWriter
 	call Writer_CopyFromReader
 	pop ix
-	ret
+	jp Inflate_InflateLoop
 
 ; ix = this
 ; iy = reader
@@ -131,8 +134,7 @@ Inflate_InflateFixedCompressed:
 	call Inflate_GetHuffmanCodes
 	call HuffmanCodes_BuildFixedDecoders
 	pop ix
-	call Inflate_InflateCompressed
-	ret
+	jp Inflate_InflateCompressed
 
 ; ix = this
 ; iy = reader
@@ -141,8 +143,7 @@ Inflate_InflateDynamicCompressed:
 	call Inflate_GetHuffmanCodes
 	call HuffmanCodes_BuildDynamicDecoders
 	pop ix
-	call Inflate_InflateCompressed
-	ret
+	jp Inflate_InflateCompressed
 
 ; ix = this
 ; iy = reader
@@ -160,7 +161,7 @@ Inflate_InflateCompressed:
 	call Inflate_DecodeLiteralLength
 	call Reader_FinishReadBitInline_IY
 	pop ix
-	ret
+	jp Inflate_InflateLoop
 
 ; c = inline bit reader state
 ; hl = literal/length decoder
