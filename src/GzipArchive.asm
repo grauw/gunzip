@@ -4,12 +4,12 @@
 GzipArchive_SIGNATURE_1: equ 1FH
 GzipArchive_SIGNATURE_2: equ 8BH
 GzipArchive_DEFLATE_ID: equ 8
-GzipArchive_FTEXT: equ 1 << 0;
-GzipArchive_FHCRC: equ 1 << 1;
-GzipArchive_FEXTRA: equ 1 << 2;
-GzipArchive_FNAME: equ 1 << 3;
-GzipArchive_FCOMMENT: equ 1 << 4;
-GzipArchive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7;
+GzipArchive_FTEXT: equ 1 << 0
+GzipArchive_FHCRC: equ 1 << 1
+GzipArchive_FEXTRA: equ 1 << 2
+GzipArchive_FNAME: equ 1 << 3
+GzipArchive_FCOMMENT: equ 1 << 4
+GzipArchive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7
 
 GzipArchive: MACRO
 	reader:
