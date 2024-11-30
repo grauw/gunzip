@@ -1,6 +1,7 @@
 ;
 ; Gzip archive
 ;
+GzipArchive_STATE_CHECKSUM_BIT: equ 0
 GzipArchive_SIGNATURE_1: equ 1FH
 GzipArchive_SIGNATURE_2: equ 8BH
 GzipArchive_DEFLATE_ID: equ 8
@@ -12,12 +13,10 @@ GzipArchive_FCOMMENT: equ 1 << 4
 GzipArchive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7
 
 GzipArchive: MACRO
+	state:
+		db 0
 	reader:
 		dw 0
-	crc32CheckEnabled:
-		IF GZIP_CRC32
-		db 0
-		ENDIF
 	flags:
 		db 0
 	mtime:
@@ -46,13 +45,15 @@ GzipArchive: MACRO
 ; ix = this
 ; ix <- this
 GzipArchive_Construct:
+	IF GZIP_CRC32
+	and 1 << GzipArchive_STATE_CHECKSUM_BIT
+	ELSE
+	xor a
+	ENDIF
+	ld (ix + GzipArchive.state),a
 	ld (ix + GzipArchive.reader),e
 	ld (ix + GzipArchive.reader + 1),d
-	IF GZIP_CRC32
-	ld (ix + GzipArchive.crc32CheckEnabled),a
-	ENDIF
-	call GzipArchive_ReadHeader
-	ret
+	jp GzipArchive_ReadHeader
 
 ; ix = this
 ; iy <- file reader
@@ -145,7 +146,7 @@ GzipArchive_ReadFooter:
 GzipArchive_Extract:
 	IF GZIP_CRC32
 	push bc
-	bit 0,(ix + GzipArchive.crc32CheckEnabled)
+	bit GzipArchive_STATE_CHECKSUM_BIT,(ix + GzipArchive.state)
 	call nz,GzipArchive_CreateCRC32Checker
 	pop bc
 	ENDIF
@@ -253,7 +254,7 @@ GzipArchive_VerifyISIZE:
 ; ix = this
 ; f <- nz: mismatch
 GzipArchive_VerifyCRC32:
-	bit 0,(ix + GzipArchive.crc32CheckEnabled)
+	bit GzipArchive_STATE_CHECKSUM_BIT,(ix + GzipArchive.state)
 	ret z
 	ld l,(ix + GzipArchive.crc32)
 	ld h,(ix + GzipArchive.crc32 + 1)

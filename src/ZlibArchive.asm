@@ -1,16 +1,15 @@
 ;
 ; Zlib archive
 ;
+ZlibArchive_STATE_CHECKSUM_BIT: equ 0
 ZlibArchive_DEFLATE_ID: equ 8
 ZlibArchive_MAX_WINDOW: equ 7
 
 ZlibArchive: MACRO
+	state:
+		db 0
 	reader:
 		dw 0
-	adler32CheckEnabled:
-		IF ZLIB_ADLER32
-		db 0
-		ENDIF
 	cm:
 		db 0
 	cinfo:
@@ -35,13 +34,15 @@ ZlibArchive: MACRO
 ; ix = this
 ; ix <- this
 ZlibArchive_Construct:
+	IF ZLIB_ADLER32
+	and 1 << ZlibArchive_STATE_CHECKSUM_BIT
+	ELSE
+	xor a
+	ENDIF
+	ld (ix + ZlibArchive.state),a
 	ld (ix + ZlibArchive.reader),e
 	ld (ix + ZlibArchive.reader + 1),d
-	IF ZLIB_ADLER32
-	ld (ix + ZlibArchive.adler32CheckEnabled),a
-	ENDIF
-	call ZlibArchive_ReadHeader
-	ret
+	jp ZlibArchive_ReadHeader
 
 ; ix = this
 ; iy <- file reader
@@ -135,7 +136,7 @@ ZlibArchive_ReadFooter:
 ZlibArchive_Extract:
 	IF ZLIB_ADLER32
 	push bc
-	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
+	bit ZlibArchive_STATE_CHECKSUM_BIT,(ix + ZlibArchive.state)
 	call nz,ZlibArchive_CreateAdler32Checker
 	pop bc
 	ENDIF
@@ -195,7 +196,7 @@ ZlibArchive_Verify:
 ; ix = this
 ; f <- nz: mismatch
 ZlibArchive_VerifyAdler32:
-	bit 0,(ix + ZlibArchive.adler32CheckEnabled)
+	bit ZlibArchive_STATE_CHECKSUM_BIT,(ix + ZlibArchive.state)
 	ret z
 	ld l,(ix + ZlibArchive.adler32)
 	ld h,(ix + ZlibArchive.adler32 + 1)
