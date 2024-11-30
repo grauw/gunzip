@@ -76,7 +76,7 @@ GzipArchive_GetInflate:
 	ret
 
 ; ix = this
-GzipArchive_ReadHeader:
+GzipArchive_ReadHeader: PROC
 	call GzipArchive_GetReaderIY
 	call Reader_Read_IY
 	cp GzipArchive_SIGNATURE_1
@@ -89,7 +89,6 @@ GzipArchive_ReadHeader:
 	call Reader_Read_IY
 	cp GzipArchive_DEFLATE_ID
 	jp nz,System_ThrowException  ; not DEFLATE
-
 	call Reader_Read_IY
 	ld (ix + GzipArchive.flags),a
 	call Reader_ReadDoubleWord_IY
@@ -101,27 +100,35 @@ GzipArchive_ReadHeader:
 	ld (ix + GzipArchive.xfl),a
 	call Reader_Read_IY
 	ld (ix + GzipArchive.os),a
-
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_RESERVED
 	jp nz,System_ThrowException  ; unknown flag
-
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FEXTRA
-	call nz,GzipArchive_SkipExtra
-
+	call nz,SkipExtra
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FNAME
-	call nz,GzipArchive_SkipASCIIZ
-
+	call nz,SkipASCIIZ
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FCOMMENT
-	call nz,GzipArchive_SkipASCIIZ
-
+	call nz,SkipASCIIZ
 	ld a,(ix + GzipArchive.flags)
 	and GzipArchive_FHCRC
-	call nz,GzipArchive_SkipHeaderCRC
+	call nz,SkipHeaderCRC
 	ret
+SkipExtra:
+	call Reader_ReadWord_IY
+	ld c,e
+	ld b,d
+	jp Reader_Skip_IY
+SkipASCIIZ:
+	call Reader_Read_IY
+	and a
+	jp nz,SkipASCIIZ
+	ret
+SkipHeaderCRC:
+	equ Reader_ReadWord_IY
+	ENDP
 
 ; ix = this
 GzipArchive_ReadFooter:
@@ -197,36 +204,12 @@ GzipArchive_Verify:
 	call GzipArchive_VerifyISIZE
 	ld hl,GzipArchive_isizeMismatchError
 	jp nz,System_ThrowExceptionWithMessage
-
 	IF GZIP_CRC32
 	call GzipArchive_VerifyCRC32
 	ld hl,GzipArchive_crc32MismatchError
 	jp nz,System_ThrowExceptionWithMessage
 	ENDIF
 	ret
-
-; ix = this
-GzipArchive_SkipExtra:
-	call GzipArchive_GetReaderIY
-	call Reader_ReadWord_IY
-	ld c,e
-	ld b,d
-	jp Reader_Skip_IY
-
-; ix = this
-GzipArchive_SkipASCIIZ: PROC
-	call GzipArchive_GetReaderIY
-Loop:
-	call Reader_Read_IY
-	and a
-	jp nz,Loop
-	ret
-	ENDP
-
-; ix = this
-GzipArchive_SkipHeaderCRC:
-	call GzipArchive_GetReaderIY
-	jp Reader_ReadWord_IY
 
 ; ix = this
 ; f <- nz: mismatch
