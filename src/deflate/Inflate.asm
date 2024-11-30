@@ -1,14 +1,36 @@
 ;
 ; Inflate implementation
 ;
-Inflate_FINAL: equ 0
+Inflate_STATE_FINAL_BIT: equ 0
+Inflate_STATE_COPY_BIT: equ 1
+Inflate_STATE_COMPRESSED_BIT: equ 2
+Inflate_BUFFER_SIZE: equ 8000H
 
 Inflate: MACRO
+	; a = value
+	; hl = literal/length decoder
+	; ix = this
+	WriteLiteral:
+		ld (0),a
+	bufferPosition: equ $ - 2
+		inc (ix + Inflate.bufferPosition)
+		jr z,WriteLiteralCarry  ; unlikely
+		jp hl
+	WriteLiteralCarry:
+		jp Inflate_WriteLiteralCarry
+	bufferStart:
+		db 0
+	bufferEnd:
+		db 0
+	bufferEndCopyMargin:
+		db 0
 	state:
 		db 0
-	reader:
+	copyLength:
 		dw 0
-	writer:
+	copySource:
+		dw 0
+	reader:
 		dw 0
 	decoders:
 		dw 0
@@ -18,21 +40,25 @@ Inflate: MACRO
 	ENDM
 
 ; bc = decoders buffer
+; de = write buffer (32K, 256-byte aligned)
 ; hl = reader
-; de = writer (min 32K)
 ; ix = this
 ; ix <- this
 Inflate_Construct:
-	ld iyl,e  ; check if write buffer is at least 32K
-	ld iyh,d
-	ld a,(iy + Writer.bufferSize + 1)
-	cp 80H
-	call c,System_ThrowException
+	ld a,e  ; check if write buffer is 256-byte aligned
+	and a
+	call nz,System_ThrowException
+	ld (ix + Inflate.bufferStart),d
+	ld (ix + Inflate.bufferPosition),0
+	ld (ix + Inflate.bufferPosition + 1),d
+	ld a,d
+	add a,Inflate_BUFFER_SIZE >> 8
+	ld (ix + Inflate.bufferEnd),a
+	sub 3
+	ld (ix + Inflate.bufferEndCopyMargin),a
 	ld (ix + Inflate.state),0
 	ld (ix + Inflate.reader),l
 	ld (ix + Inflate.reader + 1),h
-	ld (ix + Inflate.writer),e
-	ld (ix + Inflate.writer + 1),d
 	ld (ix + Inflate.decoders),c
 	ld (ix + Inflate.decoders + 1),b
 	push ix
@@ -49,16 +75,6 @@ Inflate_GetReaderIY:
 	ld d,(ix + Inflate.reader + 1)
 	ld iyl,e
 	ld iyh,d
-	ret
-
-; ix = this
-; ix <- writer
-; Modifies: de
-Inflate_GetWriter:
-	ld e,(ix + Inflate.writer)
-	ld d,(ix + Inflate.writer + 1)
-	ld ixl,e
-	ld ixh,d
 	ret
 
 ; ix = this
@@ -80,22 +96,41 @@ Inflate_GetHuffmanCodes:
 	ret
 
 ; ix = this
+; a <- >0: more data, 0: final data
+; f <- nz: more data, z: final data
+; de <- buffer address
+; hl <- byte count
 Inflate_Inflate:
 	call Inflate_GetReaderIY
-	call Inflate_InflateLoop
-	push ix
-	call Inflate_GetWriter
-	call Writer_FinishBlock
-	pop ix
+	call Inflate_InflateResume
+	ld l,(ix + Inflate.bufferPosition)
+	ld h,(ix + Inflate.bufferPosition + 1)
+	ld e,0
+	ld d,(ix + Inflate.bufferStart)
+	ld (ix + Inflate.bufferPosition),e
+	ld (ix + Inflate.bufferPosition + 1),d
+	and a
+	sbc hl,de
+	ld a,(ix + Inflate.state)
+	xor 1 << Inflate_STATE_FINAL_BIT
 	ret
+
+; ix = this
+Inflate_InflateResume:
+	bit Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
+	jp nz,Inflate_InflateCompressed
+	bit Inflate_STATE_COPY_BIT,(ix + Inflate.state)
+	jp nz,Inflate_InflateUncompressed.Resume
+	jp Inflate_InflateLoop
 
 ; ix = this
 Inflate_InflateLoop:
 	ld a,(ix + Inflate.state)
-	and 1 << Inflate_FINAL
+	and 1 << Inflate_STATE_FINAL_BIT
+	ld (ix + Inflate.state),a
 	ret nz
 	call Reader_ReadBit_IY
-	rla  ; carry to Inflate_FINAL
+	rla  ; carry to Inflate_STATE_FINAL_BIT
 	ld (ix + Inflate.state),a
 	ld b,2
 	call Reader_ReadBits_IY
@@ -108,7 +143,8 @@ Inflate_InflateLoop:
 
 ; ix = this
 ; iy = reader
-Inflate_InflateUncompressed:
+Inflate_InflateUncompressed: PROC
+	set Inflate_STATE_COPY_BIT,(ix + Inflate.state)
 	call Reader_Align_IY
 	call Reader_ReadWord_IY
 	ld c,e
@@ -118,14 +154,46 @@ Inflate_InflateUncompressed:
 	scf
 	adc hl,bc
 	jp nz,System_ThrowException  ; invalid length
+ResumeLoop:
+	ld e,(ix + Inflate.bufferPosition)
+	ld d,(ix + Inflate.bufferPosition + 1)
+Loop:
 	ld a,c
 	or b
-	ret z
-	push ix
-	call Inflate_GetWriter
-	call Writer_CopyFromReader
-	pop ix
-	jp Inflate_InflateLoop
+	jp z,Inflate_InflateLoop
+	ld l,0
+	ld h,(ix + Inflate.bufferEnd)
+	sbc hl,de
+	jr c,Suspend
+	jr z,Suspend
+	push bc
+	sbc hl,bc
+	jr nc,NoSplit  ; bc <= hl
+	add hl,bc
+	ld c,l
+	ld b,h
+NoSplit:
+	call Reader_ReadBlockDirect_IY
+	push bc
+	call System_FastLDIR
+	pop bc
+	pop hl
+	and a
+	sbc hl,bc
+	ld c,l
+	ld b,h
+	ld (ix + Inflate.bufferPosition),e
+	ld (ix + Inflate.bufferPosition + 1),d
+	jr Loop
+Suspend:
+	ld (ix + Inflate.copyLength),c
+	ld (ix + Inflate.copyLength + 1),b
+	ret
+Resume:
+	ld c,(ix + Inflate.copyLength)
+	ld b,(ix + Inflate.copyLength + 1)
+	jr ResumeLoop
+	ENDP
 
 ; ix = this
 ; iy = reader
@@ -152,54 +220,67 @@ Inflate_InflateCompressed:
 	call Inflate_GetDecoders
 	call Decoders_GetDecoders
 	pop ix
-	push ix
-	ld c,(ix + Inflate.writer)
-	ld b,(ix + Inflate.writer + 1)
-	ld ixl,c
-	ld ixh,b
 	call Reader_PrepareReadBitInline_IY
-	call Inflate_DecodeLiteralLength
+	call Inflate_Decode
 	call Reader_FinishReadBitInline_IY
-	pop ix
+	bit Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
+	ret nz
 	jp Inflate_InflateLoop
+
+Inflate_Decode: PROC
+	set Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
+	bit Inflate_STATE_COPY_BIT,(ix + Inflate.state)
+	jp nz,Inflate_CopySplitDestination.Resume
+	Inflate_DecodeLiteralLengthInline
+	ENDP
 
 ; c = inline bit reader state
 ; hl = literal/length decoder
 ; de = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_DecodeLiteralLengthInline: MACRO
 	jp hl
 	ENDM
 
-Inflate_DecodeLiteralLength:
-	Inflate_DecodeLiteralLengthInline
-
 ; Literal/length alphabet symbols 0-255
 ; c = inline bit reader state
 ; hl = literal/length decoder
 ; de = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_WriteLiteral: REPT 256, ?value
 	ld a,?value
-	Writer_WriteInline_JumpHL
+	jp ix
 	ENDM
+
+; c = inline bit reader state
+; hl = literal/length decoder
+; de = distance decoder
+; ix = this
+; iy = reader
+Inflate_WriteLiteralCarry:
+	inc (ix + Inflate.bufferPosition + 1)
+	ld a,(ix + Inflate.bufferPosition + 1)
+	cp (ix + Inflate.bufferEnd)
+	ret nc
+	jp hl
 
 ; Literal/length alphabet symbol 256
 ; c = inline bit reader state
 ; hl = literal/length decoder
 ; de = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_EndBlock:
+	res Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
 	ret
 
 ; Literal/length alphabet symbols 257-285
 ; c = inline bit reader state
 ; hl = literal/length decoder
 ; de = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_CopyLength.0:
 	exx
@@ -326,7 +407,7 @@ Inflate_CopyLength.28:
 ; c' = inline bit reader state
 ; hl' = literal/length decoder
 ; de' = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_DecodeDistance_SetLength:
 	exx
@@ -338,7 +419,7 @@ Inflate_DecodeDistance_SetLength:
 ; c' = inline bit reader state
 ; hl' = literal/length decoder
 ; de' = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_DecodeDistanceInline: MACRO
 	exx
@@ -351,7 +432,7 @@ Inflate_DecodeDistanceInline: MACRO
 ; bc = length
 ; de = literal/length decoder
 ; hl = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_CopyDistance.0:
 	exx
@@ -511,13 +592,13 @@ Inflate_CopyDistance.29:
 ; c' = inline bit reader state
 ; de' = literal/length decoder
 ; hl' = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_CopySmallDistance:
 	exx
 	ld l,a
 	ld h,-1
-	Inflate_CopyInline
+	jp Inflate_Copy
 
 ; a = -distance MSB
 ; a' = ~-distance LSB
@@ -525,7 +606,7 @@ Inflate_CopySmallDistance:
 ; c' = inline bit reader state
 ; de' = literal/length decoder
 ; hl' = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
 Inflate_CopyLargeDistance:
 	exx
@@ -533,24 +614,148 @@ Inflate_CopyLargeDistance:
 	ex af,af'
 	cpl
 	ld l,a
-	Inflate_CopyInline
+	jp Inflate_Copy
 
 ; bc = length
 ; hl = -distance
 ; c' = inline bit reader state
 ; de' = literal/length decoder
 ; hl' = distance decoder
-; ix = writer
+; ix = this
 ; iy = reader
-Inflate_CopyInline: MACRO
-	call Writer_Copy
+Inflate_Copy: PROC
+	ld e,(ix + Inflate.bufferPosition)
+	ld d,(ix + Inflate.bufferPosition + 1)
+	add hl,de
+	ld a,h
+	jr nc,WrapSource
+	cp (ix + Inflate.bufferStart)
+	jr c,WrapSource
+	ld a,(ix + Inflate.bufferEndCopyMargin)
+	cp d  ; does the destination have a 512 byte margin without wrapping?
+	jr c,Inflate_CopySplitDestination
+Copy:
+	ldi
+	ldi
+	ldir
+Next:
+	ld (ix + Inflate.bufferPosition),e
+	ld (ix + Inflate.bufferPosition + 1),d
 	exx
 	ex de,hl
 	Inflate_DecodeLiteralLengthInline
-	ENDM
+WrapSource:
+	add a,Inflate_BUFFER_SIZE >> 8
+	ld h,a
+	ld a,(ix + Inflate.bufferEndCopyMargin)
+	cp d  ; does the destination have a 512 byte margin without wrapping?
+	jr c,Inflate_CopySplitDestination
+	cp h  ; does the source have a 512 byte margin without wrapping?
+	jp nc,Copy
+	call Inflate_CopySplitSource
+	jp Next
+	ENDP
 
-Inflate_Copy:
-	Inflate_CopyInline
+; bc = byte count
+; de = destination
+; hl = source
+; ix = this
+; bc <- 0
+; de <- updated destination
+; hl <- updated source
+; Modifies: af
+Inflate_CopySplitDestination: PROC
+	ex de,hl
+	add hl,bc
+	jr c,Split
+	ld a,h
+	cp (ix + Inflate.bufferEnd)
+	jr nc,Split
+	and a
+	sbc hl,bc
+	ex de,hl
+	call Inflate_CopySplitSource
+	jp Inflate_Copy.Next
+Split:
+	push hl
+	xor a
+	sbc hl,bc
+	sub l
+	ld c,a
+	ld a,(ix + Inflate.bufferEnd)
+	sbc a,h
+	ld b,a  ; bc = buffer end - source start
+	ex de,hl
+	call Inflate_CopySplitSource
+	pop bc
+	ld a,b
+	sub (ix + Inflate.bufferEnd)
+	ld b,a  ; bc = source end - buffer end
+	or c
+	jp z,SuspendLiteral
+Suspend:
+	set Inflate_STATE_COPY_BIT,(ix + Inflate.state)
+	ld (ix + Inflate.copyLength),c
+	ld (ix + Inflate.copyLength + 1),b
+	ld (ix + Inflate.copySource),l
+	ld (ix + Inflate.copySource + 1),h
+SuspendLiteral:
+	ld (ix + Inflate.bufferPosition),e
+	ld (ix + Inflate.bufferPosition + 1),d
+	exx
+	ex de,hl
+	ret
+Resume:
+	res Inflate_STATE_COPY_BIT,(ix + Inflate.state)
+	ex de,hl
+	exx
+	ld c,(ix + Inflate.copyLength)
+	ld b,(ix + Inflate.copyLength + 1)
+	ld e,(ix + Inflate.bufferPosition)
+	ld d,(ix + Inflate.bufferPosition + 1)
+	ld l,(ix + Inflate.copySource)
+	ld h,(ix + Inflate.copySource + 1)
+	jp Inflate_CopySplitDestination
+	ENDP
+
+; bc = byte count
+; de = destination
+; hl = source
+; ix = this
+; bc <- 0
+; de <- updated destination
+; hl <- updated source
+; Modifies: af
+Inflate_CopySplitSource: PROC
+	add hl,bc
+	jr c,Split
+	ld a,h
+	cp (ix + Inflate.bufferEnd)
+	jr nc,Split
+	and a
+	sbc hl,bc
+	ldir
+	ret
+Split:
+	push hl
+	xor a
+	sbc hl,bc
+	sub l
+	ld c,a
+	ld a,(ix + Inflate.bufferEnd)
+	sbc a,h
+	ld b,a  ; bc = buffer end - source start
+	ldir
+	pop bc
+	ld h,(ix + Inflate.bufferStart)
+	ld a,b
+	sub (ix + Inflate.bufferEnd)
+	ld b,a  ; bc = source end - buffer end
+	or c
+	ret z
+	ldir
+	ret
+	ENDP
 
 ;
 Inflate_literalLengthSymbols:

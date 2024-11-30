@@ -2,15 +2,6 @@
 ; Adler32 summer
 ;
 Adler32Checker: MACRO
-	this:
-	Process:
-		push ix
-		ld ix,this
-	Process_this: equ $ - 2
-		call Adler32Checker_UpdateAdler32
-		pop ix
-		jp 0
-	Process_oldHook: equ $ - 2
 	adler32:
 		dd 1
 	_size:
@@ -18,23 +9,10 @@ Adler32Checker: MACRO
 
 	IF ZLIB_ADLER32
 
-; de = writer
 ; ix = this
 ; ix <- this
 ; Modifies: a
 Adler32Checker_Construct:
-	ld iyl,e
-	ld iyh,d
-	ld e,(iy + Writer.flusher)
-	ld d,(iy + Writer.flusher + 1)
-	ld (ix + Adler32Checker.Process_oldHook),e
-	ld (ix + Adler32Checker.Process_oldHook + 1),d
-	ld e,ixl
-	ld d,ixh
-	ld (iy + Writer.flusher),e
-	ld (iy + Writer.flusher + 1),d
-	ld (ix + Adler32Checker.Process_this),e
-	ld (ix + Adler32Checker.Process_this + 1),d
 	xor a
 	ld (ix + Adler32Checker.adler32),1
 	ld (ix + Adler32Checker.adler32 + 1),a
@@ -42,37 +20,26 @@ Adler32Checker_Construct:
 	ld (ix + Adler32Checker.adler32 + 3),a
 	ret
 
-; bc = byte count
-; de = buffer start
+; de = read address
+; hl = byte count
 ; ix = this
-; Modifies: none
 Adler32Checker_UpdateAdler32:
-	push af
-	push bc
-	push de
-	push hl
-	ex de,hl
+	ld a,l
+	or h
+	ret z
 	exx
-	push bc
-	push de
-	push hl
 	ld e,(ix + Adler32Checker.adler32)
 	ld d,(ix + Adler32Checker.adler32 + 1)
 	ld c,(ix + Adler32Checker.adler32 + 2)
 	ld b,(ix + Adler32Checker.adler32 + 3)
+	exx
 	call Adler32Checker_CalculateAdler32
+	exx
 	ld (ix + Adler32Checker.adler32),e
 	ld (ix + Adler32Checker.adler32 + 1),d
 	ld (ix + Adler32Checker.adler32 + 2),c
 	ld (ix + Adler32Checker.adler32 + 3),b
-	pop hl
-	pop de
-	pop bc
 	exx
-	pop hl
-	pop de
-	pop bc
-	pop af
 	ret
 
 ; bcde = expected adler32
@@ -92,22 +59,18 @@ Adler32Checker_VerifyAdler32:
 	sub (ix + Adler32Checker.adler32 + 3)
 	ret
 
-; bc' = byte count
-; hl' = read address
-; bcde = current adler
+; de = read address
+; hl = byte count
+; bcde' = current adler32
 ; ix = this
-; bcde <- updated adler
-; Modifies: af, bc, de, hl, bc', hl'
+; bcde' <- updated adler32
 Adler32Checker_CalculateAdler32: PROC
-	exx
-	ld a,c  ; convert 16-bit counter bc to two 8-bit counters in b and c
-	dec bc
-	inc b
-	ld c,b
-	ld b,a
+	ld b,l  ; convert 16-bit counter bc to two 8-bit counters in b and c
+	dec hl
+	inc h
 Loop:
-	ld a,(hl)
-	inc hl
+	ld a,(de)
+	inc de
 	exx
 	ld l,a
 	ld h,0
@@ -119,9 +82,8 @@ Loop:
 	ld b,h
 	exx
 	djnz Loop
-	dec c
+	dec h
 	jp nz,Loop
-	exx
 	ret
 	ENDP
 

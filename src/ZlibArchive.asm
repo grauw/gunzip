@@ -2,6 +2,7 @@
 ; Zlib archive
 ;
 ZlibArchive_STATE_CHECKSUM_BIT: equ 0
+ZlibArchive_STATE_FOOTER_BIT: equ 1
 ZlibArchive_DEFLATE_ID: equ 8
 ZlibArchive_MAX_WINDOW: equ 7
 
@@ -30,7 +31,9 @@ ZlibArchive: MACRO
 	ENDM
 
 ; a = -1: Adler32 check enabled, 0: disabled
-; de = reader
+; bc = decoders buffer
+; de = write buffer (32K, 256-byte aligned)
+; hl = reader
 ; ix = this
 ; ix <- this
 ZlibArchive_Construct:
@@ -40,8 +43,22 @@ ZlibArchive_Construct:
 	xor a
 	ENDIF
 	ld (ix + ZlibArchive.state),a
-	ld (ix + ZlibArchive.reader),e
-	ld (ix + ZlibArchive.reader + 1),d
+	ld (ix + ZlibArchive.reader),l
+	ld (ix + ZlibArchive.reader + 1),h
+	push ix
+	push de
+	ld de,ZlibArchive.inflate
+	add ix,de
+	pop de
+	call Inflate_Construct
+	pop ix
+	IF ZLIB_ADLER32
+	push ix
+	ld bc,ZlibArchive.adler32Checker
+	add ix,bc
+	call Adler32Checker_Construct
+	pop ix
+	ENDIF
 	jp ZlibArchive_ReadHeader
 
 ; ix = this
@@ -52,16 +69,6 @@ ZlibArchive_GetReaderIY:
 	ld d,(ix + ZlibArchive.reader + 1)
 	ld iyl,e
 	ld iyh,d
-	ret
-
-; ix = this
-; ix <- Inflate implementation
-; Modifies: f
-ZlibArchive_GetInflate:
-	push de
-	ld de,ZlibArchive.inflate
-	add ix,de
-	pop de
 	ret
 
 ; ix = this
@@ -130,57 +137,64 @@ ZlibArchive_ReadFooter:
 	ENDIF
 	ret
 
-; bc = decoders buffer
-; de = writer (min 32K)
 ; ix = this
-ZlibArchive_Extract:
-	IF ZLIB_ADLER32
-	push bc
-	bit ZlibArchive_STATE_CHECKSUM_BIT,(ix + ZlibArchive.state)
-	call nz,ZlibArchive_CreateAdler32Checker
-	pop bc
-	ENDIF
-	call ZlibArchive_CreateInflate
-	call ZlibArchive_Inflate
+; a <- >0: more data, 0: final data
+; f <- nz: more data, z: final data
+; de <- buffer address
+; hl <- byte count
+ZlibArchive_Inflate: PROC
+	push ix
+	ld de,ZlibArchive.inflate
+	add ix,de
+	call Inflate_Inflate
+	pop ix
+	call ZlibArchive_Update
+	ret nz
+	bit ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
+	call z,Footer
+	and a
+	ret
+Footer:
+	set ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
+	ex af,af'
+	exx
 	call ZlibArchive_ReadFooter
 	call ZlibArchive_Verify
+	exx
+	ex af,af'
 	ret
+	ENDP
 
-; bc = decoders buffer
-; de = writer (min 32K)
+; de = buffer address
+; hl = byte count
 ; ix = this
-ZlibArchive_CreateInflate:
-	ld l,(ix + ZlibArchive.reader)
-	ld h,(ix + ZlibArchive.reader + 1)
-	push ix
-	call ZlibArchive_GetInflate
-	call Inflate_Construct
-	pop ix
+ZlibArchive_Update:
+	IF ZLIB_ADLER32
+	push af
+	bit ZlibArchive_STATE_CHECKSUM_BIT,(ix + ZlibArchive.state)
+	call nz,ZlibArchive_UpdateAdler32
+	pop af
+	ENDIF
 	ret
 
 	IF ZLIB_ADLER32
 
-; de = writer (min 32K)
+; de = buffer address
+; hl = byte count
 ; ix = this
-ZlibArchive_CreateAdler32Checker:
+ZlibArchive_UpdateAdler32:
 	push de
+	push hl
 	push ix
 	ld bc,ZlibArchive.adler32Checker
 	add ix,bc
-	call Adler32Checker_Construct
+	call Adler32Checker_UpdateAdler32
 	pop ix
+	pop hl
 	pop de
 	ret
 
 	ENDIF
-
-; ix = this
-ZlibArchive_Inflate:
-	push ix
-	call ZlibArchive_GetInflate
-	call Inflate_Inflate
-	pop ix
-	ret
 
 ; ix = this
 ZlibArchive_Verify:

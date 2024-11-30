@@ -2,6 +2,7 @@
 ; Gzip archive
 ;
 GzipArchive_STATE_CHECKSUM_BIT: equ 0
+GzipArchive_STATE_FOOTER_BIT: equ 1
 GzipArchive_SIGNATURE_1: equ 1FH
 GzipArchive_SIGNATURE_2: equ 8BH
 GzipArchive_DEFLATE_ID: equ 8
@@ -17,6 +18,8 @@ GzipArchive: MACRO
 		db 0
 	reader:
 		dw 0
+	count:
+		dd 0
 	flags:
 		db 0
 	mtime:
@@ -41,7 +44,9 @@ GzipArchive: MACRO
 	ENDM
 
 ; a = -1: CRC32 check enabled, 0: disabled
-; de = reader
+; bc = decoders buffer
+; de = write buffer (32K, 256-byte aligned)
+; hl = reader
 ; ix = this
 ; ix <- this
 GzipArchive_Construct:
@@ -51,8 +56,27 @@ GzipArchive_Construct:
 	xor a
 	ENDIF
 	ld (ix + GzipArchive.state),a
-	ld (ix + GzipArchive.reader),e
-	ld (ix + GzipArchive.reader + 1),d
+	ld (ix + GzipArchive.reader),l
+	ld (ix + GzipArchive.reader + 1),h
+	xor a
+	ld (ix + GzipArchive.count),a
+	ld (ix + GzipArchive.count + 1),a
+	ld (ix + GzipArchive.count + 2),a
+	ld (ix + GzipArchive.count + 3),a
+	push ix
+	push de
+	ld de,GzipArchive.inflate
+	add ix,de
+	pop de
+	call Inflate_Construct
+	pop ix
+	IF GZIP_CRC32
+	push ix
+	ld bc,GzipArchive.crc32Checker
+	add ix,bc
+	call CRC32Checker_Construct
+	pop ix
+	ENDIF
 	jp GzipArchive_ReadHeader
 
 ; ix = this
@@ -63,16 +87,6 @@ GzipArchive_GetReaderIY:
 	ld d,(ix + GzipArchive.reader + 1)
 	ld iyl,e
 	ld iyh,d
-	ret
-
-; ix = this
-; ix <- Inflate implementation
-; Modifies: f
-GzipArchive_GetInflate:
-	push de
-	ld de,GzipArchive.inflate
-	add ix,de
-	pop de
 	ret
 
 ; ix = this
@@ -147,57 +161,82 @@ GzipArchive_ReadFooter:
 	ld (ix + GzipArchive.isize + 3),d
 	ret
 
-; bc = decoders buffer
-; de = writer (min 32K)
 ; ix = this
-GzipArchive_Extract:
-	IF GZIP_CRC32
-	push bc
-	bit GzipArchive_STATE_CHECKSUM_BIT,(ix + GzipArchive.state)
-	call nz,GzipArchive_CreateCRC32Checker
-	pop bc
-	ENDIF
-	call GzipArchive_CreateInflate
-	call GzipArchive_Inflate
+; a <- >0: more data, 0: final data
+; f <- nz: more data, z: final data
+; de <- buffer address
+; hl <- byte count
+GzipArchive_Inflate: PROC
+	push ix
+	ld de,GzipArchive.inflate
+	add ix,de
+	call Inflate_Inflate
+	pop ix
+	call GzipArchive_Update
+	ret nz
+	bit GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
+	call z,Footer
+	and a
+	ret
+Footer:
+	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
+	ex af,af'
+	exx
 	call GzipArchive_ReadFooter
 	call GzipArchive_Verify
+	exx
+	ex af,af'
+	ret
+	ENDP
+
+; de = buffer address
+; hl = byte count
+; ix = this
+GzipArchive_Update:
+	push af
+	call GzipArchive_UpdateCount
+	IF GZIP_CRC32
+	bit GzipArchive_STATE_CHECKSUM_BIT,(ix + GzipArchive.state)
+	call nz,GzipArchive_UpdateCRC32
+	ENDIF
+	pop af
 	ret
 
-; bc = decoders buffer
-; de = writer (min 32K)
+; de = buffer address
+; hl = byte count
 ; ix = this
-GzipArchive_CreateInflate:
-	ld l,(ix + GzipArchive.reader)
-	ld h,(ix + GzipArchive.reader + 1)
-	push ix
-	call GzipArchive_GetInflate
-	call Inflate_Construct
-	pop ix
+GzipArchive_UpdateCount:
+	push hl
+	ld c,(ix + GzipArchive.count)
+	ld b,(ix + GzipArchive.count + 1)
+	add hl,bc
+	ld (ix + GzipArchive.count),l
+	ld (ix + GzipArchive.count + 1),h
+	pop hl
+	ret nc
+	inc (ix + GzipArchive.count + 2)
+	ret nz
+	inc (ix + GzipArchive.count + 3)
 	ret
 
 	IF GZIP_CRC32
 
-; de = writer (min 32K)
+; hl = byte count
+; de = buffer address
 ; ix = this
-GzipArchive_CreateCRC32Checker:
+GzipArchive_UpdateCRC32:
 	push de
+	push hl
 	push ix
 	ld bc,GzipArchive.crc32Checker
 	add ix,bc
-	call CRC32Checker_Construct
+	call CRC32Checker_UpdateCRC32
 	pop ix
+	pop hl
 	pop de
 	ret
 
 	ENDIF
-
-; ix = this
-GzipArchive_Inflate:
-	push ix
-	call GzipArchive_GetInflate
-	call Inflate_Inflate
-	pop ix
-	ret
 
 ; ix = this
 GzipArchive_Verify:
@@ -214,21 +253,16 @@ GzipArchive_Verify:
 ; ix = this
 ; f <- nz: mismatch
 GzipArchive_VerifyISIZE:
-	push ix
-	call GzipArchive_GetInflate
-	call Inflate_GetWriter
-	call Writer_GetCount
-	pop ix
-	ld a,e
+	ld a,(ix + GzipArchive.count)
 	cp (ix + GzipArchive.isize)
 	ret nz
-	ld a,d
+	ld a,(ix + GzipArchive.count + 1)
 	cp (ix + GzipArchive.isize + 1)
 	ret nz
-	ld a,c
+	ld a,(ix + GzipArchive.count + 2)
 	cp (ix + GzipArchive.isize + 2)
 	ret nz
-	ld a,b
+	ld a,(ix + GzipArchive.count + 3)
 	cp (ix + GzipArchive.isize + 3)
 	ret
 

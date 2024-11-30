@@ -2,6 +2,8 @@
 ; Top-level application program class
 ;
 Application: MACRO
+	outputFileHandle:
+		db 0FFH
 	outputSize:
 		dd 0
 	archiveFIB:
@@ -12,10 +14,6 @@ Application: MACRO
 		CLI
 	fileReader:
 		FileReader
-	fileWriter:
-		FileWriter
-	nullWriter:
-		NullWriter
 	gzipArchive:
 		GzipArchive
 	_size:
@@ -25,7 +23,6 @@ Application: MACRO
 Application_Main:
 	call Application_CheckStack
 
-	call WriterTest_Test
 	call CRC32CheckerTest_Test
 	call AlphabetTest_Test
 
@@ -74,26 +71,6 @@ Application_GetFileReader:
 	ret
 
 ; ix = this
-; ix <- file writer
-; Modifies: f
-Application_GetFileWriter:
-	push de
-	ld de,Application.fileWriter
-	add ix,de
-	pop de
-	ret
-
-; ix = this
-; ix <- null writer
-; Modifies: f
-Application_GetNullWriter:
-	push de
-	ld de,Application.nullWriter
-	add ix,de
-	pop de
-	ret
-
-; ix = this
 ; ix <- gzip archive
 ; Modifies: f
 Application_GetGzipArchive:
@@ -131,56 +108,75 @@ Application_Inflate:
 	jp Application_InflateToFile
 
 ; ix = this
-Application_InflateToFile:
+Application_InflateToFile: PROC
 	call Application_FindNextFile
 	ret c
 	call Application_PrintInflating
-	push ix
 	call Application_CreateFileReader
 	push de
 	call Application_ReadOutputSize
 	call Application_IsFast
 	cpl
+	pop hl
 	push ix
 	call Application_GetGzipArchive
+	ld bc,Application_decoders
+	ld de,WRITEBUFFER
 	call GzipArchive_Construct
-	ex (sp),ix
+	pop ix
 	call Application_FindNewOutput
 	call Application_CreateFileWriter
 	call Application_PreAllocateOutput
+InflateLoop:
+	push ix
+	call Application_GetGzipArchive
+	call GzipArchive_Inflate
 	pop ix
-	push de
-	ld bc,Application_decoders
-	call GzipArchive_Extract
-	pop ix
-	call FileWriter_Destruct
-	pop ix
+	push af
+	push hl
+	call DOS_ConsoleStatus  ; allow ctrl-c
+	pop hl
+	ld b,(ix + Application.outputFileHandle)
+	call DOS_WriteToFileHandle
+	call DOS_TerminateIfError
+	call DOS_ConsoleStatus  ; allow ctrl-c
+	pop af
+	jr nz,InflateLoop
+	push ix
+	call Application_GetFileReader
 	call FileReader_Destruct
 	pop ix
+	ld b,(ix + Application.outputFileHandle)
+	call DOS_CloseFileHandle
+	call DOS_TerminateIfError
 	jr Application_InflateToFile
+	ENDP
 
 ; ix = this
-Application_InflateTest:
+Application_InflateTest: PROC
 	call Application_FindNextFile
 	ret c
 	call Application_PrintTesting
-	push ix
 	call Application_CreateFileReader
 	push de
 	call Application_IsFast
 	cpl
+	pop hl
 	push ix
 	call Application_GetGzipArchive
-	call GzipArchive_Construct
-	ex (sp),ix
-	call Application_CreateNullWriter
-	pop ix
 	ld bc,Application_decoders
-	call GzipArchive_Extract
+	ld de,WRITEBUFFER
+	call GzipArchive_Construct
+InflateLoop:
+	call GzipArchive_Inflate
+	jr nz,InflateLoop
 	pop ix
+	push ix
+	call Application_GetFileReader
 	call FileReader_Destruct
 	pop ix
 	jr Application_InflateTest
+	ENDP
 
 ; ix = this
 Application_PrintWelcome:
@@ -333,36 +329,19 @@ Application_CreateFileWriter:
 	ld hl,Application.outputFIB
 	add hl,de
 	ex de,hl
-	ld hl,WRITEBUFFER
-	ld bc,WRITEBUFFER_SIZE
-	push ix
-	call Application_GetFileWriter
-	call FileWriter_Construct
-	ld e,ixl
-	ld d,ixh
-	pop ix
-	ret
-
-; ix = this
-; de <- null writer
-Application_CreateNullWriter:
-	ld hl,WRITEBUFFER
-	ld bc,WRITEBUFFER_SIZE
-	push ix
-	call Application_GetNullWriter
-	call NullWriter_Construct
-	ld e,ixl
-	ld d,ixh
-	pop ix
+	ld a,00000010B  ; write only
+	ld b,0
+	call DOS_OpenFileHandle
+	call DOS_TerminateIfError
+	ld (ix + Application.outputFileHandle),b
 	ret
 
 ; de = file reader
 ; ix = this
-; Modifies: af, bc, hl, iy
+; Modifies: af, bc, de, hl, iy
 Application_ReadOutputSize:
 	ld iyl,e
 	ld iyh,d
-	push de
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_GetFileHandlePointer
 	call DOS_TerminateIfError
@@ -387,21 +366,15 @@ Application_ReadOutputSize:
 	pop de
 	ld b,(iy + FileReader.fileHandle)
 	call DOS_SetFileHandlePointer
-	call DOS_TerminateIfError
-	pop de
-	ret
+	jp DOS_TerminateIfError
 
-; de = file writer
 ; ix = this
-; Modifies: af, bc, hl, iy
+; Modifies: af, bc, de, hl
 Application_PreAllocateOutput:
-	ld iyl,e
-	ld iyh,d
 	ld a,(ix + Application.outputSize + 2)
 	or (ix + Application.outputSize + 3)
 	ret z  ; don’t pre-allocate if < 64K
-	push de
-	ld b,(iy + FileWriter.fileHandle)
+	ld b,(ix + Application.outputFileHandle)
 	call DOS_GetFileHandlePointer
 	call DOS_TerminateIfError
 	push de
@@ -416,20 +389,19 @@ Application_PreAllocateOutput:
 	ex de,hl
 	sbc hl,bc
 	ex de,hl
-	ld b,(iy + FileWriter.fileHandle)
+	ld b,(ix + Application.outputFileHandle)
 	call DOS_SetFileHandlePointer
 	call DOS_TerminateIfError
 	ld de,0  ; don’t care which value we write
 	ld hl,1
-	ld b,(iy + FileWriter.fileHandle)
+	ld b,(ix + Application.outputFileHandle)
 	call DOS_WriteToFileHandle
 	call DOS_TerminateIfError
 	pop hl
 	pop de
-	ld b,(iy + FileWriter.fileHandle)
+	ld b,(ix + Application.outputFileHandle)
 	call DOS_SetFileHandlePointer
 	call DOS_TerminateIfError
-	pop de
 	ret
 
 ; Check if the stack is well above the heap
