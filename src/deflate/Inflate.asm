@@ -356,155 +356,155 @@ Inflate_DecodeDistanceInline: MACRO
 Inflate_CopyDistance.0:
 	exx
 	ld hl,-1
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.1:
 	exx
 	ld hl,-2
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.2:
 	exx
 	ld hl,-3
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.3:
 	exx
 	ld hl,-4
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.4:
 	call Reader_ReadBitsInline_1_IY
 	xor -5
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.5:
 	call Reader_ReadBitsInline_1_IY
 	xor -7
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.6:
 	call Reader_ReadBitsInline_2_IY
 	xor -9
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.7:
 	call Reader_ReadBitsInline_2_IY
 	xor -13
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.8:
 	call Reader_ReadBitsInline_3_IY
 	xor -17
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.9:
 	call Reader_ReadBitsInline_3_IY
 	xor -25
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.10:
 	call Reader_ReadBitsInline_4_IY
 	xor -33
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.11:
 	call Reader_ReadBitsInline_4_IY
 	xor -49
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.12:
 	call Reader_ReadBitsInline_5_IY
 	xor -65
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.13:
 	call Reader_ReadBitsInline_5_IY
 	xor -97
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.14:
 	call Reader_ReadBitsInline_6_IY
 	xor -129
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.15:
 	call Reader_ReadBitsInline_6_IY
 	xor -193
-	jp Inflate_CopyAndNext_SetSmallDistance
+	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.16:
 	call Reader_ReadBitsInline_7_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-257 >> 8
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.17:
 	call Reader_ReadBitsInline_7_IY
 	exx
 	xor -385 & 0FFH
 	ld l,a
 	ld h,-385 >> 8
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.18:
 	call Reader_ReadBitsInline_8_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-513 >> 8
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.19:
 	call Reader_ReadBitsInline_8_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-769 >> 8
-	jp Inflate_CopyAndNext
+	jp Inflate_Copy
 Inflate_CopyDistance.20:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_1_IY
 	xor -1025 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.21:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_1_IY
 	xor -1537 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.22:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_2_IY
 	xor -2049 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.23:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_2_IY
 	xor -3073 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.24:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_3_IY
 	xor -4097 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.25:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_3_IY
 	xor -6145 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.26:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_4_IY
 	xor -8193 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.27:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_4_IY
 	xor -12289 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.28:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_5_IY
 	xor -16385 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.29:
 	call Reader_ReadBitsInline_8_IY
 	ex af,af'
 	call Reader_ReadBitsInline_5_IY
 	xor -24577 >> 8
-	jp Inflate_CopyAndNext_SetBigDistance
+	jp Inflate_CopyLargeDistance
 
 ; a = -distance
 ; bc = length
@@ -513,11 +513,11 @@ Inflate_CopyDistance.29:
 ; hl' = distance decoder
 ; ix = writer
 ; iy = reader
-Inflate_CopyAndNext_SetSmallDistance:
+Inflate_CopySmallDistance:
 	exx
 	ld l,a
 	ld h,-1
-	Inflate_CopyAndNextInline
+	Inflate_CopyInline
 
 ; a = -distance MSB
 ; a' = ~-distance LSB
@@ -527,13 +527,13 @@ Inflate_CopyAndNext_SetSmallDistance:
 ; hl' = distance decoder
 ; ix = writer
 ; iy = reader
-Inflate_CopyAndNext_SetBigDistance:
+Inflate_CopyLargeDistance:
 	exx
 	ld h,a
 	ex af,af'
 	cpl
 	ld l,a
-	Inflate_CopyAndNextInline
+	Inflate_CopyInline
 
 ; bc = length
 ; hl = -distance
@@ -542,15 +542,15 @@ Inflate_CopyAndNext_SetBigDistance:
 ; hl' = distance decoder
 ; ix = writer
 ; iy = reader
-Inflate_CopyAndNextInline: MACRO
+Inflate_CopyInline: MACRO
 	call Writer_Copy
 	exx
 	ex de,hl
 	Inflate_DecodeLiteralLengthInline
 	ENDM
 
-Inflate_CopyAndNext:
-	Inflate_CopyAndNextInline
+Inflate_Copy:
+	Inflate_CopyInline
 
 ;
 Inflate_literalLengthSymbols:
