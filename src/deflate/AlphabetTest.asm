@@ -105,7 +105,7 @@ AlphabetTest_TestTreeBuilding: PROC
 	ldir
 	ld hl,READBUFFER
 	ld bc,READBUFFER_SIZE
-	ld de,Reader_DefaultFiller
+	ld de,AlphabetTest_Supplier
 	ld ix,AlphabetTest_reader
 	call BitReader_Construct
 
@@ -127,6 +127,13 @@ Loop:
 	call BitReader_FinishReadInline_IY
 	ret
 	ENDP
+
+; de <- buffer start
+; hl <- buffer size
+AlphabetTest_Supplier:
+	ld de,READBUFFER
+	ld hl,READBUFFER_SIZE
+	ret
 
 AlphabetTest_alphabet:
 	Alphabet

@@ -2,6 +2,8 @@
 ; Top-level application program class
 ;
 Application: MACRO
+	archiveFileHandle:
+		db 0FFH
 	outputFileHandle:
 		db 0FFH
 	outputSize:
@@ -12,8 +14,10 @@ Application: MACRO
 		FileInfoBlock
 	cli:
 		CLI
-	fileReader:
-		FileReader
+	fileSupplier:
+		FileSupplier
+	bitReader:
+		BitReader
 	gzipArchive:
 		GzipArchive
 	_size:
@@ -61,11 +65,21 @@ Application_GetCLI:
 	ret
 
 ; ix = this
-; ix <- file reader
+; ix <- file supplier
 ; Modifies: f
-Application_GetFileReader:
+Application_GetFileSupplier:
 	push de
-	ld de,Application.fileReader
+	ld de,Application.fileSupplier
+	add ix,de
+	pop de
+	ret
+
+; ix = this
+; ix <- bit reader
+; Modifies: f
+Application_GetBitReader:
+	push de
+	ld de,Application.bitReader
 	add ix,de
 	pop de
 	ret
@@ -142,10 +156,9 @@ InflateLoop:
 	call DOS_ConsoleStatus  ; allow ctrl-c
 	pop af
 	jr nz,InflateLoop
-	push ix
-	call Application_GetFileReader
-	call FileReader_Destruct
-	pop ix
+	ld b,(ix + Application.archiveFileHandle)
+	call DOS_CloseFileHandle
+	call DOS_TerminateIfError
 	ld b,(ix + Application.outputFileHandle)
 	call DOS_CloseFileHandle
 	call DOS_TerminateIfError
@@ -171,10 +184,9 @@ InflateLoop:
 	call GzipArchive_Inflate
 	jr nz,InflateLoop
 	pop ix
-	push ix
-	call Application_GetFileReader
-	call FileReader_Destruct
-	pop ix
+	ld b,(ix + Application.archiveFileHandle)
+	call DOS_CloseFileHandle
+	call DOS_TerminateIfError
 	jr Application_InflateTest
 	ENDP
 
@@ -311,11 +323,21 @@ Application_CreateFileReader:
 	ld hl,Application.archiveFIB
 	add hl,de
 	ex de,hl
-	ld hl,READBUFFER
-	ld bc,READBUFFER_SIZE
+	ld a,00000001B  ; read only
+	call DOS_OpenFileHandle
+	call DOS_TerminateIfError
+	ld (ix + Application.archiveFileHandle),b
+	ld de,READBUFFER
+	ld hl,READBUFFER_SIZE
 	push ix
-	call Application_GetFileReader
-	call FileReader_Construct
+	call Application_GetFileSupplier
+	call FileSupplier_Construct
+	ld e,ixl
+	ld d,ixh
+	pop ix
+	push ix
+	call Application_GetBitReader
+	call BitReader_Construct
 	ld e,ixl
 	ld d,ixh
 	pop ix
@@ -336,13 +358,10 @@ Application_CreateFileWriter:
 	ld (ix + Application.outputFileHandle),b
 	ret
 
-; de = file reader
 ; ix = this
-; Modifies: af, bc, de, hl, iy
+; Modifies: af, bc, de, hl
 Application_ReadOutputSize:
-	ld iyl,e
-	ld iyh,d
-	ld b,(iy + FileReader.fileHandle)
+	ld b,(ix + Application.archiveFileHandle)
 	call DOS_GetFileHandlePointer
 	call DOS_TerminateIfError
 	push de
@@ -350,7 +369,7 @@ Application_ReadOutputSize:
 	ld a,2
 	ld hl,-4 & 0FFFFH
 	ld de,-4 >> 16
-	ld b,(iy + FileReader.fileHandle)
+	ld b,(ix + Application.archiveFileHandle)
 	call DOS_MoveFileHandlePointer
 	call DOS_TerminateIfError
 	ld e,ixl
@@ -359,12 +378,12 @@ Application_ReadOutputSize:
 	add hl,de
 	ex de,hl
 	ld hl,4
-	ld b,(iy + FileReader.fileHandle)
+	ld b,(ix + Application.archiveFileHandle)
 	call DOS_ReadFromFileHandle
 	call DOS_TerminateIfError
 	pop hl
 	pop de
-	ld b,(iy + FileReader.fileHandle)
+	ld b,(ix + Application.archiveFileHandle)
 	call DOS_SetFileHandlePointer
 	jp DOS_TerminateIfError
 
