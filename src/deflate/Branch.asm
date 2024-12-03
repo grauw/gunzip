@@ -4,7 +4,7 @@
 Branch: MACRO
 	; iy = reader
 	Process:
-		Reader_ReadBitInline_IY
+		BitReader_ReadInline_IY
 	jump:
 		jp c,System_ThrowException
 	jumpAddress: equ $ - 2

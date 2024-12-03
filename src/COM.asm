@@ -39,6 +39,7 @@ TPA_TOP:
 	INCLUDE "deflate/Branch.asm"
 	INCLUDE "deflate/HuffmanCodes.asm"
 	INCLUDE "Reader.asm"
+	INCLUDE "BitReader.asm"
 	INCLUDE "FileReader.asm"
 	INCLUDE "CRC32Checker.asm"
 	INCLUDE "CRC32CheckerTest.asm"

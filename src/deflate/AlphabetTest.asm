@@ -107,10 +107,10 @@ AlphabetTest_TestTreeBuilding: PROC
 	ld bc,READBUFFER_SIZE
 	ld de,Reader_DefaultFiller
 	ld ix,AlphabetTest_reader
-	call Reader_Construct
+	call BitReader_Construct
 
 	ld iy,AlphabetTest_reader
-	call Reader_PrepareReadBitInline_IY
+	call BitReader_PrepareReadInline_IY
 	ld d,7
 	ld hl,AlphabetTest_expectedSymbols
 	ld ix,AlphabetTest_alphabet
@@ -124,7 +124,7 @@ Loop:
 	inc hl
 	dec d
 	jr nz,Loop
-	call Reader_FinishReadBitInline_IY
+	call BitReader_FinishReadInline_IY
 	ret
 	ENDP
 
@@ -132,7 +132,7 @@ AlphabetTest_alphabet:
 	Alphabet
 
 AlphabetTest_reader:
-	Reader
+	BitReader
 
 AlphabetTest_testCodeLengths:
 	db 4, 3, 4, 1, 3, 4, 4

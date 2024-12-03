@@ -109,19 +109,19 @@ HuffmanCodes_BuildDistanceDecoder:
 ; iy = reader
 HuffmanCodes_ReadLengths:
 	ld b,5
-	call Reader_ReadBits_IY
+	call BitReader_Read_N_IY
 	inc a
 	cp (HuffmanCodes_MAX_LITERALLENGTHCODELENGTHS & 0FFH) + 1
 	call nc,System_ThrowException
 	ld (ix + HuffmanCodes.hlit),a
 	ld b,5
-	call Reader_ReadBits_IY
+	call BitReader_Read_N_IY
 	inc a
 	cp HuffmanCodes_MAX_DISTANCECODELENGTHS + 1
 	call nc,System_ThrowException
 	ld (ix + HuffmanCodes.hdist),a
 	ld b,4
-	call Reader_ReadBits_IY
+	call BitReader_Read_N_IY
 	add a,4
 	cp HuffmanCodes_MAX_HEADERCODELENGTHS + 1
 	call nc,System_ThrowException
@@ -146,7 +146,7 @@ HuffmanCodes_ReadHeaderCodeLengths: PROC
 Loop:
 	push bc
 	ld b,3
-	call Reader_ReadBits_IY
+	call BitReader_Read_N_IY
 	ld c,(hl)  ; b = 0 after ReadBits
 	inc hl
 	ex de,hl
@@ -176,10 +176,10 @@ HuffmanCodes_DecodeCodeLengths:
 	ld ixl,e
 	ld ixh,d
 	ld e,a  ; range: 258-318, two 8-bit loops
-	call Reader_PrepareReadBitInline_IY
+	call BitReader_PrepareReadInline_IY
 	call HuffmanCodes_DecodeCodeLength
 	call HuffmanCodes_DecodeCodeLength
-	call Reader_FinishReadBitInline_IY
+	call BitReader_FinishReadInline_IY
 	ld a,e
 	pop ix
 	pop hl
@@ -233,7 +233,7 @@ HuffmanCodes_WriteAndNext:
 ; ix = header code decoder
 ; iy = reader
 HuffmanCodes_Copy: PROC
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	add a,3
 	push bc
 	ld b,a
@@ -258,7 +258,7 @@ Loop:
 ; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillZero_3: PROC
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	add a,3
 Continue:
 	push bc
@@ -282,7 +282,7 @@ Loop:
 ; ix = header code decoder
 ; iy = reader
 HuffmanCodes_FillZero_11:
-	call Reader_ReadBitsInline_7_IY
+	call BitReader_ReadInline_7_IY
 	add a,11
 	jr HuffmanCodes_FillZero_3.Continue
 

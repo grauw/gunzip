@@ -129,11 +129,11 @@ Inflate_InflateLoop:
 	and 1 << Inflate_STATE_FINAL_BIT
 	ld (ix + Inflate.state),a
 	ret nz
-	call Reader_ReadBit_IY
+	call BitReader_Read_IY
 	rla  ; carry to Inflate_STATE_FINAL_BIT
 	ld (ix + Inflate.state),a
 	ld b,2
-	call Reader_ReadBits_IY
+	call BitReader_Read_N_IY
 	and a
 	jp z,Inflate_InflateUncompressed
 	cp 2
@@ -145,7 +145,7 @@ Inflate_InflateLoop:
 ; iy = reader
 Inflate_InflateUncompressed: PROC
 	set Inflate_STATE_COPY_BIT,(ix + Inflate.state)
-	call Reader_Align_IY
+	call BitReader_Align_IY
 	call Reader_ReadWord_IY
 	ld c,e
 	ld b,d
@@ -220,9 +220,9 @@ Inflate_InflateCompressed:
 	call Inflate_GetDecoders
 	call Decoders_GetDecoders
 	pop ix
-	call Reader_PrepareReadBitInline_IY
+	call BitReader_PrepareReadInline_IY
 	call Inflate_Decode
-	call Reader_FinishReadBitInline_IY
+	call BitReader_FinishReadInline_IY
 	bit Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
 	ret nz
 	jp Inflate_InflateLoop
@@ -315,83 +315,83 @@ Inflate_CopyLength.7:
 	ld bc,10
 	Inflate_DecodeDistanceInline
 Inflate_CopyLength.8:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	add a,11
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.9:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	add a,13
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.10:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	add a,15
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.11:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	add a,17
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.12:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	add a,19
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.13:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	add a,23
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.14:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	add a,27
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.15:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	add a,31
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.16:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	add a,35
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.17:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	add a,43
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.18:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	add a,51
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.19:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	add a,59
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.20:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	add a,67
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.21:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	add a,83
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.22:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	add a,99
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.23:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	add a,115
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.24:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	add a,131
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.25:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	add a,163
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.26:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	add a,195
 	jp Inflate_DecodeDistance_SetLength
 Inflate_CopyLength.27:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	add a,227
 	jp nc,Inflate_DecodeDistance_SetLength
 	exx
@@ -451,139 +451,139 @@ Inflate_CopyDistance.3:
 	ld hl,-4
 	jp Inflate_Copy
 Inflate_CopyDistance.4:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	xor -5
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.5:
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	xor -7
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.6:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	xor -9
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.7:
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	xor -13
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.8:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	xor -17
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.9:
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	xor -25
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.10:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	xor -33
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.11:
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	xor -49
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.12:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	xor -65
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.13:
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	xor -97
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.14:
-	call Reader_ReadBitsInline_6_IY
+	call BitReader_ReadInline_6_IY
 	xor -129
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.15:
-	call Reader_ReadBitsInline_6_IY
+	call BitReader_ReadInline_6_IY
 	xor -193
 	jp Inflate_CopySmallDistance
 Inflate_CopyDistance.16:
-	call Reader_ReadBitsInline_7_IY
+	call BitReader_ReadInline_7_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-257 >> 8
 	jp Inflate_Copy
 Inflate_CopyDistance.17:
-	call Reader_ReadBitsInline_7_IY
+	call BitReader_ReadInline_7_IY
 	exx
 	xor -385 & 0FFH
 	ld l,a
 	ld h,-385 >> 8
 	jp Inflate_Copy
 Inflate_CopyDistance.18:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-513 >> 8
 	jp Inflate_Copy
 Inflate_CopyDistance.19:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	exx
 	cpl
 	ld l,a
 	ld h,-769 >> 8
 	jp Inflate_Copy
 Inflate_CopyDistance.20:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	xor -1025 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.21:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_1_IY
+	call BitReader_ReadInline_1_IY
 	xor -1537 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.22:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	xor -2049 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.23:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_2_IY
+	call BitReader_ReadInline_2_IY
 	xor -3073 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.24:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	xor -4097 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.25:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_3_IY
+	call BitReader_ReadInline_3_IY
 	xor -6145 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.26:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	xor -8193 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.27:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_4_IY
+	call BitReader_ReadInline_4_IY
 	xor -12289 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.28:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	xor -16385 >> 8
 	jp Inflate_CopyLargeDistance
 Inflate_CopyDistance.29:
-	call Reader_ReadBitsInline_8_IY
+	call BitReader_ReadInline_8_IY
 	ex af,af'
-	call Reader_ReadBitsInline_5_IY
+	call BitReader_ReadInline_5_IY
 	xor -24577 >> 8
 	jp Inflate_CopyLargeDistance
 
