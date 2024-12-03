@@ -21,6 +21,7 @@ Adler32Checker: MACRO
 ; de = writer
 ; ix = this
 ; ix <- this
+; Modifies: a
 Adler32Checker_Construct:
 	ld iyl,e
 	ld iyh,d
@@ -77,17 +78,18 @@ Adler32Checker_UpdateAdler32:
 ; bcde = expected adler32
 ; ix = this
 ; f <- nz: mismatch
-; Modifies: af, bc, de, hl
 Adler32Checker_VerifyAdler32:
-	ld l,(ix + Adler32Checker.adler32)
-	ld h,(ix + Adler32Checker.adler32 + 1)
-	and a
-	sbc hl,de
+	ld a,e
+	sub (ix + Adler32Checker.adler32)
 	ret nz
-	ld l,(ix + Adler32Checker.adler32 + 2)
-	ld h,(ix + Adler32Checker.adler32 + 3)
-	and a
-	sbc hl,bc
+	ld a,d
+	sub (ix + Adler32Checker.adler32 + 1)
+	ret nz
+	ld a,c
+	sub (ix + Adler32Checker.adler32 + 2)
+	ret nz
+	ld a,b
+	sub (ix + Adler32Checker.adler32 + 3)
 	ret
 
 ; bc' = byte count
