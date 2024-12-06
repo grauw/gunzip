@@ -38,7 +38,7 @@ Decoder: MACRO ?symbols
 		ds (?symbols - 1) * Alphabet_BRANCH_SIZE + ((?symbols + 1 >> 1) + 6) * Alphabet_LEAF0_SIZE
 	decoderEnd:
 		ds 4
-	sortedCodeLengths: equ $ - 3 * ?symbols + 1
+	sortedCodeLengths: equ $ - (3 * ?symbols + 1)
 	ENDM
 
 Decoders: MACRO
