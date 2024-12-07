@@ -16,8 +16,6 @@ Application: MACRO
 		CLI
 	fileSupplier:
 		FileSupplier
-	bitReader:
-		BitReader
 	gzipArchive:
 		GzipArchive
 	_size:
@@ -41,7 +39,6 @@ Application_Main:
 	ret
 
 ; ix = this
-; ix <- this
 Application_Construct:
 	push ix
 	call Application_GetCLI
@@ -50,7 +47,6 @@ Application_Construct:
 	ret
 
 ; ix = this
-; ix <- this
 Application_Destruct:
 	ret
 
@@ -70,16 +66,6 @@ Application_GetCLI:
 Application_GetFileSupplier:
 	push de
 	ld de,Application.fileSupplier
-	add ix,de
-	pop de
-	ret
-
-; ix = this
-; ix <- bit reader
-; Modifies: f
-Application_GetBitReader:
-	push de
-	ld de,Application.bitReader
 	add ix,de
 	pop de
 	ret
@@ -126,7 +112,7 @@ Application_InflateToFile: PROC
 	call Application_FindNextFile
 	ret c
 	call Application_PrintInflating
-	call Application_CreateFileReader
+	call Application_CreateFileSupplier
 	push de
 	call Application_ReadOutputSize
 	call Application_IsFast
@@ -170,7 +156,7 @@ Application_InflateTest: PROC
 	call Application_FindNextFile
 	ret c
 	call Application_PrintTesting
-	call Application_CreateFileReader
+	call Application_CreateFileSupplier
 	push de
 	call Application_IsFast
 	cpl
@@ -319,8 +305,8 @@ Application_FindNewOutput:
 	ret
 
 ; ix = this
-; de <- file reader
-Application_CreateFileReader:
+; de <- file supplier
+Application_CreateFileSupplier:
 	ld e,ixl
 	ld d,ixh
 	ld hl,Application.archiveFIB
@@ -335,12 +321,6 @@ Application_CreateFileReader:
 	push ix
 	call Application_GetFileSupplier
 	call FileSupplier_Construct
-	ld e,ixl
-	ld d,ixh
-	pop ix
-	push ix
-	call Application_GetBitReader
-	call BitReader_Construct
 	ld e,ixl
 	ld d,ixh
 	pop ix

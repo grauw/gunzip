@@ -10,8 +10,6 @@ ZlibArchive_MAX_WINDOW: equ 7
 ZlibArchive: MACRO
 	state:
 		db 0
-	reader:
-		dw 0
 	cm:
 		db 0
 	cinfo:
@@ -22,6 +20,8 @@ ZlibArchive: MACRO
 		IF ZLIB_ADLER32
 		dd 0
 		ENDIF
+	bitReader:
+		BitReader
 	inflate:
 		Inflate
 	adler32Checker:
@@ -34,9 +34,8 @@ ZlibArchive: MACRO
 ; a = -1: Adler32 check enabled, 0: disabled
 ; bc = decoders buffer
 ; de = write buffer (32K, 256-byte aligned)
-; hl = reader
+; hl = buffer supplier (de = last read address, de <- buffer start, hl <- buffer size)
 ; ix = this
-; ix <- this
 ZlibArchive_Construct:
 	IF ZLIB_ADLER32
 	and 1 << ZlibArchive_STATE_CHECKSUM_BIT
@@ -44,8 +43,14 @@ ZlibArchive_Construct:
 	xor a
 	ENDIF
 	ld (ix + ZlibArchive.state),a
-	ld (ix + ZlibArchive.reader),l
-	ld (ix + ZlibArchive.reader + 1),h
+	push ix
+	push de
+	ld de,ZlibArchive.bitReader
+	add ix,de
+	ex de,hl
+	call BitReader_Construct
+	pop de
+	pop ix
 	push ix
 	push de
 	ld de,ZlibArchive.inflate
@@ -63,13 +68,13 @@ ZlibArchive_Construct:
 	ret
 
 ; ix = this
-; iy <- file reader
+; iy <- bit reader
 ; Modifies: de
-ZlibArchive_GetReaderIY:
-	ld e,(ix + ZlibArchive.reader)
-	ld d,(ix + ZlibArchive.reader + 1)
-	ld iyl,e
-	ld iyh,d
+ZlibArchive_GetBitReaderIY:
+	ld e,ixl
+	ld d,ixh
+	ld iy,ZlibArchive.bitReader
+	add iy,de
 	ret
 
 ; ix = this
@@ -78,6 +83,7 @@ ZlibArchive_GetReaderIY:
 ; de <- buffer address
 ; hl <- byte count
 ZlibArchive_Inflate:
+	call ZlibArchive_GetBitReaderIY
 	bit ZlibArchive_STATE_HEADER_BIT,(ix + ZlibArchive.state)
 	call z,ZlibArchive_ReadHeader
 	push ix
@@ -96,9 +102,9 @@ ZlibArchive_Inflate:
 	ret
 
 ; ix = this
+; iy = bit reader
 ZlibArchive_ReadHeader:
 	set ZlibArchive_STATE_HEADER_BIT,(ix + ZlibArchive.state)
-	call ZlibArchive_GetReaderIY
 	call Reader_ReadWordBE_IY
 	call ZlibArchive_CheckFCHECK
 	jp nz,System_ThrowException  ; invalid FCHECK
@@ -182,9 +188,9 @@ ZlibArchive_UpdateAdler32:
 	ENDIF
 
 ; ix = this
+; iy = bit reader
 ZlibArchive_ReadFooter:
 	set ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
-	call ZlibArchive_GetReaderIY
 	call Reader_ReadDoubleWordBE_IY
 	IF ZLIB_ADLER32
 	ld (ix + ZlibArchive.adler32),l

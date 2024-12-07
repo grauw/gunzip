@@ -17,8 +17,6 @@ GzipArchive_RESERVED: equ 1 << 5 | 1 << 6 | 1 << 7
 GzipArchive: MACRO
 	state:
 		db 0
-	reader:
-		dw 0
 	count:
 		dd 0
 	flags:
@@ -35,6 +33,8 @@ GzipArchive: MACRO
 		IF GZIP_CRC32
 		dd 0
 		ENDIF
+	bitReader:
+		BitReader
 	inflate:
 		Inflate
 	crc32Checker:
@@ -47,9 +47,8 @@ GzipArchive: MACRO
 ; a = -1: CRC32 check enabled, 0: disabled
 ; bc = decoders buffer
 ; de = write buffer (32K, 256-byte aligned)
-; hl = reader
+; hl = buffer supplier (de = last read address, de <- buffer start, hl <- buffer size)
 ; ix = this
-; ix <- this
 GzipArchive_Construct:
 	IF GZIP_CRC32
 	and 1 << GzipArchive_STATE_CHECKSUM_BIT
@@ -57,13 +56,19 @@ GzipArchive_Construct:
 	xor a
 	ENDIF
 	ld (ix + GzipArchive.state),a
-	ld (ix + GzipArchive.reader),l
-	ld (ix + GzipArchive.reader + 1),h
 	xor a
 	ld (ix + GzipArchive.count),a
 	ld (ix + GzipArchive.count + 1),a
 	ld (ix + GzipArchive.count + 2),a
 	ld (ix + GzipArchive.count + 3),a
+	push ix
+	push de
+	ld de,GzipArchive.bitReader
+	add ix,de
+	ex de,hl
+	call BitReader_Construct
+	pop de
+	pop ix
 	push ix
 	push de
 	ld de,GzipArchive.inflate
@@ -81,13 +86,13 @@ GzipArchive_Construct:
 	ret
 
 ; ix = this
-; iy <- file reader
+; iy <- bit reader
 ; Modifies: de
-GzipArchive_GetReaderIY:
-	ld e,(ix + GzipArchive.reader)
-	ld d,(ix + GzipArchive.reader + 1)
-	ld iyl,e
-	ld iyh,d
+GzipArchive_GetBitReaderIY:
+	ld e,ixl
+	ld d,ixh
+	ld iy,GzipArchive.bitReader
+	add iy,de
 	ret
 
 ; ix = this
@@ -96,6 +101,7 @@ GzipArchive_GetReaderIY:
 ; de <- buffer address
 ; hl <- byte count
 GzipArchive_Inflate:
+	call GzipArchive_GetBitReaderIY
 	bit GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
 	call z,GzipArchive_ReadHeader
 	push ix
@@ -114,9 +120,9 @@ GzipArchive_Inflate:
 	ret
 
 ; ix = this
+; iy = bit reader
 GzipArchive_ReadHeader: PROC
 	set GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
-	call GzipArchive_GetReaderIY
 	call Reader_Read_IY
 	cp GzipArchive_SIGNATURE_1
 	ld hl,GzipArchive_notGzipError
@@ -219,9 +225,9 @@ GzipArchive_UpdateCRC32:
 	ENDIF
 
 ; ix = this
+; iy = bit reader
 GzipArchive_ReadFooter:
 	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
-	call GzipArchive_GetReaderIY
 	call Reader_ReadDoubleWord_IY
 	IF GZIP_CRC32
 	ld (ix + GzipArchive.crc32),l

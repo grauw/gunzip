@@ -30,8 +30,6 @@ Inflate: MACRO
 		dw 0
 	copySource:
 		dw 0
-	reader:
-		dw 0
 	decoders:
 		dw 0
 	huffmanCodes:
@@ -41,9 +39,7 @@ Inflate: MACRO
 
 ; bc = decoders buffer
 ; de = write buffer (32K, 256-byte aligned)
-; hl = reader
 ; ix = this
-; ix <- this
 Inflate_Construct:
 	ld a,e  ; check if write buffer is 256-byte aligned
 	and a
@@ -57,24 +53,12 @@ Inflate_Construct:
 	sub 3
 	ld (ix + Inflate.bufferEndCopyMargin),a
 	ld (ix + Inflate.state),0
-	ld (ix + Inflate.reader),l
-	ld (ix + Inflate.reader + 1),h
 	ld (ix + Inflate.decoders),c
 	ld (ix + Inflate.decoders + 1),b
 	push ix
 	call Inflate_GetHuffmanCodes
 	call HuffmanCodes_Construct
 	pop ix
-	ret
-
-; ix = this
-; iy <- reader
-; Modifies: de
-Inflate_GetReaderIY:
-	ld e,(ix + Inflate.reader)
-	ld d,(ix + Inflate.reader + 1)
-	ld iyl,e
-	ld iyh,d
 	ret
 
 ; ix = this
@@ -96,12 +80,12 @@ Inflate_GetHuffmanCodes:
 	ret
 
 ; ix = this
+; iy = bit reader
 ; a <- >0: more data, 0: final data
 ; f <- nz: more data, z: final data
 ; de <- buffer address
 ; hl <- byte count
 Inflate_Inflate:
-	call Inflate_GetReaderIY
 	call Inflate_InflateResume
 	ld l,(ix + Inflate.bufferPosition)
 	ld h,(ix + Inflate.bufferPosition + 1)
@@ -116,6 +100,7 @@ Inflate_Inflate:
 	ret
 
 ; ix = this
+; iy = bit reader
 Inflate_InflateResume:
 	bit Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
 	jp nz,Inflate_InflateCompressed
@@ -124,6 +109,7 @@ Inflate_InflateResume:
 	jp Inflate_InflateLoop
 
 ; ix = this
+; iy = bit reader
 Inflate_InflateLoop:
 	ld a,(ix + Inflate.state)
 	and 1 << Inflate_STATE_FINAL_BIT
@@ -142,7 +128,7 @@ Inflate_InflateLoop:
 	jp System_ThrowException  ; invalid block type
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_InflateUncompressed: PROC
 	set Inflate_STATE_COPY_BIT,(ix + Inflate.state)
 	call BitReader_Align_IY
@@ -197,7 +183,7 @@ Resume:
 	ENDP
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_InflateFixedCompressed:
 	push ix
 	call Inflate_GetHuffmanCodes
@@ -206,7 +192,7 @@ Inflate_InflateFixedCompressed:
 	jp Inflate_InflateCompressed
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_InflateDynamicCompressed:
 	push ix
 	call Inflate_GetHuffmanCodes
@@ -215,7 +201,7 @@ Inflate_InflateDynamicCompressed:
 	jp Inflate_InflateCompressed
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_InflateCompressed:
 	push ix
 	call Inflate_GetDecoders
@@ -239,7 +225,7 @@ Inflate_Decode: PROC
 ; hl = literal/length decoder
 ; de = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_DecodeLiteralLengthInline: MACRO
 	jp hl
 	ENDM
@@ -249,7 +235,7 @@ Inflate_DecodeLiteralLengthInline: MACRO
 ; hl = literal/length decoder
 ; de = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_WriteLiteral: REPT 256, ?value
 	ld a,?value
 	jp ix
@@ -259,7 +245,7 @@ Inflate_WriteLiteral: REPT 256, ?value
 ; hl = literal/length decoder
 ; de = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_WriteLiteralCarry:
 	inc (ix + Inflate.bufferPosition + 1)
 	ld a,(ix + Inflate.bufferPosition + 1)
@@ -272,7 +258,7 @@ Inflate_WriteLiteralCarry:
 ; hl = literal/length decoder
 ; de = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_EndBlock:
 	res Inflate_STATE_COMPRESSED_BIT,(ix + Inflate.state)
 	ret
@@ -282,7 +268,7 @@ Inflate_EndBlock:
 ; hl = literal/length decoder
 ; de = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_CopyLength.0:
 	exx
 	ld bc,3
@@ -409,7 +395,7 @@ Inflate_CopyLength.28:
 ; hl' = literal/length decoder
 ; de' = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_DecodeDistance_SetLength:
 	exx
 	ld c,a
@@ -421,7 +407,7 @@ Inflate_DecodeDistance_SetLength:
 ; hl' = literal/length decoder
 ; de' = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_DecodeDistanceInline: MACRO
 	exx
 	ex de,hl
@@ -434,7 +420,7 @@ Inflate_DecodeDistanceInline: MACRO
 ; de = literal/length decoder
 ; hl = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_CopyDistance.0:
 	exx
 	ld hl,-1
@@ -594,7 +580,7 @@ Inflate_CopyDistance.29:
 ; de' = literal/length decoder
 ; hl' = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_CopySmallDistance:
 	exx
 	ld l,a
@@ -608,7 +594,7 @@ Inflate_CopySmallDistance:
 ; de' = literal/length decoder
 ; hl' = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_CopyLargeDistance:
 	exx
 	ld h,a
@@ -623,7 +609,7 @@ Inflate_CopyLargeDistance:
 ; de' = literal/length decoder
 ; hl' = distance decoder
 ; ix = this
-; iy = reader
+; iy = bit reader
 Inflate_Copy: PROC
 	ld e,(ix + Inflate.bufferPosition)
 	ld d,(ix + Inflate.bufferPosition + 1)

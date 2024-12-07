@@ -29,19 +29,16 @@ HuffmanCodes_Construct:
 	ret
 
 ; ix = this
-; iy = reader
-; ix <- this
+; iy = bit reader
 HuffmanCodes_BuildDynamicDecoders:
 	call HuffmanCodes_ReadLengths
 	call HuffmanCodes_ReadHeaderCodeLengths
 	call HuffmanCodes_BuildHeaderCodeDecoder
 	call HuffmanCodes_DecodeCodeLengths
 	call HuffmanCodes_BuildLiteralLengthDecoder
-	call HuffmanCodes_BuildDistanceDecoder
-	ret
+	jp HuffmanCodes_BuildDistanceDecoder
 
 ; ix = this
-; ix <- this
 HuffmanCodes_BuildFixedDecoders:
 	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
 	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
@@ -102,7 +99,7 @@ HuffmanCodes_BuildDistanceDecoder:
 	jp Alphabet_BuildDecoder
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 HuffmanCodes_ReadLengths:
 	ld b,5
 	call BitReader_Read_N_IY
@@ -125,7 +122,7 @@ HuffmanCodes_ReadLengths:
 	ret
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 HuffmanCodes_ReadHeaderCodeLengths: PROC
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
@@ -156,7 +153,7 @@ Loop:
 	ENDP
 
 ; ix = this
-; iy = reader
+; iy = bit reader
 HuffmanCodes_DecodeCodeLengths:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
@@ -196,7 +193,7 @@ HuffmanCodes_DecodeCodeLengths:
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_DecodeCodeLength:
 	equ System_JumpIX
 
@@ -205,7 +202,7 @@ HuffmanCodes_DecodeCodeLength:
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_WriteLength: REPT 16, ?value
 	ld (hl),?value
 	jr HuffmanCodes_WriteAndNext
@@ -215,7 +212,7 @@ HuffmanCodes_WriteLength: REPT 16, ?value
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_WriteAndNext:
 	inc hl
 	inc e
@@ -227,7 +224,7 @@ HuffmanCodes_WriteAndNext:
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_Copy: PROC
 	call BitReader_ReadInline_2_IY
 	add a,3
@@ -252,7 +249,7 @@ Loop:
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_FillZero_3: PROC
 	call BitReader_ReadInline_3_IY
 	add a,3
@@ -276,7 +273,7 @@ Loop:
 ; e = -code lengths remaining
 ; hl = code lengths address
 ; ix = header code decoder
-; iy = reader
+; iy = bit reader
 HuffmanCodes_FillZero_11:
 	call BitReader_ReadInline_7_IY
 	add a,11
