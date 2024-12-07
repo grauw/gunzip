@@ -2,7 +2,8 @@
 ; Gzip archive
 ;
 GzipArchive_STATE_CHECKSUM_BIT: equ 0
-GzipArchive_STATE_FOOTER_BIT: equ 1
+GzipArchive_STATE_HEADER_BIT: equ 1
+GzipArchive_STATE_FOOTER_BIT: equ 2
 GzipArchive_SIGNATURE_1: equ 1FH
 GzipArchive_SIGNATURE_2: equ 8BH
 GzipArchive_DEFLATE_ID: equ 8
@@ -77,7 +78,7 @@ GzipArchive_Construct:
 	call CRC32Checker_Construct
 	pop ix
 	ENDIF
-	jp GzipArchive_ReadHeader
+	ret
 
 ; ix = this
 ; iy <- file reader
@@ -91,6 +92,7 @@ GzipArchive_GetReaderIY:
 
 ; ix = this
 GzipArchive_ReadHeader: PROC
+	set GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
 	call GzipArchive_GetReaderIY
 	call Reader_Read_IY
 	cp GzipArchive_SIGNATURE_1
@@ -146,6 +148,7 @@ SkipHeaderCRC:
 
 ; ix = this
 GzipArchive_ReadFooter:
+	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
 	call GzipArchive_GetReaderIY
 	call Reader_ReadDoubleWord_IY
 	IF GZIP_CRC32
@@ -153,12 +156,18 @@ GzipArchive_ReadFooter:
 	ld (ix + GzipArchive.crc32 + 1),h
 	ld (ix + GzipArchive.crc32 + 2),e
 	ld (ix + GzipArchive.crc32 + 3),d
+	call GzipArchive_VerifyCRC32
+	ld hl,GzipArchive_crc32MismatchError
+	jp nz,System_ThrowExceptionWithMessage
 	ENDIF
 	call Reader_ReadDoubleWord_IY
 	ld (ix + GzipArchive.isize),l
 	ld (ix + GzipArchive.isize + 1),h
 	ld (ix + GzipArchive.isize + 2),e
 	ld (ix + GzipArchive.isize + 3),d
+	call GzipArchive_VerifyISIZE
+	ld hl,GzipArchive_isizeMismatchError
+	jp nz,System_ThrowExceptionWithMessage
 	ret
 
 ; ix = this
@@ -166,7 +175,9 @@ GzipArchive_ReadFooter:
 ; f <- nz: more data, z: final data
 ; de <- buffer address
 ; hl <- byte count
-GzipArchive_Inflate: PROC
+GzipArchive_Inflate:
+	bit GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
+	call z,GzipArchive_ReadHeader
 	push ix
 	ld de,GzipArchive.inflate
 	add ix,de
@@ -174,20 +185,13 @@ GzipArchive_Inflate: PROC
 	pop ix
 	call GzipArchive_Update
 	ret nz
+	ex af,af'
+	exx
 	bit GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
-	call z,Footer
-	and a
-	ret
-Footer:
-	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
-	ex af,af'
-	exx
-	call GzipArchive_ReadFooter
-	call GzipArchive_Verify
+	call z,GzipArchive_ReadFooter
 	exx
 	ex af,af'
 	ret
-	ENDP
 
 ; de = buffer address
 ; hl = byte count
@@ -237,18 +241,6 @@ GzipArchive_UpdateCRC32:
 	ret
 
 	ENDIF
-
-; ix = this
-GzipArchive_Verify:
-	call GzipArchive_VerifyISIZE
-	ld hl,GzipArchive_isizeMismatchError
-	jp nz,System_ThrowExceptionWithMessage
-	IF GZIP_CRC32
-	call GzipArchive_VerifyCRC32
-	ld hl,GzipArchive_crc32MismatchError
-	jp nz,System_ThrowExceptionWithMessage
-	ENDIF
-	ret
 
 ; ix = this
 ; f <- nz: mismatch

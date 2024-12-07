@@ -2,7 +2,8 @@
 ; Zlib archive
 ;
 ZlibArchive_STATE_CHECKSUM_BIT: equ 0
-ZlibArchive_STATE_FOOTER_BIT: equ 1
+ZlibArchive_STATE_HEADER_BIT: equ 1
+ZlibArchive_STATE_FOOTER_BIT: equ 2
 ZlibArchive_DEFLATE_ID: equ 8
 ZlibArchive_MAX_WINDOW: equ 7
 
@@ -59,7 +60,7 @@ ZlibArchive_Construct:
 	call Adler32Checker_Construct
 	pop ix
 	ENDIF
-	jp ZlibArchive_ReadHeader
+	ret
 
 ; ix = this
 ; iy <- file reader
@@ -73,6 +74,7 @@ ZlibArchive_GetReaderIY:
 
 ; ix = this
 ZlibArchive_ReadHeader:
+	set ZlibArchive_STATE_HEADER_BIT,(ix + ZlibArchive.state)
 	call ZlibArchive_GetReaderIY
 	call Reader_ReadWordBE_IY
 	call ZlibArchive_CheckFCHECK
@@ -127,6 +129,7 @@ NoAdd:
 
 ; ix = this
 ZlibArchive_ReadFooter:
+	set ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
 	call ZlibArchive_GetReaderIY
 	call Reader_ReadDoubleWordBE_IY
 	IF ZLIB_ADLER32
@@ -134,6 +137,9 @@ ZlibArchive_ReadFooter:
 	ld (ix + ZlibArchive.adler32 + 1),h
 	ld (ix + ZlibArchive.adler32 + 2),e
 	ld (ix + ZlibArchive.adler32 + 3),d
+	call ZlibArchive_VerifyAdler32
+	ld hl,ZlibArchive_adler32MismatchError
+	jp nz,System_ThrowExceptionWithMessage
 	ENDIF
 	ret
 
@@ -142,7 +148,9 @@ ZlibArchive_ReadFooter:
 ; f <- nz: more data, z: final data
 ; de <- buffer address
 ; hl <- byte count
-ZlibArchive_Inflate: PROC
+ZlibArchive_Inflate:
+	bit ZlibArchive_STATE_HEADER_BIT,(ix + ZlibArchive.state)
+	call z,ZlibArchive_ReadHeader
 	push ix
 	ld de,ZlibArchive.inflate
 	add ix,de
@@ -150,20 +158,13 @@ ZlibArchive_Inflate: PROC
 	pop ix
 	call ZlibArchive_Update
 	ret nz
+	ex af,af'
+	exx
 	bit ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
-	call z,Footer
-	and a
-	ret
-Footer:
-	set ZlibArchive_STATE_FOOTER_BIT,(ix + ZlibArchive.state)
-	ex af,af'
-	exx
-	call ZlibArchive_ReadFooter
-	call ZlibArchive_Verify
+	call z,ZlibArchive_ReadFooter
 	exx
 	ex af,af'
 	ret
-	ENDP
 
 ; de = buffer address
 ; hl = byte count
@@ -195,15 +196,6 @@ ZlibArchive_UpdateAdler32:
 	ret
 
 	ENDIF
-
-; ix = this
-ZlibArchive_Verify:
-	IF ZLIB_ADLER32
-	call ZlibArchive_VerifyAdler32
-	ld hl,ZlibArchive_adler32MismatchError
-	jp nz,System_ThrowExceptionWithMessage
-	ENDIF
-	ret
 
 	IF ZLIB_ADLER32
 
