@@ -91,6 +91,29 @@ GzipArchive_GetReaderIY:
 	ret
 
 ; ix = this
+; a <- >0: more data, 0: final data
+; f <- nz: more data, z: final data
+; de <- buffer address
+; hl <- byte count
+GzipArchive_Inflate:
+	bit GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
+	call z,GzipArchive_ReadHeader
+	push ix
+	ld de,GzipArchive.inflate
+	add ix,de
+	call Inflate_Inflate
+	pop ix
+	call GzipArchive_Update
+	ret nz
+	ex af,af'
+	exx
+	bit GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
+	call z,GzipArchive_ReadFooter
+	exx
+	ex af,af'
+	ret
+
+; ix = this
 GzipArchive_ReadHeader: PROC
 	set GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
 	call GzipArchive_GetReaderIY
@@ -146,53 +169,6 @@ SkipHeaderCRC:
 	equ Reader_ReadWord_IY
 	ENDP
 
-; ix = this
-GzipArchive_ReadFooter:
-	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
-	call GzipArchive_GetReaderIY
-	call Reader_ReadDoubleWord_IY
-	IF GZIP_CRC32
-	ld (ix + GzipArchive.crc32),l
-	ld (ix + GzipArchive.crc32 + 1),h
-	ld (ix + GzipArchive.crc32 + 2),e
-	ld (ix + GzipArchive.crc32 + 3),d
-	call GzipArchive_VerifyCRC32
-	ld hl,GzipArchive_crc32MismatchError
-	jp nz,System_ThrowExceptionWithMessage
-	ENDIF
-	call Reader_ReadDoubleWord_IY
-	ld (ix + GzipArchive.isize),l
-	ld (ix + GzipArchive.isize + 1),h
-	ld (ix + GzipArchive.isize + 2),e
-	ld (ix + GzipArchive.isize + 3),d
-	call GzipArchive_VerifyISIZE
-	ld hl,GzipArchive_isizeMismatchError
-	jp nz,System_ThrowExceptionWithMessage
-	ret
-
-; ix = this
-; a <- >0: more data, 0: final data
-; f <- nz: more data, z: final data
-; de <- buffer address
-; hl <- byte count
-GzipArchive_Inflate:
-	bit GzipArchive_STATE_HEADER_BIT,(ix + GzipArchive.state)
-	call z,GzipArchive_ReadHeader
-	push ix
-	ld de,GzipArchive.inflate
-	add ix,de
-	call Inflate_Inflate
-	pop ix
-	call GzipArchive_Update
-	ret nz
-	ex af,af'
-	exx
-	bit GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
-	call z,GzipArchive_ReadFooter
-	exx
-	ex af,af'
-	ret
-
 ; de = buffer address
 ; hl = byte count
 ; ix = this
@@ -241,6 +217,30 @@ GzipArchive_UpdateCRC32:
 	ret
 
 	ENDIF
+
+; ix = this
+GzipArchive_ReadFooter:
+	set GzipArchive_STATE_FOOTER_BIT,(ix + GzipArchive.state)
+	call GzipArchive_GetReaderIY
+	call Reader_ReadDoubleWord_IY
+	IF GZIP_CRC32
+	ld (ix + GzipArchive.crc32),l
+	ld (ix + GzipArchive.crc32 + 1),h
+	ld (ix + GzipArchive.crc32 + 2),e
+	ld (ix + GzipArchive.crc32 + 3),d
+	call GzipArchive_VerifyCRC32
+	ld hl,GzipArchive_crc32MismatchError
+	jp nz,System_ThrowExceptionWithMessage
+	ENDIF
+	call Reader_ReadDoubleWord_IY
+	ld (ix + GzipArchive.isize),l
+	ld (ix + GzipArchive.isize + 1),h
+	ld (ix + GzipArchive.isize + 2),e
+	ld (ix + GzipArchive.isize + 3),d
+	call GzipArchive_VerifyISIZE
+	ld hl,GzipArchive_isizeMismatchError
+	jp nz,System_ThrowExceptionWithMessage
+	ret
 
 ; ix = this
 ; f <- nz: mismatch
