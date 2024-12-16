@@ -40,22 +40,40 @@ HuffmanCodes_BuildDynamicDecoders:
 
 ; ix = this
 HuffmanCodes_BuildFixedDecoders:
-	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
-	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
-	ld hl,Inflate_literalLengthSymbols
-	call Alphabet_Construct
+	call HuffmanCodes_GenerateFixedCodeLengths
+	call HuffmanCodes_BuildLiteralLengthDecoder
+	jp HuffmanCodes_BuildDistanceDecoder
+
+; ix = this
+HuffmanCodes_GenerateFixedCodeLengths:
 	ld e,(ix + HuffmanCodes.decoders)
 	ld d,(ix + HuffmanCodes.decoders + 1)
-	call Decoders_GetLiteralLengthDecoder
-	call Alphabet_BuildDecoder
-	ld bc,HuffmanCodes_fixedDistanceCodeLengthsCount
-	ld de,HuffmanCodes_fixedDistanceCodeLengths
-	ld hl,Inflate_distanceSymbols
-	call Alphabet_Construct
-	ld e,(ix + HuffmanCodes.decoders)
-	ld d,(ix + HuffmanCodes.decoders + 1)
-	call Decoders_GetDistanceDecoder
-	jp Alphabet_BuildDecoder
+	ld l,e
+	ld h,d
+	inc de
+	ld (hl),8  ; 0-143: 8
+	ld bc,144
+	ldir
+	ld (hl),9  ; 144-255: 9
+	ld c,112
+	ldir
+	ld (hl),7  ; 256-279: 7
+	ld c,24
+	ldir
+	ld (hl),8  ; 280-287: 8
+	ld c,8 - 1
+	ldir
+	ld hl,Decoders.distance - HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS
+	add hl,de
+	ld e,l
+	ld d,h
+	inc de
+	ld (hl),5
+	ld c,HuffmanCodes_FIXED_DISTANCECODELENGTHS - 1
+	ldir
+	ld (ix + HuffmanCodes.hlit),HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS
+	ld (ix + HuffmanCodes.hdist),HuffmanCodes_FIXED_DISTANCECODELENGTHS
+	ret
 
 ; ix = this
 HuffmanCodes_BuildHeaderCodeDecoder:
@@ -289,33 +307,3 @@ HuffmanCodes_headerCodeSymbols:
 	dw HuffmanCodes_WriteLength.8, HuffmanCodes_WriteLength.9, HuffmanCodes_WriteLength.10, HuffmanCodes_WriteLength.11
 	dw HuffmanCodes_WriteLength.12, HuffmanCodes_WriteLength.13, HuffmanCodes_WriteLength.14, HuffmanCodes_WriteLength.15
 	dw HuffmanCodes_Copy, HuffmanCodes_FillZero_3, HuffmanCodes_FillZero_11, System_ThrowException
-
-HuffmanCodes_fixedLiteralLengthCodeLengths:
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8  ; 0-143: 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9  ; 144-255: 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
-	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 7, 7, 7, 7, 7, 7, 7, 7  ; 256-279: 7
-	db 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8  ; 280-287: 8
-
-HuffmanCodes_fixedLiteralLengthCodeLengthsCount: equ $ - HuffmanCodes_fixedLiteralLengthCodeLengths
-
-	IF HuffmanCodes_fixedLiteralLengthCodeLengthsCount != HuffmanCodes_FIXED_LITERALLENGTHCODELENGTHS
-	ERROR "Fixed literal length code lengths count mismatch."
-	ENDIF
-
-HuffmanCodes_fixedDistanceCodeLengths:
-	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-	db 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5
-
-HuffmanCodes_fixedDistanceCodeLengthsCount: equ $ - HuffmanCodes_fixedDistanceCodeLengths
-
-	IF HuffmanCodes_fixedDistanceCodeLengthsCount != HuffmanCodes_FIXED_DISTANCECODELENGTHS
-	ERROR "Fixed distance code lengths count mismatch."
-	ENDIF

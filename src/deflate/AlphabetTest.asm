@@ -10,11 +10,35 @@ AlphabetTest_Test:
 	ret
 
 AlphabetTest_TestCodeBuilding:
-	ld bc,HuffmanCodes_fixedLiteralLengthCodeLengthsCount
-	ld de,HuffmanCodes_fixedLiteralLengthCodeLengths
+	ld bc,AlphabetTest_fixedLiteralLengthCodeLengthsCount
+	ld de,AlphabetTest_fixedLiteralLengthCodeLengths
 	ld hl,Inflate_literalLengthSymbols
-	call AlphabetTest_AssertConstructSuccess
+	ld ix,AlphabetTest_alphabet
+	call Alphabet_Construct
+	ld hl,AlphabetTest_alphabet.codeLengthCounts
+	ld de,AlphabetTest_expectedCodeLengthCounts
+	ld bc,Alphabet_MAX_CODELENGTH * 2
+	call AlphabetTest_AssertArrayEquals
+	ld de,Application_decoders.literalLength
+	call Decoders_GetLiteralLengthDecoder
+	call Alphabet_BuildDecoder
 	ret
+
+AlphabetTest_fixedLiteralLengthCodeLengths:
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8  ; 0-143: 8
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	db 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
+	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9  ; 144-255: 9
+	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
+	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
+	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9
+	db 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 7, 7, 7, 7, 7, 7, 7, 7  ; 256-279: 7
+	db 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8  ; 280-287: 8
+
+AlphabetTest_fixedLiteralLengthCodeLengthsCount: equ $ - AlphabetTest_fixedLiteralLengthCodeLengths
 
 AlphabetTest_expectedCodeLengthCounts:
 	db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 0, 152, 0
