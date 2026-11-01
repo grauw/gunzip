@@ -158,14 +158,15 @@ ResumeLoop:
 	ld e,(ix + Inflate.bufferPosition)
 	ld d,(ix + Inflate.bufferPosition + 1)
 Loop:
-	ld a,c
-	or b
-	jp z,Inflate_InflateLoop
 	ld l,0
 	ld h,(ix + Inflate.bufferEnd)
+	and a
 	sbc hl,de
 	jr c,Suspend
 	jr z,Suspend
+	ld a,c
+	or b
+	jp z,Inflate_InflateLoop
 	push bc
 	sbc hl,bc
 	jr nc,NoSplit  ; bc <= hl
