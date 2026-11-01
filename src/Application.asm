@@ -182,6 +182,9 @@ Application_InflateTest: PROC
 	call GzipArchive_Construct
 InflateLoop:
 	call GzipArchive_Inflate
+	push af
+	call DOS_ConsoleStatus  ; allow ctrl-c
+	pop af
 	jr nz,InflateLoop
 	pop ix
 	ld b,(ix + Application.archiveFileHandle)
