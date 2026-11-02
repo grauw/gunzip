@@ -139,7 +139,7 @@ Application_InflateToFile: PROC
 	call GzipArchive_Construct
 	pop ix
 	call Application_FindNewOutput
-	call Application_CreateFileWriter
+	call Application_OpenOutputFile
 	call Application_PreAllocateOutput
 InflateLoop:
 	push ix
@@ -347,8 +347,7 @@ Application_CreateFileReader:
 	ret
 
 ; ix = this
-; de <- file writer
-Application_CreateFileWriter:
+Application_OpenOutputFile:
 	ld e,ixl
 	ld d,ixh
 	ld hl,Application.outputFIB
