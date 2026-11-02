@@ -60,10 +60,10 @@ Decoders_GetDecoders:
 	ex de,hl
 	ret
 
-; bc = decoder buffer end
-; de = decoder buffer
-; hl = sorted code lengths start
 ; de = this
+; bc <- decoder buffer end
+; de <- decoder buffer
+; hl <- sorted code lengths start
 Decoders_GetLiteralLengthDecoder:
 	ld hl,Decoders.literalLength.decoderEnd
 	add hl,de
@@ -73,10 +73,10 @@ Decoders_GetLiteralLengthDecoder:
 	add hl,de
 	ret
 
-; bc = decoder buffer end
-; de = decoder buffer
-; hl = sorted code lengths start
 ; de = this
+; bc <- decoder buffer end
+; de <- decoder buffer
+; hl <- sorted code lengths start
 Decoders_GetDistanceDecoder:
 	ld hl,Decoders.distance.decoderEnd
 	add hl,de
