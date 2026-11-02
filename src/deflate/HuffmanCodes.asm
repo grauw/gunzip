@@ -10,10 +10,6 @@ HuffmanCodes_FIXED_DISTANCECODELENGTHS: equ HuffmanCodes_MAX_DISTANCECODELENGTHS
 HuffmanCodes: MACRO
 	alphabet:
 		Alphabet
-	literalLengthSymbols:
-		dw 0
-	distanceSymbols:
-		dw 0
 	decoders:
 		dw 0
 	hlit:
